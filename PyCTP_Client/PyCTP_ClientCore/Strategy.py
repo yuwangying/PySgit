@@ -56,13 +56,7 @@ class Strategy():
         self.__TdApi_TradingDay = self.__user.get_TdApi_TradingDay()  # 获取TdApi的交易日
         print(">>>Strategy.__init__() self.__TdApi_TradingDay =", self.__TdApi_TradingDay)
         self.set_arguments(dict_args)  # 设置策略参数，形参由server端获取到
-        # 从API查询期货合约信息中未找到该合约代码，则不创建Strategy对象
-        # if self.if_exist_instrument_id(self.__a_instrument_id) == False:
-        #     return
-        # if self.if_exist_instrument_id(self.__b_instrument_id) == False:
-        #     return
         self.get_td_api_arguments()  # 从TdApi获取必要的参数（合约乘数、手续费等）
-        print(">>>Strategy.__init__() call init_position_detail()")
         self.init_position_detail()  # 初始化策略持仓明细order、持仓明细trade
         # self.update_position_of_position_detail_for_trade()  # 利用trade持仓明细更新策略持仓变量
         self.update_position_of_position_detail_for_order()  # 利用order持仓明细更新策略持仓变量
@@ -2171,6 +2165,7 @@ class Strategy():
         self.spread_to_ui()
         """
         # self.slot_handle_tick(tick)  # 转到行情处理
+        print(">>>Strategy.OnRtnDepthMarketData() user_id =", self.__user_id, "strategy_id =", self.__strategy_id)
         pass
 
     @QtCore.pyqtSlot(dict)

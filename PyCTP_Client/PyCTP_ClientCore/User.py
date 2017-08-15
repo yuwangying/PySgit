@@ -51,6 +51,7 @@ class User():
         self.__threading_OnRtnTrade.setDaemon(True)
         self.__threading_count_commission_order.setDaemon(True)
         self.__dict_commission = dict()  # 保存手续费的字典，字典内元素格式为{'cu':{'OpenRatioByVolume': 0.0, 'OpenRatioByMoney': 2.5e-05, 'CloseTodayRatioByVolume': 0.0, 'CloseTodayRatioByMoney': 0.0, 'CloseRatioByVolume': 0.0, 'CloseRatioByMoney': 2.5e-05, 'InstrumentID': 'cu',  'InvestorRange': '1'}}
+        self.__dict_create_user_status = dict()  # User创建状态详情，记录md\td的创建和基本api方法调用是否成功，键名为调用的方法名称，键值为0代表调用成功
         self.__dict_strategy = dict()  # 存放策略对象的dict,{strategy_id: obj_strategy}
         self.__dict_strategy_finished = dict()  # 存放策略对象初始化完成标志{strategy_id: False}
         self.__dict_instrument_statistics = dict()  # 合约统计dict，{'rb1705': {'open_count': 0, 'action_count': 0}}
@@ -67,6 +68,7 @@ class User():
 
         self.load_server_data(self.__init_arguments)  # 组织从server获取到的数据
         self.load_xml_data(self.__init_arguments)  # 组织从xml获取到的数据
+        self.__TdApi_start_model = pyctp.Sgit_TERT_RESTART  # 启动模式为RESTART
 
         self.__qry_api_last_time = time.time()  # 类型浮点数，最后一次查询Trade_Api的时间
         print(">>>User.__init__() self.__qry_api_last_time =", self.__qry_api_last_time)
@@ -128,9 +130,9 @@ class User():
         # self.__threading_count_commission_order.start()
 
         # user初始化完成
-        self.create_md_api()
-        self.create_td_api()
-        # self.create_strategy_thread()
+
+        self.create_td_api()  # 创建TD实例，包含飞鼠和主席ctp的pai实例
+        self.create_strategy_thread()
         self.set_init_finished(True)
 
         # 定时进程间通信,user子进程发送信息给main进程,主进程接收到信息后更新界面
@@ -138,6 +140,7 @@ class User():
         self.__timer_thread.daemon = True
         self.__timer_thread.start()
 
+        self.create_md_api()  # 创建行情实例
         # 调用行情准备函数，可以推送行情
         self.__market_manager.get_market().api.Ready()
         # self.__trader_api.Join()  # 等待线程执行结束退出
@@ -147,7 +150,7 @@ class User():
     # 创建行情实例
     def create_md_api(self):
         # 创建行情实例
-        self.__dict_create_user_status = dict()  # User创建状态详情，包含marekt创建信息
+        # self.__dict_create_user_status = dict()  # User创建状态详情，记录md\td的创建和基本api方法调用是否成功
         self.__market_manager = MarketManager(self.__server_dict_market_info)
         self.__market_manager.set_User(self)  # User设置为属性
         self.__dict_create_user_status['result_market_connect'] = self.__market_manager.get_result_market_connect()
@@ -162,13 +165,14 @@ class User():
             print("User.__init__() user_id =", self.__user_id, "创建行情成功, self.__dict_create_user_status =",
                   self.__dict_create_user_status)
         # self.__MdApi_TradingDay = self.__market_manager.get_TradingDay()  # 获取行情接口的交易日
-        self.tdapi_start_model()  # 根据xml导入数据情况判断TdApi启动模式:RESTART、RESUME
+        # self.tdapi_start_model()  # 根据xml导入数据情况判断TdApi启动模式:RESTART、RESUME
         # self.init_instrument_statistics()  # 初始化期货账户合约统计：撤单次数和开仓手数
 
     # 创建交易实例
     def create_td_api(self):
         # 创建交易实例
-        # self.CTP_create_trader()  # 通过主席ctp柜台查询合约手续费率，因为飞鼠高频交易接口不提供查询手续费率
+        self.CTP_create_trader()  # 通过主席ctp柜台查询合约手续费率，因为飞鼠高频交易接口不提供查询手续费率
+        # self.__dict_create_user_status = dict()  # User创建状态详情，记录md\td的创建和基本api方法调用是否成功，键名为调用的方法名称，键值为0代表调用成功
         self.__trader = PyCTP_Trader_API(self.__server_dict_user_info)  # 创建TdSpi、TdApi对象
         self.__trader.set_user(self)  # User设置为属性
         self.connect_trade_front()  # 连接交易前置
@@ -177,7 +181,7 @@ class User():
         # self.__trader_api.Ready()
         # print(">>>User.__init__() self.__trader_api.Ready() finished")
         self.qry_trading_account()  # 查询资金账户
-        # self.qry_instrument_info()  # 查询合约信息
+        self.qry_instrument_info()  # 查询合约信息
         # self.qry_investor_position()  # 查询投资者持仓
         self.qry_inverstor_position_detail()  # 查询投资者持仓明细
         self.__create_user_success = True  # 初始化创建user失败标志

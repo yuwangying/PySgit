@@ -247,6 +247,7 @@ class MarketManagerForUi(QObject):
         self.__spread_long_last = 0.00001  # 最后一次保存的价差行情，初始值为一个不易出现的值
         self.__spread_short_last = 0.00001
         self.__last_list_market = [0, 0, 0, 0]  # 最后一次保存的价差行情[A买一, A卖一, B买一, B卖一]
+        self.__market__api_Ready = False  # 是否被调用标志位
         self.__market.api.Ready()  # 调用该方法之后行情开始推送
 
     def get_TradingDay(self):
@@ -390,10 +391,10 @@ class MarketManagerForUi(QObject):
     def OnRtnDepthMarketData(self, tick):
         if self.__a_instrument_id == tick['InstrumentID']:
             self.__a_tick = copy.deepcopy(tick)
-            # print(">>>MarketManagerForUi.OnRtnDepthMarketData() self.__a_tick =", self.__a_tick)
+            print(">>>MarketManagerForUi.OnRtnDepthMarketData() self.__a_tick =", self.__a_tick)
         elif self.__b_instrument_id == tick['InstrumentID']:
             self.__b_tick = copy.deepcopy(tick)
-            # print(">>>MarketManagerForUi.OnRtnDepthMarketData() self.__b_tick =", self.__b_tick)
+            print(">>>MarketManagerForUi.OnRtnDepthMarketData() self.__b_tick =", self.__b_tick)
         else:
             # print('MarketManagerForUi.OnRtnDepthMarketData() 想要订阅的行情为', self.__a_instrument_id, self.__b_instrument_id, "实际接收行情为", tick['InstrumentID'])
             pass

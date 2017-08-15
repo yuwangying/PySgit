@@ -47,6 +47,7 @@ class PyCTP_Market_API(pyctp.CSgitFtdcMdSpi):
         s_part1 = (s_tmp[:n_position])
         s_part2 = (s_tmp[n_position+1:])
         s_path = 'conn/md/' + s_part1 + '_' + s_part2 + '/'
+        print(">>>PyCTP_Market.Connect() s_path =", s_path)
         Utils.make_dirs(s_path)
         # 创建api对象
         self.api = pyctp.CSgitFtdcMdApi_CreateFtdcMdApi(s_path)

@@ -188,10 +188,9 @@ class QAccountWidget(QWidget, Ui_Form):
 
     # 初始化界面中groupBox的下单算法选项
     def slot_init_groupBox_order_algorithm(self, list_input):
-        print(">>>QAccountWidget.slot_init_groupBox_order_algorithm() 初始化下单算法", list_input)
+        print(">>> init_groupBox_order_algorithm() 初始化下单算法", list_input)
         for i in range(len(list_input)):
             self.comboBox_xiadansuanfa.insertItem(i, list_input[i]['name'])
-        print(">>>QAccountWidget.slot_init_groupBox_order_algorithm() finished")
 
     # py自带thread实现定时器，定时刷新UI线程
     def thread_update_ui(self):
@@ -289,7 +288,7 @@ class QAccountWidget(QWidget, Ui_Form):
         self.__current_tab_index = int_tab_index  # 保存当前tab的index
         self.__current_tab_name = self.tabBar.tabText(int_tab_index)
         self.on_pushButton_set_position_active()  # 激活设置持仓按钮，设置持仓参数框设置只读
-        print(">>>QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
+        # print(">>> QAccountWidget.slot_tab_changed() self.__current_tab_name =", self.__current_tab_name)
         if self.get_total_process_finished():  # 所有子进程初始化完成
             self.StrategyDataModel.set_update_once(True)  # 设置定时任务中刷新一次全部tableView
         # 更新期货账户开关或所有账户开关按钮
@@ -317,7 +316,6 @@ class QAccountWidget(QWidget, Ui_Form):
             row = dict_tab_clicked_info['row']
             column = dict_tab_clicked_info['column']
             self.__clicked_user_id = self.__dict_clicked_info[self.__current_tab_name]['user_id']
-            print(">>> QAccountWidget.slot_tab_changed() self.__clicked_user_id =", self.__clicked_user_id)
             self.__clicked_strategy_id = self.__dict_clicked_info[self.__current_tab_name]['strategy_id']
 
             list_update_table_view_data = self.get_list_update_table_view_data()

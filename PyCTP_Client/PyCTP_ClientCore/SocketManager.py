@@ -25,7 +25,19 @@ Message = namedtuple("Message", "head checknum buff")
 
 # 创建user(期货账户)
 def static_create_user_process(dict_user_info, Queue_main, Queue_user):
+    # print("SocketManager.static_create_user_process dict_user_info =", dict_user_info['server']['user_info']['userid'])
     user_id = dict_user_info['server']['user_info']['userid']
+
+    # 标准输出重定向
+    # log_directory = 'log/' + user_id + '.log'
+    # sys.stdout = open(log_directory, 'w')
+    #
+    # error_log_directory = 'log/' + user_id + '_error.log'
+    # sys.stderr = open(error_log_directory, 'w')
+
+    # print("static_create_user_process() dict_user_info =", dict_user_info)
+    # print("static_create_user_process() user_id =", dict_user_info['userid'], ", process_id =", os.getpid(), ", dict_user_info =", dict_user_info)
+    # ClientMain.socket_manager.signal_label_login_error_text.emit('创建User', dict_user_info['server']['user_info']['userid'])
     obj_user = User(dict_user_info, Queue_main, Queue_user)
     while True:
         dict_data = Queue_main.get()  # user进程get数据
@@ -277,14 +289,12 @@ class SocketManager(QtCore.QThread):
         return self.__list_position_detail_for_order_today
 
     def set_list_position_detail_for_trade_today(self, list_input):
-        print(">>>SocketManager.set_list_position_detail_for_trade_today() called")
         for i in list_input:
             i['Direction'] = chr(i['Direction'])
             i['OffsetFlag'] = chr(i['OffsetFlag'])
             i['HedgeFlag'] = chr(i['HedgeFlag'])
             # print(">>> SocketManager.set_list_position_detail_for_trade() i =", i)
         self.__list_position_detail_for_trade_today = list_input
-        print(">>>SocketManager.set_list_position_detail_for_trade_today() finished")
 
     def get_list_position_detail_for_trade_today(self):
         return self.__list_position_detail_for_trade_today
@@ -559,13 +569,11 @@ class SocketManager(QtCore.QThread):
                     self.set_list_user_info(buff['Info'])
                     self.__update_ui_user_id = buff['Info'][0]['userid']
                     for i in buff['Info']:
-                        t = len(i['userid'])-2
-                        user_id = i['userid'][:t]  # 去掉后两位，TS使用的交易员账户123456、小蜜蜂使用的交易账户为123456**
-                        # user_id = i['userid']
+                        user_id = i['userid']
                         self.__dict_user_on_off[user_id] = i['on_off']
                         self.__dict_table_view_data[user_id] = list()  # 初始化更新tableView的数据
                         self.__dict_panel_show_account_data[user_id] = list()  # 初始化更新panel_show_account的数据
-                    # print(">>> self.__dict_user_on_off =", self.__dict_user_on_off)
+                    # print(">>>self.__dict_user_on_off =", self.__dict_user_on_off)
                     # print(">>> self.__update_ui_user_id =", self.__update_ui_user_id)
                     # self.qry_algorithm_info()  # 发送：查询下单算法，MsgType=11
                 elif buff['MsgResult'] == 1:  # 消息结果失败
@@ -649,7 +657,6 @@ class SocketManager(QtCore.QThread):
                     dict_args = buff['Info'][0]  # 策略参数dict
                     user_id = dict_args['user_id']
                     self.__dict_Queue_main[user_id].put(buff)
-                    print(">>>SocketManager.receive_msg() user_id =", user_id, "buff =", buff)
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     print("SocketManager.receive_msg() MsgType=5 修改策略参数失败")
             elif buff['MsgType'] == 12:  # 修改策略持仓，MsgType=12
@@ -1054,9 +1061,7 @@ class SocketManager(QtCore.QThread):
 
     # 开始初始化
     def initialize(self):
-        print(">>>SocketManager.initialize() called")
         self.data_structure()  # 组织和创建客户端运行数据结构
-        print(">>>SocketManager.initialize() data_structure()finished")
         self.create_user_process()  # 创建user进程
         self.signal_q_ctp_show.emit()  # 显示主窗口，显示qctp，显示QCTP
         self.__thread_heartbeat.start()  # 开始线程：开始心跳
@@ -1131,17 +1136,13 @@ class SocketManager(QtCore.QThread):
         """
         self.__dict_user_process_data = dict()
         for i_user_info in self.__list_user_info:  # i_user_info为dict
-            t = len(i_user_info['userid'])-2
-            user_id = i_user_info['userid'][:t]
-            print(">>>SocketManager.data_structure() user_id =", user_id)
-            # user_id = i_user_info['userid']  # str，期货账户id
+            user_id = i_user_info['userid']  # str，期货账户id
             self.__dict_user_process_data[user_id] = dict()
             self.__dict_user_process_data[user_id]['xml'] = dict()  # 保存从本地xml获取到的数据
             self.__dict_user_process_data[user_id]['server'] = dict()  # 保存从server端获取到的数据
             self.__dict_user_process_data[user_id]['running'] = dict()  # 保存程序运行中最新的数据结构
 
             # 组织从xml获取到的数据
-            print(">>>SocketManager.data_structure() self.__xml_manager.get_xml_exist() =", self.__xml_manager.get_xml_exist())
             if self.__xml_manager.get_xml_exist():
                 # 获取xml中user级别统计，一个user有多条，数量与user交易的合约数量相等
                 dict_user_save_info = list()
@@ -1194,7 +1195,6 @@ class SocketManager(QtCore.QThread):
                 # 获取xml失败
                 self.__dict_user_process_data[user_id]['xml']['xml_status'] = False
 
-            print(">>>SocketManager.data_structure() 组织从server获取到的数据 start")
             # 组织从server获取到的数据
             if True:
                 # 获取server的数据：trader_info
@@ -1256,7 +1256,6 @@ class SocketManager(QtCore.QThread):
 
     # 创建user进程
     def create_user_process(self):
-        print(">>>SocketManager.create_user_process() called")
         # 初始化存放Queue结构的dict
         self.__dict_Queue_main = dict()  # 主进程put，user进程get
         self.__dict_Queue_user = dict()  # user进程put，主进程get
@@ -1265,7 +1264,6 @@ class SocketManager(QtCore.QThread):
         index = 0
         self.__dict_tab_index['所有账户'] = index
         for user_id in self.__dict_user_process_data:
-            print(">>>SocketManager.create_user_process() user_id =", user_id)
             index += 1
             self.signal_QAccountWidget_addTabBar.emit(user_id)  # 创建窗口的tabBar
             self.__dict_tab_index[user_id] = index  # 键名：user_id,键值：tab的index
@@ -1285,7 +1283,6 @@ class SocketManager(QtCore.QThread):
             self.__dict_Queue_user[user_id] = Queue_user
 
             # 创建user独立进程
-            print(">>>SocketManager.create_user_process() 创建user独立进程")
             p = Process(target=static_create_user_process, args=(dict_user_info, Queue_main, Queue_user))
             p.daemon = True  # p进程生命周期同主进程
             self.__list_process.append(p)
@@ -1296,7 +1293,6 @@ class SocketManager(QtCore.QThread):
             qthread.start()
             p.start()  # 开始user进程
         self.signal_init_setTabIcon.emit()  # 初始化tabBar样式
-        print(">>>SocketManager.create_user_process() finished")
 
     # 收到查询策略回报，MsgType=3，进程间通信，将策略参数发送给对应的user进程
     def process_communicate_query_strategy(self, list_data):

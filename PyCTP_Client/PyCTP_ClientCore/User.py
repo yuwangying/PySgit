@@ -13,13 +13,12 @@ from operator import itemgetter
 from datetime import datetime
 import copy
 from PyCTP_Trade import PyCTP_Trader_API
-import PyCTP_Trade_original
+from PySgit_Trade import PySgit_Trade_API
 import Utils
 from pandas import DataFrame, Series
 import queue
 from MarketManager import MarketManager
 from Strategy import Strategy
-import pyctp
 import PyCTP
 # from pymongo import MongoClient
 # from PyQt4 import QtCore
@@ -37,21 +36,23 @@ class User():
     def __init__(self, dict_arguments, Queue_main, Queue_user):
         # self.save_log(dict_arguments)  # 日志重定向到本地文件夹
 
-        print('process_id =', os.getpid(), ', User.__init__() dict_arguments =', dict_arguments)
+        # print('process_id =', os.getpid(), ', User.__init__() dict_arguments =', dict_arguments)
         self.__init_arguments = dict_arguments  # 转存形参
         self.__Queue_main = Queue_main  # 主进程put，user进程get
         self.__Queue_user = Queue_user  # user进程put，主进程get
-        self.__queue_OnRtnTrade = queue.Queue(maxsize=0)  # 缓存OnRtnTrade回调数据，仅本套利系统的记录
-        self.__queue_OnRtnOrder = queue.Queue(maxsize=0)  # 缓存OnRtnOrder回调数据，仅本套利系统的记录
-        self.__queue_OnRtnOrder_user = queue.Queue(maxsize=0)  # 缓存OnRtnOrder回调数据，期货账户的所有order数据
-        self.__threading_OnRtnOrder = threading.Thread(target=self.threading_run_OnRtnOrder)
-        self.__threading_OnRtnTrade = threading.Thread(target=self.threading_run_OnRtnTrade)
-        self.__threading_count_commission_order = threading.Thread(target=self.threading_count_commission_order)
-        self.__threading_OnRtnOrder.setDaemon(True)
-        self.__threading_OnRtnTrade.setDaemon(True)
-        self.__threading_count_commission_order.setDaemon(True)
+        self.__queue_OnRtn = queue.Queue(maxsize=0)  # 缓存OnRtnOrder、OnRtnTrade、OnRspOrderAction回调数据
+        # self.__queue_OnRtnOrder = queue.Queue(maxsize=0)  # 缓存OnRtnOrder回调数据
+        # self.__queue_OnRtnTrade = queue.Queue(maxsize=0)  # 缓存OnRtnTrade回调数据
+        # self.__queue_OnRspOrderAction = queue.Queue(maxsize=0)  # 缓存OnRspOrderAction回调数据
+        self.__threading_OnRtn = threading.Thread(target=self.threading_run_OnRtn)  #
+        # self.__threading_OnRtnOrder = threading.Thread(target=self.threading_run_OnRtnOrder)
+        # self.__threading_OnRtnTrade = threading.Thread(target=self.threading_run_OnRtnTrade)
+        # self.__threading_OnRspOrderAction = threading.Thread(target=self.threading_run_OnRspOrderAction)
+        self.__threading_OnRtn.setDaemon(True)
+        # self.__threading_OnRtnOrder.setDaemon(True)
+        # self.__threading_OnRtnTrade.setDaemon(True)
+        # self.__threading_OnRspOrderAction.setDaemon(True)
         self.__dict_commission = dict()  # 保存手续费的字典，字典内元素格式为{'cu':{'OpenRatioByVolume': 0.0, 'OpenRatioByMoney': 2.5e-05, 'CloseTodayRatioByVolume': 0.0, 'CloseTodayRatioByMoney': 0.0, 'CloseRatioByVolume': 0.0, 'CloseRatioByMoney': 2.5e-05, 'InstrumentID': 'cu',  'InvestorRange': '1'}}
-        self.__dict_create_user_status = dict()  # User创建状态详情，记录md\td的创建和基本api方法调用是否成功，键名为调用的方法名称，键值为0代表调用成功
         self.__dict_strategy = dict()  # 存放策略对象的dict,{strategy_id: obj_strategy}
         self.__dict_strategy_finished = dict()  # 存放策略对象初始化完成标志{strategy_id: False}
         self.__dict_instrument_statistics = dict()  # 合约统计dict，{'rb1705': {'open_count': 0, 'action_count': 0}}
@@ -60,6 +61,7 @@ class User():
         self.__list_panel_show_account_data = list()  # 界面更新期货账户资金情况数据结构
         self.__commission_order = 0  # 申报费，中金所股指期货合约存在申报费
         self.__list_OrderRef_for_count_commission_order = list()  # 统计申报费的OrderRef管理list
+        self.__list_pending = list()  # 挂单列表
         self.__dict_last_tick = dict()  # 存放所有订阅合约的最后一个tick
         self.__Margin_Occupied_CFFEX = 0  # 上期所品种的持仓占用保证金初始值
         self.__Margin_Occupied_SHFE = 0
@@ -68,71 +70,23 @@ class User():
 
         self.load_server_data(self.__init_arguments)  # 组织从server获取到的数据
         self.load_xml_data(self.__init_arguments)  # 组织从xml获取到的数据
-        self.__TdApi_start_model = pyctp.Sgit_TERT_RESTART  # 启动模式为RESTART
 
         self.__qry_api_last_time = time.time()  # 类型浮点数，最后一次查询Trade_Api的时间
-        print(">>>User.__init__() self.__qry_api_last_time =", self.__qry_api_last_time)
         self.__order_ref_part2 = 0  # 所有策略共用报单引用编号，报单引用首位固定为1，后两位为策略编号，中间部分递增1
 
-        # # 创建行情实例
-        # self.__dict_create_user_status = dict()  # User创建状态详情，包含marekt创建信息
-        # self.__market_manager = MarketManager(self.__server_dict_market_info)
-        # self.__market_manager.set_User(self)  # User设置为属性
-        # self.__dict_create_user_status['result_market_connect'] = self.__market_manager.get_result_market_connect()
-        # self.__dict_create_user_status['get_result_market_login'] = self.__market_manager.get_result_market_login()
-        # self.__create_market_failed = False  # 创建行情失败标志位
-        # for i in self.__dict_create_user_status:
-        #     if self.__dict_create_user_status[i] != 0:
-        #         print("User.__init__() user_id =", self.__user_id, "创建行情失败, self.__dict_create_user_status =", self.__dict_create_user_status)
-        #         self.__create_market_failed = True
-        # if not self.__create_market_failed:
-        #     print("User.__init__() user_id =", self.__user_id, "创建行情成功, self.__dict_create_user_status =", self.__dict_create_user_status)
-        # # self.__MdApi_TradingDay = self.__market_manager.get_TradingDay()  # 获取行情接口的交易日
-        # self.tdapi_start_model()  # 根据xml导入数据情况判断TdApi启动模式:RESTART、RESUME
-        # # self.init_instrument_statistics()  # 初始化期货账户合约统计：撤单次数和开仓手数
+        # 创建ctp行情
+        self.create_market_ctp()
 
-        # # 创建交易实例
-        # self.CTP_create_trader()  # 通过主席ctp柜台查询合约手续费率，因为飞鼠高频交易接口不提供查询手续费率
-        # self.__trader = PyCTP_Trader_API(self.__server_dict_user_info)  # 创建TdSpi、TdApi对象
-        # self.__trader.set_user(self)  # User设置为属性
-        # self.connect_trade_front()  # 连接交易前置
-        # self.login_trade_account()  # 登录期货账户，期货账户登录成功一刻开始OnRtnOrder、OnRtnTrade就开始返回历史数据
-        # print(">>>User.__init__() self.__trader_api.Ready() called")
-        # self.__trader_api.Ready()
-        # print(">>>User.__init__() self.__trader_api.Ready() finished")
-        # self.qry_trading_account()  # 查询资金账户
-        # self.qry_instrument_info()  # 查询合约信息
-        # # self.qry_investor_position()  # 查询投资者持仓
-        # self.qry_inverstor_position_detail()  # 查询投资者持仓明细
-        # self.__create_user_success = True  # 初始化创建user失败标志
-        # for i in self.__dict_create_user_status:
-        #     if self.__dict_create_user_status[i] != 0:
-        #         self.__create_user_success = False  # 创建期货账户失败
-        # if self.__create_user_success:
-        #     print("User.__init__() User创建成功 user_id =", self.__user_id, ", self.__dict_create_user_status =", self.__dict_create_user_status)
-        # else:
-        #     print("User.__init__() User创建失败 user_id =", self.__user_id, ", self.__dict_create_user_status =", self.__dict_create_user_status)
-        #     return
+        # 创建ctp交易
+        self.create_trade_ctp()
 
-        # 从TdApi获取必要的参数
-        # for obj_strategy in self.__list_strategy:
-        #     obj_strategy.get_td_api_arguments()  # 将期货账户api查询参数赋值给strategy对象
-        #     obj_strategy.load_xml()  # strategy装载xml
-        #     obj_strategy.start_run_count()  # 开始核心统计运算线程
-            # 遍历strategy初始化完成之前的order和trade回调记录，完成strategy初始化工作，遍历queue_strategy_order\queue_strategy_trade
+        # 创建单个user的所有策略实例
+        self.create_strategy_all()
 
-        # # 创建策略
-        # for i in self.__server_list_strategy_info:
-        #     self.create_strategy(i)
-        # # 策略初始化完成，启动转发OnRtnOrder、OnRtnTrade的线程
-        # self.__threading_OnRtnOrder.start()
-        # self.__threading_OnRtnTrade.start()
-        # self.__threading_count_commission_order.start()
+        # 创建sgit交易
+        self.create_trade_sgit()
 
         # user初始化完成
-
-        self.create_td_api()  # 创建TD实例，包含飞鼠和主席ctp的pai实例
-        self.create_strategy_thread()
         self.set_init_finished(True)
 
         # 定时进程间通信,user子进程发送信息给main进程,主进程接收到信息后更新界面
@@ -140,17 +94,57 @@ class User():
         self.__timer_thread.daemon = True
         self.__timer_thread.start()
 
-        self.create_md_api()  # 创建行情实例
-        # 调用行情准备函数，可以推送行情
-        self.__market_manager.get_market().api.Ready()
-        # self.__trader_api.Join()  # 等待线程执行结束退出
+        # strategy创建完成，发送进程间通信给主进程，主进程收到之后让user查询合约信息
 
-        print(">>>User.__init__() self.__market_manager.get_market().api.Ready()")
 
-    # 创建行情实例
-    def create_md_api(self):
-        # 创建行情实例
-        # self.__dict_create_user_status = dict()  # User创建状态详情，记录md\td的创建和基本api方法调用是否成功
+        # 查询user的持仓明细
+        # order结构的持仓明细
+        # for i in self.__ctp_manager.get_SocketManager().get_list_position_detail_info_for_order():
+        #     if i['userid'] == self.__user_id:
+        #         self.__server_list_position_detail_for_order_yesterday.append(i)
+
+        # trade结构的持仓明细
+        # for i in self.__ctp_manager.get_SocketManager().get_list_position_detail_info_for_trade():
+        #     if i['userid'] == self.__user_id:
+        #         self.__server_list_position_detail_for_trade_yesterday.append(i)
+
+        # 查询成交记录
+        # time.sleep(1.0)
+        # self.qry_api_interval_manager()  # API查询时间间隔管理
+        # self.QryTrade()  # 保存查询当天的Trade和Order记录，正常值格式为DataFrame，异常值为None
+        # print(">>> User.__init__() len(self.__list_QryTrade) =", len(self.__list_QryTrade))
+        # QryTrade查询结果的状态记录到CTPManager的user状态字典，成功为0
+        # if isinstance(self.__list_QryTrade, list):
+        #     self.__ctp_manager.get_dict_create_user_status()[self.__user_id]['QryTrade'] = 0  # 初始过程中一个步骤的标志位
+        #     print("User.__init__() user_id=", self.__user_id, '查询成交记录成功，self.__list_QryTrade=', self.__list_QryTrade)
+        # else:
+        #     self.__ctp_manager.get_dict_create_user_status()[self.__user_id]['QryTrade'] = 1
+        #     print("User.__init__() user_id=", self.__user_id, '查询成交记录失败，self.__list_QryOrder=', self.__list_QryOrder)
+        # self.__ctp_manager.get_dict_create_user_status()[self.__user_id]['login_trade_account'] = login_trade_account
+
+        # 查询报单记录
+        # time.sleep(1.0)
+        # self.qry_api_interval_manager()  # API查询时间间隔管理
+        # self.QryOrder()
+        # QryOrder查询结果的状态记录到CTPManager的user状态字典，成功为0
+        # if isinstance(self.__list_QryOrder, list):
+        #     self.__ctp_manager.get_dict_create_user_status()[self.__user_id]['QryOrder'] = 0
+        #     print("User.__init__() user_id=", self.__user_id, '查询报单记录成功，self.__list_QryOrder=', self.__list_QryOrder)
+        # else:
+        #     self.__ctp_manager.get_dict_create_user_status()[self.__user_id]['QryOrder'] = 1
+        #     print("User.__init__() user_id=", self.__user_id, '查询报单记录失败')
+
+        # print("User.__init__() user_id=", self.__user_id, "CTPManager记录User初始化信息 ", {self.__user_id: self.__ctp_manager.get_dict_create_user_status()[self.__user_id]})
+
+        # 初始化策略持仓明细列表
+        # if self.init_list_position_detail() is not True:
+        #     print("Strategy.__init__() 策略初始化错误：初始化策略持仓明细列表出错")
+        #     self.__init_finished = False  # 策略初始化失败
+        #     return
+
+    # 创建ctp行情
+    def create_market_ctp(self):
+        self.__dict_create_user_status = dict()  # User创建状态详情，包含marekt创建信息
         self.__market_manager = MarketManager(self.__server_dict_market_info)
         self.__market_manager.set_User(self)  # User设置为属性
         self.__dict_create_user_status['result_market_connect'] = self.__market_manager.get_result_market_connect()
@@ -164,22 +158,14 @@ class User():
         if not self.__create_market_failed:
             print("User.__init__() user_id =", self.__user_id, "创建行情成功, self.__dict_create_user_status =",
                   self.__dict_create_user_status)
-        # self.__MdApi_TradingDay = self.__market_manager.get_TradingDay()  # 获取行情接口的交易日
-        # self.tdapi_start_model()  # 根据xml导入数据情况判断TdApi启动模式:RESTART、RESUME
+        self.__MdApi_TradingDay = self.__market_manager.get_TradingDay()  # 获取行情接口的交易日
+        self.tdapi_start_model()  # 根据xml导入数据情况判断TdApi启动模式:RESTART、RESUME
         # self.init_instrument_statistics()  # 初始化期货账户合约统计：撤单次数和开仓手数
 
-    # 创建交易实例
-    def create_td_api(self):
-        # 创建交易实例
-        self.CTP_create_trader()  # 通过主席ctp柜台查询合约手续费率，因为飞鼠高频交易接口不提供查询手续费率
-        # self.__dict_create_user_status = dict()  # User创建状态详情，记录md\td的创建和基本api方法调用是否成功，键名为调用的方法名称，键值为0代表调用成功
-        self.__trader = PyCTP_Trader_API(self.__server_dict_user_info)  # 创建TdSpi、TdApi对象
-        self.__trader.set_user(self)  # User设置为属性
+    # 创建ctp交易
+    def create_trade_ctp(self):
         self.connect_trade_front()  # 连接交易前置
         self.login_trade_account()  # 登录期货账户，期货账户登录成功一刻开始OnRtnOrder、OnRtnTrade就开始返回历史数据
-        # print(">>>User.__init__() self.__trader_api.Ready() called")
-        # self.__trader_api.Ready()
-        # print(">>>User.__init__() self.__trader_api.Ready() finished")
         self.qry_trading_account()  # 查询资金账户
         self.qry_instrument_info()  # 查询合约信息
         # self.qry_investor_position()  # 查询投资者持仓
@@ -195,91 +181,24 @@ class User():
             print("User.__init__() User创建失败 user_id =", self.__user_id, ", self.__dict_create_user_status =",
                   self.__dict_create_user_status)
             return
-        print(">>>User.__init__() self.__trader_api.Ready() called")
-        self.__trader_api.Ready()
-        print(">>>User.__init__() self.__trader_api.Ready() finished")
 
-    # 创建策略
-    def create_strategy_thread(self):
-        # 创建策略
+    # 创建sgit交易
+    def create_trade_sgit(self):
+        self.sgit_trader = PySgit_Trade_API(self.__FrontAddress_sgit,
+                                            self.__BrokerID_sgit,
+                                            self.__user_id_sgit,
+                                            self.__Password_sgit)
+        self.sgit_trader.set_user(self)  # user设置为sgit_trader的属性
+
+    # 创建单个user的所有策略实例
+    def create_strategy_all(self):
         for i in self.__server_list_strategy_info:
             self.create_strategy(i)
         # 策略初始化完成，启动转发OnRtnOrder、OnRtnTrade的线程
-        self.__threading_OnRtnOrder.start()
-        self.__threading_OnRtnTrade.start()
-        self.__threading_count_commission_order.start()
-
-    # 通过主席ctp柜台查询合约手续费率，因为飞鼠高频交易接口不提供查询手续费率
-    def CTP_create_trader(self):
-        # 创建主席ctp api实例
-        # self.__frontaddress_ctp = self.__server_dict_user_info['frontaddress_ctp']
-        # self.__userid_ctp = self.__server_dict_user_info['userid_ctp']
-        # self.__password_ctp = self.__server_dict_user_info['password_ctp']
-        # self.__brokerid_ctp = self.__server_dict_user_info['brokerid_ctp']
-        print(">>>User.QryInstrumentCommissionRate() self.__server_dict_user_info =", self.__server_dict_user_info)
-        self.CTP_connect_trade_front()  # 连接交易前置
-        self.CTP_login_trade_account()  # 登录期货账户
-
-    # 连接交易前置
-    def CTP_connect_trade_front(self):
-        """连接交易前置"""
-        # 为每个user创建独立的流文件夹
-        s_path = b'conn/CTP_td/' + self.__user_id.encode() + b'/'
-        Utils.make_dirs(s_path)  # 创建流文件路劲
-        self.__CTP_trader = PyCTP_Trade_original.PyCTP_Trader_API.CreateFtdcTraderApi(s_path)
-        # self.__CTP_trader.set_user(self)  # 将该类设置为trade的属性
-
-        # 0：发送成功；-1：因网络原因发送失败；-2：未处理请求队列总数量超限；-3：每秒发送请求数量超限
-        connect_trade_front = self.__CTP_trader.Connect(self.__frontaddress_ctp, PyCTP.THOST_TERT_RESUME)
-        # 连接前置地址状态记录到CTPManager的user状态字典，成功为0
-        self.__dict_create_user_status['CTP_connect_trade_front'] = connect_trade_front
-
-        # 连接交易前置错误提示
-        if connect_trade_front == -1:
-            # self.signal_label_login_error_text.emit("期货账户" + self.__user_id + "因网络原因发送失败")
-            print("User.CTP_connect_trade_front() 异常错误值-1，因网络原因发送失败")
-            self.__dict_create_user_status['CTP_connect_trade_front'] = "因网络原因发送失败"
-        elif connect_trade_front == -2:
-            # self.signal_label_login_error_text.emit("期货账户" + self.__user_id + "未处理请求队列总数量超限")
-            print("User.CTP_connect_trade_front() 异常错误值-2，未处理请求队列总数量超限")
-            self.__dict_create_user_status[
-                'connect_trade_front'] = "未处理请求队列总数量超限"
-        elif connect_trade_front == -3:
-            # self.signal_label_login_error_text.emit("期货账户" + self.__user_id + "每秒发送请求数量超限")
-            print("User.CTP_connect_trade_front() 异常错误值-3，每秒发送请求数量超限")
-            self.__dict_create_user_status['CTP_connect_trade_front'] = "每秒发送请求数量超限"
-        elif connect_trade_front == -4:
-            # self.signal_label_login_error_text.emit("期货账户" + self.__user_id + "连接交易前置异常")
-            print("User.CTP_connect_trade_front() 异常错误值-4，连接交易前置异常")
-            self.__dict_create_user_status['CTP_connect_trade_front'] = "连接交易前置异常"
-
-        if connect_trade_front != 0:
-            self.__init_finished_succeed = False  # 初始化失败
-            print("User.CTP_connect_trade_front() user_id=", self.__user_id, '连接交易前置失败',
-                  Utils.code_transform(connect_trade_front))
-        else:
-            print("User.CTP_connect_trade_front() user_id=", self.__user_id, '连接交易前置成功', Utils.code_transform(connect_trade_front))
-
-    # 登录期货账号
-    def CTP_login_trade_account(self):
-        """登录期货账号"""
-        self.qry_api_interval_manager()  # API查询时间间隔管理
-        login_trade_account = self.__CTP_trader.Login(self.__brokerid_ctp.encode(), self.__userid_ctp.encode(),
-                                                      self.__password_ctp.encode())
-        # 登录期货账号状态记录到CTPManager的user状态字典，成功为0
-        # self.__dict_create_user_status['login_trade_account'] = login_trade_account
-        if login_trade_account != 0:
-            self.__init_finished_succeed = False  # 初始化失败
-            print("User.CTP_login_trade_account() user_id=", self.__userid_ctp, '登录期货账号失败',
-                  Utils.code_transform(login_trade_account))
-            return
-        else:
-            self.__front_id = self.__CTP_trader.get_front_id()  # 获取前置编号
-            self.__session_id = self.__CTP_trader.get_session_id()  # 获取会话编号
-            self.__TradingDay = self.__CTP_trader.get_TradingDay().decode()  # 获取交易日
-            print("User.CTP_login_trade_account() user_id=", self.__user_id, 'self.__TradingDay =', self.__TradingDay)
-            print("User.CTP_login_trade_account() user_id=", self.__user_id, '登录期货账号成功',
-                  Utils.code_transform(login_trade_account))
+        # self.__threading_OnRtnOrder.start()
+        # self.__threading_OnRtnTrade.start()
+        # self.__threading_OnRspOrderAction.start()
+        self.__threading_OnRtn.start()
 
     # 日志重定向到本地文件夹
     def save_log(self, dict_arguments):
@@ -307,11 +226,13 @@ class User():
     def connect_trade_front(self):
         """连接交易前置"""
         # 为每个user创建独立的流文件夹
-        # PyCTP_Trader_API()
-        # s_path = 'conn/td/' + self.__user_id + '/'
-        # Utils.make_dirs(s_path)  # 创建流文件路劲
-        #  0：发送成功；-1：因网络原因发送失败；-2：未处理请求队列总数量超限；-3：每秒发送请求数量超限
-        connect_trade_front = self.__trader.Connect(self.__FrontAddress, self.__TdApi_start_model)
+        s_path = b'conn/td/' + self.__user_id.encode() + b'/'
+        Utils.make_dirs(s_path)  # 创建流文件路劲
+        self.__trader_api = PyCTP_Trader_API.CreateFtdcTraderApi(s_path)
+        self.__trader_api.set_user(self)  # 将该类设置为trade的属性
+
+        # 0：发送成功；-1：因网络原因发送失败；-2：未处理请求队列总数量超限；-3：每秒发送请求数量超限
+        connect_trade_front = self.__trader_api.Connect(self.__FrontAddress, self.__TdApi_start_model)
         # 连接前置地址状态记录到CTPManager的user状态字典，成功为0
         self.__dict_create_user_status['connect_trade_front'] = connect_trade_front
 
@@ -340,35 +261,31 @@ class User():
     # 登录期货账号
     def login_trade_account(self):
         """登录期货账号"""
-        print(">>>User.login_trade_account() called")
         self.qry_api_interval_manager()  # API查询时间间隔管理
-        login_trade_account = self.__trader.Login(self.__BrokerID, self.__user_id_sgit, self.__Password)
+        login_trade_account = self.__trader_api.Login(self.__BrokerID.encode(), self.__user_id.encode(), self.__Password.encode())
         # 登录期货账号状态记录到CTPManager的user状态字典，成功为0
         # self.__dict_create_user_status['login_trade_account'] = login_trade_account
         if login_trade_account != 0:
             self.__init_finished_succeed = False  # 初始化失败
-            print("User.login_trade_account() user_id=", self.__user_id_sgit, '登录期货账号失败',
+            print("User.login_trade_account() user_id=", self.__user_id, '登录期货账号失败',
                   Utils.code_transform(login_trade_account))
             return
         else:
-            self.__front_id = self.__trader.get_front_id()  # 获取前置编号
-            self.__session_id = self.__trader.get_session_id()  # 获取会话编号
-            self.__TdApi_TradingDay = self.__trader.get_TradingDay()  # 获取交易日
-            print("User.login_trade_account() user_id=", self.__user_id_sgit, 'self.__TdApi_TradingDay =', self.__TdApi_TradingDay)
-            print("User.login_trade_account() user_id=", self.__user_id_sgit, '登录期货账号成功', Utils.code_transform(login_trade_account))
+            self.__front_id = self.__trader_api.get_front_id()  # 获取前置编号
+            self.__session_id = self.__trader_api.get_session_id()  # 获取会话编号
+            self.__TradingDay = self.__trader_api.get_TradingDay().decode()  # 获取交易日
+            print("User.login_trade_account() user_id=", self.__user_id, 'self.__TradingDay =', self.__TradingDay)
+            print("User.login_trade_account() user_id=", self.__user_id, '登录期货账号成功', Utils.code_transform(login_trade_account))
 
     # 查询资金账户
     def qry_trading_account(self):
         """查询资金账户"""
         # time.sleep(1.0)
-        print(">>>User.qry_trading_account() called")
-        # self.qry_api_interval_manager()  # API查询时间间隔管理
+        self.qry_api_interval_manager()  # API查询时间间隔管理
         time_now = datetime.now()
         self.__date_qry_trading_account = time_now.strftime('%Y%m%d')  # 查询投资者持仓明细的北京时间
         self.__time_qry_trading_account = time_now.strftime('%H:%M:%S')  # 查询投资者持仓明细的北京时间
-        print(">>>User.qry_trading_account() list_QryTradingAccount = self.__trader.QryTradingAccount() called")
-        list_QryTradingAccount = self.__trader.QryTradingAccount()
-        print(">>>User.qry_trading_account() list_QryTradingAccount = self.__trader.QryTradingAccount() finished")
+        list_QryTradingAccount = self.__trader_api.QryTradingAccount()
         if isinstance(list_QryTradingAccount, list):
             if isinstance(list_QryTradingAccount[0], dict):
                 self.__QryTradingAccount = Utils.code_transform(list_QryTradingAccount[0])
@@ -383,22 +300,21 @@ class User():
                 self.__dict_create_user_status['QryTradingAccount'] = 0  # user初始化状态信息
                 self.__profit_close = self.__dict_trading_account['CloseProfit']  # 平仓盈亏
                 self.__commission = self.__dict_trading_account['Commission']  # 手续费
-                print("User.qry_trading_account() user_id=", self.__user_id, '查询资金账户成功', self.__QryTradingAccount)
+                print("User.__init__() user_id=", self.__user_id, '查询资金账户成功', self.__QryTradingAccount)
             else:
-                print("User.qry_trading_account() user_id=", self.__user_id, '查询资金账户失败', Utils.code_transform(list_QryTradingAccount))
+                print("User.__init__() user_id=", self.__user_id, '查询资金账户失败', Utils.code_transform(list_QryTradingAccount))
                 self.__dict_create_user_status['QryTradingAccount'] = Utils.code_transform(list_QryTradingAccount)
         else:
-            print("User.qry_trading_account() user_id=", self.__user_id, '查询资金账户失败',
+            print("User.__init__() user_id=", self.__user_id, '查询资金账户失败',
                   Utils.code_transform(list_QryTradingAccount))
             self.__dict_create_user_status['QryTradingAccount'] = Utils.code_transform(list_QryTradingAccount)
-        print(">>>User.qry_trading_account() finished")
 
     # 查询投资者持仓
     def qry_investor_position(self):
         """查询投资者持仓"""
         # time.sleep(1.0)
         self.qry_api_interval_manager()  # API查询时间间隔管理
-        self.__QryInvestorPosition = Utils.code_transform(self.__trader.api.QryInvestorPosition())
+        self.__QryInvestorPosition = Utils.code_transform(self.__trader_api.QryInvestorPosition())
         if isinstance(self.__QryInvestorPosition, list):
             self.__dict_create_user_status['QryInvestorPosition'] = 0
             print("User.__init__() user_id=", self.__user_id, '查询投资者持仓成功', self.__QryInvestorPosition)
@@ -415,7 +331,7 @@ class User():
         time_now = datetime.now()
         self.__date_qry_inverstor_position_detail = time_now.strftime('%Y%m%d')  # 查询投资者持仓明细的北京时间
         self.__time_qry_inverstor_position_detail = time_now.strftime('%H:%M:%S')  # 查询投资者持仓明细的北京时间
-        self.__QryInvestorPositionDetail = self.__trader.QryInvestorPositionDetail()
+        self.__QryInvestorPositionDetail = Utils.code_transform(self.__trader_api.QryInvestorPositionDetail())
         if isinstance(self.__QryInvestorPositionDetail, list):
             self.__dict_create_user_status['QryInvestorPositionDetail'] = 0
             print("User.__init__() user_id=", self.__user_id, '查询投资者持仓明细成功，长度', len(self.__QryInvestorPositionDetail), self.__QryInvestorPositionDetail)
@@ -445,6 +361,7 @@ class User():
                         'LastSettlementPrice': i['LastSettlementPrice']
                     }
                     self.__qry_investor_position_detail.append(j)
+            print("User.__init__() user_id=", self.__user_id, 'self.__qry_investor_position_detail，长度', len(self.__qry_investor_position_detail), self.__qry_investor_position_detail)
         else:
             self.__dict_create_user_status[
                 'QryInvestorPositionDetail'] = self.__QryInvestorPositionDetail
@@ -453,28 +370,17 @@ class User():
     # 查询合约信息
     def qry_instrument_info(self):
         # 查询合约，所有交易所的所有合约
-        print(">>>User.qry_instrument_info() called")
-        # self.qry_api_interval_manager()  # API查询时间间隔管理
-        # self.__QryInstrument = Utils.code_transform(self.__trader.QryInstrument())
-        self.__QryInstrument = Utils.code_transform(self.__CTP_trader.QryInstrument())
+        self.qry_api_interval_manager()  # API查询时间间隔管理
+        self.__QryInstrument = Utils.code_transform(self.__trader_api.QryInstrument())
         if isinstance(self.__QryInstrument, list):
             if len(self.__QryInstrument) > 0:
-                self.__dict_create_user_status['QryInstrument'] = 0  # 赋值为0，操作成功
-                print(">>>User.qry_instrument_info() user_id=", self.__user_id, "查询合约信息成功, len(self.__QryInstrument) =", len(self.__QryInstrument))
-
-                # 测试代码：将查询结果保存到本地csv文件
-                # df_QryInstrument = DataFrame()
-                # for j in self.__QryInstrument:
-                #     series_j = Series(j)
-                #     df_QryInstrument = DataFrame.append(df_QryInstrument, other=series_j, ignore_index=True)
-                # log_file_path = "data/" + self.__user_id + '_QryInstrument.csv'
-                # df_QryInstrument.to_csv(log_file_path)
-                # print(">>> PyCTP_Trade.save_df_order_trade() log_file_path =", log_file_path)
+                self.__dict_create_user_status['QryInstrument'] = 0
+                # print("User.qry_instrument_info() user_id=", self.__user_id, "查询合约信息成功", self.__QryInstrument)
 
                 dict_msg = {
                     'DataFlag': 'QryInstrument',
                     'UserId': self.__user_id,
-                    'DataMain': self.__QryInstrument
+                    'DataMain': self.__QryInstrument  # 最新策略统计
                 }
                 # print(">>> User.qry_instrument_info() user_id =", self.__user_id, 'data_flag = QryInstrument', 'data_msg =', dict_msg)
                 self.__Queue_user.put(dict_msg)
@@ -484,21 +390,13 @@ class User():
         else:
             self.__dict_create_user_status['QryInstrument'] = self.__QryInstrument
             print("User.qry_instrument_info() user_id=", self.__user_id, "查询合约信息失败", self.__QryInstrument)
-        print(">>>User.qry_instrument_info() finished")
 
     # API查询操作管理，记录最后一次查询时间，且与上一次查询时间至少间隔一秒，该方法放置位置在对api查询之前
     def qry_api_interval_manager(self):
-        print(">>>User.qry_api_interval_manager() called")
         time_interval = time.time() - self.__qry_api_last_time
-        print(">>>User.qry_api_interval_manager() time_interval =", time_interval)
         if time_interval < 1.0:
-            print(">>>User.qry_api_interval_manager() if time_interval < 1.0:")
-            time_sleep = 1.0 - time_interval
-            print(">>>User.qry_api_interval_manager() time_sleep =", time_sleep)
-            time.sleep(1)
-            print(">>>User.qry_api_interval_manager() time.sleep(1.0-time_interval) finished")
+            time.sleep(1-time_interval)
         self.__qry_api_last_time = time.time()
-        print(">>>User.qry_api_interval_manager() finished")
 
     """
     # 装载xml数据
@@ -581,46 +479,43 @@ class User():
         self.__server_list_position_detail_for_trade_today = dict_arguments['server']['list_position_detail_for_trade_today']
         print("User.load_server_data() self.__server_list_position_detail_for_trade_today =", self.__server_list_position_detail_for_trade_today)
 
-        self.__trader_id = self.__server_dict_user_info['traderid']
-        self.__user_id_sgit = self.__server_dict_user_info['userid']
-        t = len(self.__user_id_sgit) - 2
-        self.__user_id = self.__user_id_sgit[:t]
-        print(">>>User.load_server_data() self.__user_id_sgit =", self.__user_id_sgit, "self.__user_id =", self.__user_id)
+        self.__trader_id = self.__server_dict_user_info['traderid']  # ctp的交易前置地址及登录信息
+        self.__user_id = self.__server_dict_user_info['userid']
         self.__BrokerID = self.__server_dict_user_info['brokerid']
         self.__Password = self.__server_dict_user_info['password']
         self.__FrontAddress = self.__server_dict_user_info['frontaddress']
+        self.__user_id_sgit = self.__server_dict_user_info['userid_sgit']  # sgit的交易前置地址及登录信息
+        self.__BrokerID_sgit = self.__server_dict_user_info['brokerid_sgit']
+        self.__Password_sgit = self.__server_dict_user_info['password_sgit']
+        self.__FrontAddress_sgit = self.__server_dict_user_info['frontaddress_sgit']
+
         self.__on_off = self.__server_dict_user_info['on_off']  # 期货账户交易开关
-        self.__frontaddress_ctp = self.__server_dict_user_info['frontaddress_ctp']
-        self.__userid_ctp = self.__server_dict_user_info['userid_ctp']
-        self.__password_ctp = self.__server_dict_user_info['password_ctp']
-        self.__brokerid_ctp = self.__server_dict_user_info['brokerid_ctp']
 
     # 根据xml导入数据情况判断TdApi启动模式:RESTART、RESUME
     def tdapi_start_model(self):
-        self.__TdApi_start_model = pyctp.Sgit_TERT_RESTART  # 初始化启动模式为RESTART，如果xml文件存在且数据可用为RESUME
-        # if self.__xml_exist:
-        if False:  # 默认从服务器获取当天所有数据
+        self.__TdApi_start_model = PyCTP.THOST_TERT_RESTART  # 初始化启动模式为RESTART，如果xml文件存在且数据可用为RESUME
+        if self.__xml_exist:
             market_TradingDay = '-'.join([self.__MdApi_TradingDay[:4], self.__MdApi_TradingDay[4:6], self.__MdApi_TradingDay[6:]])
             # print(">>> User.tdapi_start_model() self.__xml_dict_user_save_info =", self.__xml_dict_user_save_info)
             # 如果xml数据中未找到对应期货账号的user_save_info信息，模式设置为RESTART
             if len(self.__xml_dict_user_save_info) == 0:
-                self.__TdApi_start_model = pyctp.Sgit_TERT_RESTART  # 从今天开盘到现在的数据
+                self.__TdApi_start_model = PyCTP.THOST_TERT_RESTART  # 从今天开盘到现在的数据
             else:
                 # 正常保存，且保存日期是当前交易日
                 if self.__xml_dict_user_save_info[0]['status'] == 'True' \
                         and self.__xml_dict_user_save_info[0]['tradingday'] == market_TradingDay:
-                    self.__TdApi_start_model = pyctp.Sgit_TERT_RESUME  # 从上次断开连接到现在的数据
+                    self.__TdApi_start_model = PyCTP.THOST_TERT_RESUME  # 从上次断开连接到现在的数据
                 else:
-                    self.__TdApi_start_model = pyctp.Sgit_TERT_RESTART  # 从今天开盘到现在的数据
+                    self.__TdApi_start_model = PyCTP.THOST_TERT_RESTART  # 从今天开盘到现在的数据
         else:
-            self.__TdApi_start_model = pyctp.Sgit_TERT_RESTART  # 从今天开盘到现在的数据
+            self.__TdApi_start_model = PyCTP.THOST_TERT_RESTART  # 从今天开盘到现在的数据
         print("User.tdapi_start_model() user_id =", self.__user_id, ", self.__TdApi_start_model =",
-              self.__TdApi_start_model, ", pyctp.Sgit_TERT_RESUME =", pyctp.Sgit_TERT_RESUME,
-              ", pyctp.Sgit_TERT_RESTART =", pyctp.Sgit_TERT_RESTART)
+              self.__TdApi_start_model, ", PyCTP.THOST_TERT_RESUME =", PyCTP.THOST_TERT_RESUME,
+              ", PyCTP.THOST_TERT_RESTART =", PyCTP.THOST_TERT_RESTART)
 
     # 初始化期货账户合约统计：撤单次数和开仓手数
     def init_instrument_statistics(self):
-        if self.__TdApi_start_model == pyctp.Sgit_TERT_RESUME:  # 装载xml数据，并将数据发送给main进程
+        if self.__TdApi_start_model == PyCTP.THOST_TERT_RESUME:  # 装载xml数据，并将数据发送给main进程
             for i in self.__xml_list_user_instrument_statistics:
                 if i['user_id'] == self.__user_id:
                     instrument_id = i['instrument_id']
@@ -628,7 +523,7 @@ class User():
                         'action_count': i['action_count'],
                         'open_count': i['open_count']
                     }
-        elif self.__TdApi_start_model == pyctp.Sgit_TERT_RESTART:
+        elif self.__TdApi_start_model == PyCTP.THOST_TERT_RESTART:
             pass
         dict_data = {
             'DataFlag': 'instrument_statistics',
@@ -768,10 +663,6 @@ class User():
     def get_xml_list_position_detail_for_trade(self):
         return self.__xml_list_position_detail_for_trade
 
-    # 将底层api类对象设置为本类的属性
-    def set_api(self, obj_api):
-        self.__trader_api = obj_api
-
     # 将CTPManager类设置为user的属性
     def set_CTPManager(self, obj_CTPManager):
         self.__ctp_manager = obj_CTPManager
@@ -784,19 +675,7 @@ class User():
     def get_MdApi_TradingDay(self):
         return self.__MdApi_TradingDay
 
-    # 设置交易端口交易日
-    def set_TdApi_TradingDay(self, input_date):
-        self.__TdApi_TradingDay = input_date
-
-    # 获取交易端口交易日
-    def get_TdApi_TradingDay(self):
-        return self.__TdApi_TradingDay
-
-    # # 获取交易日
-    # def GetTradingDay(self):
-    #     return self.__TradingDay
-
-    # 获取TdApi初始化方式：pyctp.Sgit_TERT_RESUME = 1 , pyctp.Sgit_TERT_RESTART = 0
+    # 获取TdApi初始化方式：PyCTP.THOST_TERT_RESUME = 1 , PyCTP.THOST_TERT_RESTART = 0
     def get_TdApi_start_model(self):
         return self.__TdApi_start_model
 
@@ -909,6 +788,10 @@ class User():
     # 获取user初始化状态
     def get_init_finished(self):
         return self.__init_finished
+
+    # 获取交易日
+    def GetTradingDay(self):
+        return self.__TradingDay
 
     # 获取用户自己维护的账户资金情况
     def get_dict_trading_account(self):
@@ -1080,7 +963,7 @@ class User():
     # 添加交易策略实例，到self.__list_strategy
     # def add_strategy(self, obj_strategy):
     #     self.__list_strategy.append(obj_strategy)  # 将交易策略实例添加到本类的交易策略列表
-    #     self.__trader.api.set_list_strategy(self.__list_strategy)  # 将本类的交易策略列表转发给trade
+    #     self.__trader_api.set_list_strategy(self.__list_strategy)  # 将本类的交易策略列表转发给trade
     #     obj_strategy.set_user(self)  # 将user设置为strategy属性
 
     # 添加合约代码到user类的self.__dict_action_counter
@@ -1089,22 +972,40 @@ class User():
     #         if i not in self.__dict_action_counter:
     #             self.__dict_action_counter[i] = 0
 
-    # 统计合约撤单次数，被OnRtnOrder调用，{'rb1705': {'open_count': 0, 'action_count': 0}}
-    def instrument_action_count(self, Order):
-        if len(Order['OrderSysID']) == 0:  # 只统计有交易所编码的order
+    # # 统计合约撤单次数，被OnRtnOrder调用，{'rb1705': {'open_count': 0, 'action_count': 0}}
+    # def instrument_action_count(self, Order):
+    #     if len(Order['OrderSysID']) == 0:  # 只统计有交易所编码的order
+    #         return
+    #     instrument_id = Order['InstrumentID']
+    #     if Order['OrderStatus'] == '5':  # 值为5：撤单
+    #         if instrument_id in self.__dict_instrument_statistics:  # 已经存在的合约，撤单次数加+1
+    #             self.__dict_instrument_statistics[instrument_id]['action_count'] += 1
+    #         else:  # 不存在的合约，初始化开仓手数和撤单次数
+    #             self.__dict_instrument_statistics[instrument_id] = {'action_count': 1, 'open_count': 0}
+    #         # 期货账户内具体合约的撤单次数赋值到对应策略对象合约撤单次数
+    #         for strategy_id in self.__dict_strategy:
+    #             if self.__dict_strategy[strategy_id].get_a_instrument_id() == instrument_id:
+    #                 self.__dict_strategy[strategy_id].set_a_action_count(self.__dict_instrument_statistics[instrument_id]['action_count'])
+    #             elif self.__dict_strategy[strategy_id].get_b_instrument_id() == instrument_id:
+    #                 self.__dict_strategy[strategy_id].set_b_action_count(self.__dict_instrument_statistics[instrument_id]['action_count'])
+    #         # print(">>> User.instrument_action_count() instrument_id =", instrument_id, "self.__dict_instrument_statistics[instrument_id] =", self.__dict_instrument_statistics[instrument_id])
+
+    # 统计合约撤单次数，被OnRspOrderAction调用，{'rb1705': {'open_count': 0, 'action_count': 0}}
+    def instrument_action_count(self, OrderAction):
+        if len(OrderAction['OrderSysID']) == 0:  # 只统计有交易所编码的order
             return
-        instrument_id = Order['InstrumentID']
-        if Order['OrderStatus'] == '5':  # 值为5：撤单
-            if instrument_id in self.__dict_instrument_statistics:  # 已经存在的合约，撤单次数加+1
-                self.__dict_instrument_statistics[instrument_id]['action_count'] += 1
-            else:  # 不存在的合约，初始化开仓手数和撤单次数
-                self.__dict_instrument_statistics[instrument_id] = {'action_count': 1, 'open_count': 0}
-            # 撤单次数赋值到策略对象的合约撤单次数
-            for strategy_id in self.__dict_strategy:
-                if self.__dict_strategy[strategy_id].get_a_instrument_id() == instrument_id:
-                    self.__dict_strategy[strategy_id].set_a_action_count(self.__dict_instrument_statistics[instrument_id]['action_count'])
-                elif self.__dict_strategy[strategy_id].get_b_instrument_id() == instrument_id:
-                    self.__dict_strategy[strategy_id].set_b_action_count(self.__dict_instrument_statistics[instrument_id]['action_count'])
+        instrument_id = OrderAction['InstrumentID']
+        # if OrderAction['OrderStatus'] == '5':  # 值为5：撤单
+        if instrument_id in self.__dict_instrument_statistics:  # 已经存在的合约，撤单次数加+1
+            self.__dict_instrument_statistics[instrument_id]['action_count'] += 1
+        else:  # 不存在的合约，初始化开仓手数和撤单次数
+            self.__dict_instrument_statistics[instrument_id] = {'action_count': 1, 'open_count': 0}
+        # 期货账户内具体合约的撤单次数赋值到对应策略对象合约撤单次数
+        for strategy_id in self.__dict_strategy:
+            if self.__dict_strategy[strategy_id].get_a_instrument_id() == instrument_id:
+                self.__dict_strategy[strategy_id].set_a_action_count(self.__dict_instrument_statistics[instrument_id]['action_count'])
+            elif self.__dict_strategy[strategy_id].get_b_instrument_id() == instrument_id:
+                self.__dict_strategy[strategy_id].set_b_action_count(self.__dict_instrument_statistics[instrument_id]['action_count'])
             # print(">>> User.instrument_action_count() instrument_id =", instrument_id, "self.__dict_instrument_statistics[instrument_id] =", self.__dict_instrument_statistics[instrument_id])
 
     # 统计合约开仓手数，被OnRtnTrade调用，{'rb1705': {'open_count': 0, 'action_count': 0}}
@@ -1141,69 +1042,127 @@ class User():
 
     # 查询行情
     def qry_depth_market_data(self, instrument_id):
-        return self.__trader.api.QryDepthMarketData(instrument_id)
+        return self.__trader_api.QryDepthMarketData(instrument_id)
+
+    # 转PyCTP_Market_API类中回调函数OnRtnOrder
+    def OnRtnOrder(self, Order):
+        # print(">>>User.OnRtnOrder() Order =", Order)
+        # self.__queue_OnRtnOrder.put(Order)  # 缓存期货账户的所有order
+        self.__queue_OnRtn.put({'OnRtnOrder': Order})  # 缓存期货账户的所有order
+
+        # 根据字段“OrderRef”筛选出本套利系统的记录，OrderRef规则：第1位为‘1’，第2位至第10位为递增数，第11位至第12位为StrategyID
+        # if len(Order['OrderRef']) == 12 and Order['OrderRef'][:1] == '1':
+        #     # Order新增字段
+        #     Order['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
+        #     strategy_id = Order['OrderRef'][-2:]
+        #     Order['StrategyID'] = strategy_id  # 报单引用末两位是策略编号
+        #     Order['ReceiveLocalTime'] = t.strftime("%Y-%m-%d %H:%M:%S %f")  # 收到回报的时间
+        #     # Order['RecMicrosecond'] = t.strftime("%f")  # 收到回报中的时间毫秒
+        #
+        #     self.instrument_action_count(Order)  # 统计合约撤单次数
+        #
+        #     # 进程间通信：'DataFlag': 'instrument_statistics'
+        #     # dict_data = {
+        #     #     'DataFlag': 'instrument_statistics',
+        #     #     'UserId': self.__user_id,
+        #     #     'DataMain': self.__dict_instrument_statistics
+        #     # }
+        #     # self.__Queue_user.put(dict_data)  # user进程put，main进程get
+        #
+        #     # # 进程间通信：'DataFlag': 'OnRtnOrder'
+        #     # dict_data = {
+        #     #     'DataFlag': 'OnRtnOrder',
+        #     #     'UserId': self.__user_id,
+        #     #     'DataMain': Order
+        #     # }
+        #     # self.__Queue_user.put(dict_data)  # user进程put，main进程get
+        #
+        #     # 缓存，待提取，提取发送给特定strategy对象
+        #
+        #     self.__queue_OnRtnOrder.put_nowait(Order)  # 缓存OnRtnTrade回调数据，本套利系统的order
+        #     # self.__dict_strategy[strategy_id].OnRtnOrder(Order)
+        # else:
+        #     print("User.OnRtnOrder() 异常 user_id =", self.__user_id, "过滤掉非小蜜蜂套利系统的order")
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnTrade(self, Trade):
-        t = datetime.now()  # 取接收到回调数据的本地系统时间
         # print(">>>User.OnRtnTrade() Trade =", Trade)
+        t = datetime.now()  # 取接收到回调数据的本地系统时间
         # Trade新增字段
         Trade['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
         Trade['StrategyID'] = Trade['OrderRef'][-2:]  # 报单引用末两位是策略编号
         Trade['ReceiveLocalTime'] = t.strftime("%Y-%m-%d %H:%M:%S %f")  # 收到回报的本地系统时间
+        # self.__queue_OnRtnTrade.put(Trade)  # 缓存OnRtnTrade回调数据
+        self.__queue_OnRtn.put({'OnRtnTrade': Trade})  # 缓存期货账户的所有order
 
-        # self.statistics(trade=Trade)  # 统计期货账户的合约开仓手数
-        self.statistics_for_trade(Trade)  # 期货账户统计，基于trade
-        self.__queue_OnRtnTrade.put(Trade)  # 缓存OnRtnTrade回调数据
+    # 撤单回报
+    def OnRspOrderAction(self, OnRspOrderAction):
+        # self.__queue_OnRspOrderAction.put(OnRspOrderAction)  # 缓存期货账户的所有order
+        self.__queue_OnRtn.put({'OnRspOrderAction': OnRspOrderAction})  # 缓存期货账户的所有order
+
+    # 从Queue结构取出order的处理
+    def handle_OnRtnOrder(self, Order):
+        self.update_list_pending({'OnRtnOrder': Order})# 更新挂单列表
+        self.count_commission_order(Order)  # 统计中金所部分品种的申报费
+
+        # 过滤出小蜜蜂套利系统的Order，并将Order传给Strategy对象
+        OrderRef = Order['OrderRef']
+        if len(OrderRef) == 12:
+            if OrderRef[:1] == '1':
+                found_flag = False
+                strategy_id_OrderRef = OrderRef[10:]
+                for strategy_id in self.__dict_strategy:
+                    if strategy_id_OrderRef == self.__dict_strategy[strategy_id].get_strategy_id():
+                        self.__dict_strategy[strategy_id].OnRtnOrder(Order)
+                        found_flag = True
+                if not found_flag:
+                    print("User.threading_run_OnRtnOrder() 异常，错误 user_id =", self.__user_id,
+                          "Order未传递给策略对象,Order结构体中StrategyID=", Order['StrategyID'])
 
     # 从Queue结构取出trade的处理
-    def handle_OnRtnTrade(self, trade):
-        if trade['TradeDate'] > self.__date_qry_trading_account \
-                or (trade['TradeDate'] == self.__date_qry_trading_account
-                    and trade['TradeTime'] >= self.__time_qry_trading_account):
-            self.update_list_position_detail_for_trade(trade)  # 更新user的持仓明细，同时统计平仓盈亏
-            self.__commission += self.count_commission(trade)
+    def handle_OnRtnTrade(self, Trade):
+        Trade = self.process_trade_offset_flag(Trade)  # 如果平仓标志位为1，则根据持仓明细转换为3或4
+        self.update_list_pending({'OnRtnTrade': Trade})  # 更新挂单列表
+        self.statistics_for_trade(Trade)
+        # 过滤查询资金账户之前的Trade记录
+        if Trade['TradeDate'] > self.__date_qry_trading_account \
+                or (Trade['TradeDate'] == self.__date_qry_trading_account
+                    and Trade['TradeTime'] >= self.__time_qry_trading_account):
+            self.update_list_position_detail_for_trade(Trade)  # 更新user持仓明细、统计平仓盈亏
+            self.__commission += self.count_commission(Trade)  # 统计手续费
         else:
-            print("User.handle_OnRtnTrade() 过滤掉查询投资者持仓明细之前的trade，trade['Date'] =", trade['TradeDate'], "trade['TradeTime'] =", trade['TradeTime'], "trade =", trade)
+            print("User.handle_OnRtnTrade() 过滤查询投资者持仓明细之前的trade记录，trade['Date'] =", Trade['TradeDate'], "trade['TradeTime'] =", Trade['TradeTime'])
 
-    # 转PyCTP_Market_API类中回调函数OnRtnOrder
-    def OnRtnOrder(self, Order):
-        t = datetime.now()  #取接收到回调数据的本地系统时间
-        # print(">>>User.OnRtnOrder() Order =", Order)
-        self.__queue_OnRtnOrder_user.put(Order)  # 缓存期货账户的所有order
-        
-        # 根据字段“OrderRef”筛选出本套利系统的记录，OrderRef规则：第1位为‘1’，第2位至第10位为递增数，第11位至第12位为StrategyID
-        if len(Order['OrderRef']) == 12 and Order['OrderRef'][:1] == '1':
-            # Order新增字段
-            Order['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
-            strategy_id = Order['OrderRef'][-2:]
-            Order['StrategyID'] = strategy_id  # 报单引用末两位是策略编号
-            Order['ReceiveLocalTime'] = t.strftime("%Y-%m-%d %H:%M:%S %f")  # 收到回报的时间
-            # Order['RecMicrosecond'] = t.strftime("%f")  # 收到回报中的时间毫秒
+        # 过滤出小蜜蜂套利系统的trade，并将trade传给Strategy对象
+        OrderRef = Trade['OrderRef']
+        if len(OrderRef) == 12:
+            if OrderRef[:1] == '1':
+                found_flag = False
+                strategy_id_OrderRef = OrderRef[10:]
+                for strategy_id in self.__dict_strategy:
+                    if strategy_id_OrderRef == strategy_id:
+                        self.__dict_strategy[strategy_id].OnRtnTrade(Trade)
+                        found_flag = True
+                if not found_flag:
+                    print("User.threading_run_OnRtnTrade() 异常，错误 user_id =", self.__user_id,
+                          "trade未传递给策略对象,Trade结构体中StrategyID=", Trade['StrategyID'])
 
-            self.instrument_action_count(Order)  # 统计合约撤单次数
+    # 从Queue结构取出OrderAction的处理
+    def handle_OnRspOrderAction(self, OrderAction):
+        OrderAction = self.add_InstrumentID_for_OrderAction(OrderAction)  # 遍历挂单列表self.__list_pending，在挂单列表中找到相同OrderRef的记录的InstrumentID值
+        print(">>>User.handle_OnRspOrderAction() OrderAction =", OrderAction)
+        self.update_list_pending({'OnRspOrderAction': OrderAction})  # 更新挂单列表
+        self.instrument_action_count(OrderAction)  # 统计期货账户内合约撤单次数，包含但不限小蜜蜂套利系统的撤单
 
-            # 进程间通信：'DataFlag': 'instrument_statistics'
-            # dict_data = {
-            #     'DataFlag': 'instrument_statistics',
-            #     'UserId': self.__user_id,
-            #     'DataMain': self.__dict_instrument_statistics
-            # }
-            # self.__Queue_user.put(dict_data)  # user进程put，main进程get
-
-            # # 进程间通信：'DataFlag': 'OnRtnOrder'
-            # dict_data = {
-            #     'DataFlag': 'OnRtnOrder',
-            #     'UserId': self.__user_id,
-            #     'DataMain': Order
-            # }
-            # self.__Queue_user.put(dict_data)  # user进程put，main进程get
-
-            # 缓存，待提取，提取发送给特定strategy对象
-            self.__queue_OnRtnOrder.put_nowait(Order)  # 缓存OnRtnTrade回调数据，本套利系统的order
-            # self.__dict_strategy[strategy_id].OnRtnOrder(Order)
-        else:
-            print("User.OnRtnOrder() 异常 user_id =", self.__user_id, "过滤掉非小蜜蜂套利系统的order")
+        # OrderAction转发给策略实例
+        OrderRef = OrderAction['OrderRef']
+        if len(OrderRef) == 12:
+            if OrderRef[:1] == '1':
+                strategy_id_OrderRef = OrderRef[10:]
+                # print(">>>User.handle_OnRspOrderAction() strategy_id_OrderRef =", strategy_id_OrderRef)
+                for strategy_id in self.__dict_strategy:
+                    if strategy_id == strategy_id_OrderRef:
+                        self.__dict_strategy[strategy_id].OnRspOrderAction(OrderAction)
 
     def OnErrRtnOrderInsert(self, InputOrder, RspInfo):
         """报单录入错误回报"""
@@ -1224,55 +1183,45 @@ class User():
 
     # 转行情回调
     def OnRtnDepthMarketData(self, tick):
-        # instrument_id = tick['InstrumentID']
-        # self.__dict_last_tick[instrument_id] = tick
+        instrument_id = tick['InstrumentID']
+        self.__dict_last_tick[instrument_id] = tick
         # print(">>> User.OnRtnDepthMarketData() tick =", tick['InstrumentID'], tick)
         # print(">>> User.OnRtnDepthMarketData() user_id =", self.__user_id, "len(self.__dict_last_tick) =", len(self.__dict_last_tick))
-        pass
 
-    # 处理OnRtnOrder的线程
-    def threading_run_OnRtnOrder(self):
-        print(">>> User.threading_run_OnRtnOrder() user_id =", self.__user_id)
+    # 处理OnRtnOrder、OnRtnTrade、OnRspOrderAction的线程
+    def threading_run_OnRtn(self):
+        print(">>>User.threading_run_OnRtn() user_id =", self.__user_id)
         while True:
-            order = self.__queue_OnRtnOrder.get()
-            # print(">>> User.threading_run_OnRtnOrder() user_id =", self.__user_id, "order =", order)
-            for strategy_id in self.__dict_strategy:
-                if order['StrategyID'] == self.__dict_strategy[strategy_id].get_strategy_id():
-                    self.__dict_strategy[strategy_id].OnRtnOrder(order)
+            dict_field = self.__queue_OnRtn.get()
+            for dict_key in dict_field:
+                dict_value = dict_field[dict_key]
+                if dict_key == "OnRtnOrder":
+                    self.handle_OnRtnOrder(dict_value)
+                elif dict_key == "OnRtnTrade":
+                    self.handle_OnRtnTrade(dict_value)
+                elif dict_key == "OnRspOrderAction":
+                    self.handle_OnRspOrderAction(dict_value)
 
-    # 统计申报费线程
-    def threading_count_commission_order(self):
-        while True:
-            Order = self.__queue_OnRtnOrder_user.get()
-            # 计算申报费
-            if Order['InsertDate'] > self.__date_qry_trading_account \
-                    or (Order['InsertDate'] == self.__date_qry_trading_account
-                        and Order['InsertTime'] >= self.__time_qry_trading_account):
-                self.count_commission_order(Order)
-            else:
-                print("User.handle_OnRtnOrder() 过滤掉查询投资者持仓明细之前的Order，Order['InsertDate'] =", Order['InsertDate'],
-                      "Order['InsertTime'] =", Order['InsertTime'], "Order =", Order)
-                # self.count_commission_order(Order)
+    # # 处理OnRtnOrder的线程
+    # def threading_run_OnRtnOrder(self):
+    #     print(">>>User.threading_run_OnRtnOrder() user_id =", self.__user_id)
+    #     while True:
+    #         Order = self.__queue_OnRtnOrder.get()
+    #         self.handle_OnRtnOrder(Order)
 
-    # 处理OnRtnTrade的线程
-    def threading_run_OnRtnTrade(self):
-        print(">>> User.threading_run_OnRtnTrade() user_id =", self.__user_id)
-        while True:
-            trade = self.__queue_OnRtnTrade.get()
-            self.process_trade_offset_flag(trade)  # 如果平仓标志位为1，则根据持仓明细转换为3或4
-            # print(">>> User.threading_run_OnRtnTrade() user_id =", self.__user_id, "trade =", trade)
-            # 过滤出本套利系统的trade，并将trade传给Strategy对象
-            if len(trade['OrderRef']) == 12 and trade['OrderRef'][:1] == '1':
-                found_flag = False
-                for strategy_id in self.__dict_strategy:
-                    if trade['StrategyID'] == self.__dict_strategy[strategy_id].get_strategy_id():
-                        self.__dict_strategy[strategy_id].OnRtnTrade(trade)
-                        found_flag = True
-                if not found_flag:
-                    print("User.threading_run_OnRtnTrade() 异常 user_id =", self.__user_id, "trade未传递给策略对象,Trade结构体中StrategyID=", trade['StrategyID'])
-            self.handle_OnRtnTrade(trade)  # User的trade运算
-            # self.update_list_position_detail_for_trade(trade)  # 更新user的持仓明细
-            # self.__commission += self.count_commission(trade)
+    # # 处理OnRtnTrade的线程
+    # def threading_run_OnRtnTrade(self):
+    #     print(">>>User.threading_run_OnRtnTrade() user_id =", self.__user_id)
+    #     while True:
+    #         trade = self.__queue_OnRtnTrade.get()
+    #         self.handle_OnRtnTrade(trade)
+
+    # # 处理OnRspOrderAction的线程
+    # def threading_run_OnRspOrderAction(self):
+    #     print(">>>User.threading_run_OnRspOrderAction() user_id =", self.__user_id)
+    #     while True:
+    #         OrderAction = self.__queue_OnRspOrderAction.get()
+    #         self.handle_OnRspOrderAction(OrderAction)
 
     # 将order和trade记录保存到本地
     def save_df_order_trade(self):
@@ -1294,7 +1243,7 @@ class User():
 
     # 转PyCTP_Market_API类中回调函数QryTrade
     def QryTrade(self):
-        list_QryTrade = self.__trader.api.QryTrade()  # 正确返回值为list类型，否则为异常
+        list_QryTrade = self.__trader_api.QryTrade()  # 正确返回值为list类型，否则为异常
         self.__list_QryTrade = list()  # 保存本套利系统的Trade记录
         if isinstance(list_QryTrade, list):
             list_QryTrade = Utils.code_transform(list_QryTrade)
@@ -1312,7 +1261,7 @@ class User():
 
     # 转PyCTP_Market_API类中回调函数QryOrder
     def QryOrder(self):
-        list_QryOrder = self.__trader.api.QryOrder()  # 正确返回值为list类型，否则为异常
+        list_QryOrder = self.__trader_api.QryOrder()  # 正确返回值为list类型，否则为异常
         self.__list_QryOrder = list()  # 保存本套利系统的Order记录
         if isinstance(list_QryOrder, list):
             list_QryOrder = Utils.code_transform(list_QryOrder)
@@ -1359,16 +1308,16 @@ class User():
         #     print("User.get_commission() 异常，交易所代码在四个交易所之外 user_id =", self.__user_id, "instrument_id =", instrument_id, "exchange_id =", exchange_id)
         commodity_id = Utils.extract_commodity_id(instrument_id)
         # print(">>>User.get_commission() commodity_id =", commodity_id)
+
         if commodity_id not in self.__dict_commission:
             # 通过API查询单个品种的手续费率dict
+            self.qry_api_interval_manager()  # API查询时间间隔管理
             # 尝试三次获取指定合约的手续费详细
             flag_get_commission_success = False  # 获取手续费率成功标志位，默认获取失败，False
             flag = 0
             while flag < 3:
                 self.qry_api_interval_manager()  # API查询时间间隔管理
-                # list_commission = self.__trader.QryInstrumentCommissionRate(instrument_id)
-                b_instrument_id = instrument_id.encode()
-                list_commission = self.__CTP_trader.QryInstrumentCommissionRate(b_instrument_id)
+                list_commission = self.__trader_api.QryInstrumentCommissionRate(instrument_id.encode())
                 if isinstance(list_commission, list) and len(list_commission) > 0:
                     # print(">>>User.get_commission() user_id =", self.__user_id, "list_commission =", list_commission)
                     dict_commission = Utils.code_transform(list_commission[0])
@@ -1379,6 +1328,9 @@ class User():
                     flag += 1
                     print("User.get_mmission() 获取手续费失败，尝试次数", flag, "user_id =", self.__user_id, "instrument_id =", instrument_id,
                           "exchange_id =", exchange_id, "手续费获取结果 =", list_commission)
+            # if flag > 0:  # 正确获取到手续费率的dict则flag值为0，否则为大于0的整数
+            #     print("User.get_mmission() 获取手续费失败， user_id =", self.__user_id, "instrument_id =", instrument_id, "exchange_id =", exchange_id, "手续费获取结果 =", list_commission)
+            # print(">>> User.get_commission() ", dict_commission)
             if flag_get_commission_success is False:  # 获取手续费失败，返回空dict
                 dict_commission = dict()
                 # 弹窗，或其他形式提醒，此处为初始化类错误，影响手续费统计结果!
@@ -1407,7 +1359,7 @@ class User():
         # if trade['TradeDate'] > self.__date_qry_inverstor_position_detail \
         #         or (trade['TradeDate'] == self.__date_qry_inverstor_position_detail
         #             and trade['TradeTime'] >= self.__time_qry_inverstor_position_detail):
-        print(">>> User.update_list_position_detail_for_trade() user_id =", self.__user_id)
+        print(">>>User.update_list_position_detail_for_trade() user_id =", self.__user_id)
         # # 开仓，所有交易所的开仓标志相同
         # if trade['OffsetFlag'] == 0:
         #     pass
@@ -1516,6 +1468,50 @@ class User():
                         self.__qry_investor_position_detail.remove(self.__qry_investor_position_detail[i - shift])
                         shift += 1  # 游标修正值
 
+    # 更新挂单列表，形参类型有OnRtnOrder、OnRtnTrade、OnRspOrderAction，dict{'OnRtnOrder': {OrderField}}
+    def update_list_pending(self, dict_input):
+        print(">>>User.update_list_pending() 开始长度 =", len(self.__list_pending))
+        for dict_key in dict_input:
+            dict_value = dict_input[dict_key]
+            if dict_key == "OnRtnOrder":  # 往挂单列表里面添加挂单
+                dict_value['VolumeTraded'] = 0
+                self.__list_pending.append(dict_value)
+            elif dict_key == "OnRtnTrade":  # 从挂单列表里面删除全部成交单
+                for i in self.__list_pending:
+                    found_flag = False
+                    if i['OrderRef'] == dict_value['OrderRef']:
+                        found_flag = True
+                        i['VolumeTraded'] += dict_value['Volume']
+                        if i['VolumeTraded'] == i['VolumeTotalOriginal']:  # 原始报单量与已成交量相等
+                            self.__list_pending.remove(i)
+                        break
+                if not found_flag:
+                    print(">>>User.update_list_pending() 异常，OnRtnTrade回调遍历挂单列表中未找到OrderRef为", dict_value['OrderRef'], "的挂单记录")
+            elif dict_key == "OnRspOrderAction":  # 从挂单列表里面删除撤单
+                for i in self.__list_pending:
+                    found_flag = False
+                    if i['OrderRef'] == dict_value['OrderRef']:
+                        found_flag = True
+                        self.__list_pending.remove(i)
+                        break
+                if not found_flag:
+                    print(">>>User.update_list_pending() 异常，OnRspOrderAction回调遍历挂单列表中未找到OrderRef为", dict_value['OrderRef'], "的挂单记录")
+        print(">>>User.update_list_pending() 结束长度 =", len(self.__list_pending))
+
+    # 遍历挂单列表self.__list_pending，在挂单列表中找到相同OrderRef的记录的InstrumentID值，并填充到OrderAction结构体中
+    def add_InstrumentID_for_OrderAction(self, OrderAction):
+        found_flag = False
+        for i in self.__list_pending:
+            if i['OrderRef'] == OrderAction['OrderRef']:
+                found_flag = True
+                OrderAction['InstrumentID'] = i['InstrumentID']
+                break
+        if not found_flag:
+            print(">>>User.add_InstrumentID_for_OrderAction() 异常，OnRspOrderAction回调遍历挂单列表中未找到OrderRef为", OrderAction['OrderRef'],
+                  "的挂单记录")
+        return OrderAction
+
+
     # 计算平仓盈亏，形参分别为开仓和平仓的trade
     def count_profit_close(self, trade_close, trade_open, instrument_multiple):
         """
@@ -1602,6 +1598,14 @@ class User():
 
     # 计算申报费
     def count_commission_order(self, order):
+        # 统计通过ctp-api查询交易账户信息时间之后的Order
+        if order['InsertDate'] > self.__date_qry_trading_account \
+                or (order['InsertDate'] == self.__date_qry_trading_account
+                    and order['InsertTime'] >= self.__time_qry_trading_account):
+            pass
+        else:
+            return
+
         if order['ExchangeID'] == 'CFFEX':  # 中金所品种
             InstrumentID = order['InstrumentID']
             if len(InstrumentID) == 6:
@@ -1973,11 +1977,7 @@ class User():
                 'action_count': 0,  # 不存在的合约，撤单次数设置为0
                 'open_count': trade['Volume']  # 不存在的合约，开仓数量设置为本次值
             }
-            # self.__dict_instrument_statistics[instrument_id]['action_count'] = 0  # 不存在的合约，撤单次数设置为0
-            # self.__dict_instrument_statistics[instrument_id]['open_count'] = trade['Volume']  # 不存在的合约，开仓数量设置为0
-
-        # 统计合约开仓
-        # 撤单次数赋值到策略对象的合约撤单次数
+        # 将整个期货账户的合约开仓手数统计值赋值给对应的策略对象
         open_count = self.__dict_instrument_statistics[instrument_id]['open_count']
         for strategy_id in self.__dict_strategy:
             if self.__dict_strategy[strategy_id].get_a_instrument_id() == instrument_id:
@@ -1986,17 +1986,18 @@ class User():
                 self.__dict_strategy[strategy_id].set_b_open_count(open_count)
 
     # 根据持仓明细规则将平仓标志位OffsetFlag的值由1转换为3或4
-    def process_trade_offset_flag(self, trade):
-        if trade['OffsetFlag'] == '1':  # 平仓标志位为1，需要转换
+    def process_trade_offset_flag(self, Trade):
+        if Trade['OffsetFlag'] == '1':  # 平仓标志位为1，需要转换
             for i in self.__qry_investor_position_detail:
-                if i['InstrumentID'] == trade['InstrumentID'] and i['Direction'] != trade['Direction']:
+                if i['InstrumentID'] == Trade['InstrumentID'] and i['Direction'] != Trade['Direction']:
                     if i['TradingDay'] != self.__TradingDay:
-                        trade['OffsetFlag'] = '4'  # 修改平仓标志位
-                        print(">>>User.process_trade_offset_flag() user_id =", self.__user_id, "将平仓标志位由1修改为4，trade=", trade)
+                        Trade['OffsetFlag'] = '4'  # 修改平仓标志位
+                        print(">>>User.process_trade_offset_flag() user_id =", self.__user_id, "将平仓标志位由1修改为4，Trade=", Trade)
                     elif i['TradingDay'] == self.__TradingDay:
-                        trade['OffsetFlag'] = '3'  # 修改平仓标志位
-                        print(">>>User.process_trade_offset_flag() user_id =", self.__user_id, "将平仓标志位由1修改为3，trade=", trade)
+                        Trade['OffsetFlag'] = '3'  # 修改平仓标志位
+                        print(">>>User.process_trade_offset_flag() user_id =", self.__user_id, "将平仓标志位由1修改为3，Trade=", Trade)
                     break
+        return Trade
 
 if __name__ == '__main__':
     print("User.py, if __name__ == '__main__':")

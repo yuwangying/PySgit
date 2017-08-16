@@ -14,7 +14,7 @@ import Utils
 from pandas import DataFrame, Series
 import pandas as pd
 from PyQt4 import QtCore
-import pyctp
+import PyCTP
 # import queue
 # import threading
 # from PyCTP_Trade import PyCTP_Trader_API
@@ -52,10 +52,13 @@ class Strategy():
         print('Strategy.__init__() 创建策略，user_id=', dict_args['user_id'], 'strategy_id=', dict_args['strategy_id'])
         self.__user = obj_user  # user实例
         self.init_variable()  # 初始化变量
-        # self.__MdApi_TradingDay = self.__user.get_MdApi_TradingDay()  # 获取TdApi的交易日，飞鼠交易柜台mdapi没有交易日
-        self.__TdApi_TradingDay = self.__user.get_TdApi_TradingDay()  # 获取TdApi的交易日
-        print(">>>Strategy.__init__() self.__TdApi_TradingDay =", self.__TdApi_TradingDay)
+        self.__MdApi_TradingDay = self.__user.get_MdApi_TradingDay()  # 获取TdApi的交易日
         self.set_arguments(dict_args)  # 设置策略参数，形参由server端获取到
+        # 从API查询期货合约信息中未找到该合约代码，则不创建Strategy对象
+        # if self.if_exist_instrument_id(self.__a_instrument_id) == False:
+        #     return
+        # if self.if_exist_instrument_id(self.__b_instrument_id) == False:
+        #     return
         self.get_td_api_arguments()  # 从TdApi获取必要的参数（合约乘数、手续费等）
         self.init_position_detail()  # 初始化策略持仓明细order、持仓明细trade
         # self.update_position_of_position_detail_for_trade()  # 利用trade持仓明细更新策略持仓变量
@@ -258,7 +261,7 @@ class Strategy():
     def init_position_detail(self):
         print("Strategy.init_position_detail() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "len(self.__update_position_detail_record_time) =", len(self.__update_position_detail_record_time))
         # RESUM模式启动，xml数据可用，装载xml数据
-        if self.__user.get_TdApi_start_model() == pyctp.Sgit_TERT_RESUME:
+        if self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESUME:
             # 持仓明细order
             self.__list_position_detail_for_order = list()  # 初始化本策略持仓明细order
             for i in self.__user.get_xml_list_position_detail_for_order():
@@ -272,7 +275,7 @@ class Strategy():
                     self.__list_position_detail_for_trade.append(i)
 
         # RESTART模式启动，xml数据不可用，装载server数据
-        elif self.__user.get_TdApi_start_model() == pyctp.Sgit_TERT_RESTART:  # RESTART模式启动，xml数据不可用
+        elif self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESTART:  # RESTART模式启动，xml数据不可用
             # 当前交易日没有修改过策略持仓，持仓明细初始值为昨日持仓明细
             if len(self.__update_position_detail_record_time) == 0:
                 # 昨日持仓明细order
@@ -679,26 +682,14 @@ class Strategy():
         # 通过API查询的数据，统一放到期货账户登录成功之后再调用
         self.__a_price_tick = self.get_price_tick(self.__a_instrument_id)  # A合约最小跳价
         self.__b_price_tick = self.get_price_tick(self.__b_instrument_id)  # B合约最小跳价
-        print(">>>Strategy.get_td_api_arguments() user_id =", self.__user_id, "strategy_id =", self.__strategy_id)
-        print(">>>Strategy.get_td_api_arguments() self.__a_instrument_id =", self.__a_instrument_id, "self.__b_instrument_id =", self.__b_instrument_id)
-        print(">>>Strategy.get_td_api_arguments() self.__a_price_tick =", self.__a_price_tick)
-        print(">>>Strategy.get_td_api_arguments() self.__b_price_tick =", self.__b_price_tick)
         self.__a_instrument_multiple = self.get_instrument_multiple(self.__a_instrument_id)  # A合约乘数
         self.__b_instrument_multiple = self.get_instrument_multiple(self.__b_instrument_id)  # B合约乘数
-        print(">>>Strategy.get_td_api_arguments() self.__a_instrument_multiple =", self.__a_instrument_multiple)
-        print(">>>Strategy.get_td_api_arguments() self.__b_instrument_multiple =", self.__b_instrument_multiple)
         self.__a_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__a_instrument_id)  # A合约保证金率
         self.__b_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__b_instrument_id)  # B合约保证金率
-        print(">>>Strategy.get_td_api_arguments() self.__a_instrument_margin_ratio =", self.__a_instrument_margin_ratio)
-        print(">>>Strategy.get_td_api_arguments() self.__b_instrument_margin_ratio =", self.__b_instrument_margin_ratio)
         self.__exchange_id_a = self.get_exchange_id(self.__a_instrument_id)  # A合约所属的交易所代码
         self.__exchange_id_b = self.get_exchange_id(self.__b_instrument_id)  # A合约所属的交易所代码
-        print(">>>Strategy.get_td_api_arguments() self.__exchange_id_a =", self.__exchange_id_a)
-        print(">>>Strategy.get_td_api_arguments() self.__exchange_id_b =", self.__exchange_id_b)
         self.__dict_commission_a = self.__user.get_commission(self.__a_instrument_id, self.__exchange_id_a)  # A合约手续费的dict
         self.__dict_commission_b = self.__user.get_commission(self.__b_instrument_id, self.__exchange_id_b)  # B合约手续费的dict
-        print(">>>Strategy.get_td_api_arguments() self.__dict_commission_a =", self.__dict_commission_a)
-        print(">>>Strategy.get_td_api_arguments() self.__dict_commission_b =", self.__dict_commission_b)
 
     # 装载xml
     def load_xml(self):
@@ -787,23 +778,23 @@ class Strategy():
         for trade in self.__list_position_detail_for_trade:
             if trade['instrumentid'] == self.__a_instrument_id:
                 if trade['direction'] == '0':
-                    if trade['tradingday'] == self.__TdApi_TradingDay:
+                    if trade['tradingday'] == self.__MdApi_TradingDay:
                         self.__position_a_buy_today += trade['volume']  # A今买
                     else:
                         self.__position_a_buy_yesterday += trade['volume']  # A昨买
                 elif trade['direction'] == '1':
-                    if trade['tradingday'] == self.__TdApi_TradingDay:
+                    if trade['tradingday'] == self.__MdApi_TradingDay:
                         self.__position_a_sell_today += trade['volume']  # A今卖
                     else:
                         self.__position_a_sell_yesterday += trade['volume']  # A昨卖
             elif trade['instrumentid'] == self.__b_instrument_id:
                 if trade['direction'] == '0':
-                    if trade['tradingday'] == self.__TdApi_TradingDay:
+                    if trade['tradingday'] == self.__MdApi_TradingDay:
                         self.__position_b_buy_today += trade['volume']  # B今买
                     else:
                         self.__position_b_buy_yesterday += trade['volume']  # B昨买
                 elif trade['direction'] == '1':
-                    if trade['tradingday'] == self.__TdApi_TradingDay:
+                    if trade['tradingday'] == self.__MdApi_TradingDay:
                         self.__position_b_sell_today += trade['volume']  # B今卖
                     else:
                         self.__position_b_sell_yesterday += trade['volume']  # B昨卖
@@ -829,7 +820,7 @@ class Strategy():
     # 统计指标
     def init_statistics(self):
         # RESUME模式,xml数据可用,装载xml数据
-        if self.__user.get_TdApi_start_model() == pyctp.Sgit_TERT_RESUME:
+        if self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESUME:
             # 策略统计数据
             self.__dict_statistics = dict()
             for i in self.__user.get_xml_list_strategy_statistics():
@@ -852,7 +843,7 @@ class Strategy():
             # print("Strategy.init_strategy_data() user_id =", self.__user_id, 'data_flag = strategy_statistics', 'data_msg =', dict_msg)
             self.__user.get_Queue_user().put(dict_msg)  # 进程通信：user->main，发送最新策略持仓
         # RESTART模式,xml数据不可用,使用初始值
-        elif self.__user.get_TdApi_start_model() == pyctp.Sgit_TERT_RESTART:
+        elif self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESTART:
             self.__dict_statistics = {
                 # 成交统计的类计指标（trade）
                 'a_profit_close': self.__a_profit_close,  # A平仓盈亏
@@ -1036,7 +1027,7 @@ class Strategy():
         self.__position_b_sell_yesterday = 0
         for trade in self.__list_position_detail_for_trade:
             # 今仓
-            if trade['TradingDay'] == self.__TdApi_TradingDay:
+            if trade['TradingDay'] == self.__MdApi_TradingDay:
                 # A合约
                 if trade['InstrumentID'] == self.__a_instrument_id:
                     # 买
@@ -1098,7 +1089,7 @@ class Strategy():
         self.__position_b_sell_today = 0
         self.__position_b_sell_yesterday = 0
         for order in self.__list_position_detail_for_order:
-            if order['TradingDay'] == self.__TdApi_TradingDay:  # 今仓
+            if order['TradingDay'] == self.__MdApi_TradingDay:  # 今仓
                 if order['InstrumentID'] == self.__a_instrument_id:  # A合约
                     if order['Direction'] == '0':  # 买
                         self.__position_a_buy_today += order['VolumeTradedBatch']
@@ -1144,26 +1135,25 @@ class Strategy():
         # Order结构体重键名VolumeTotal：未成交数量，VolumeTotalOriginal：报单量，VolumeTraded：成交数量
         # 筛选出交易所的报单回调做统计（OrderSysID长度为12，VolumeTraded值为0）
         if len(Order['OrderSysID']) == 12:
-            if Order['OrderStatus'] in ['0', '5']:  # '0': 全部成交，'5': 撤单
-                # A合约的Order
-                if Order['InstrumentID'] == self.__a_instrument_id:
-                    self.__a_order_lots += Order['VolumeTotalOriginal']  # A委托手数
-                    self.__a_order_times += 1  # A委托次数
-                    self.__a_trade_rate = self.__a_traded_lots / self.__a_order_lots  # A成交率
-                # B合约的Order
-                elif Order['InstrumentID'] == self.__b_instrument_id:
-                    self.__b_order_lots += Order['VolumeTotalOriginal']  # B委托手数
-                    self.__b_order_times += 1  # B委托次数
-                    self.__b_trade_rate = self.__b_traded_lots / self.__b_order_lots  # B成交率
-                # print(">>> Strategy.statistics_for_order() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "a_traded_lots / a_order_lots / a_order_times", self.__a_traded_lots, '/', self.__a_order_lots, '/', self.__a_order_times, "b_traded_lots / b_order_lots / b_order_times", self.__b_traded_lots, '/', self.__b_order_lots, '/', self.__b_order_times)
-                self.__dict_statistics['A_traded_rate'] = self.__a_trade_rate  # A成交率
-                self.__dict_statistics['B_traded_rate'] = self.__b_trade_rate  # B成交率
-            # 撤单数量统计
-            if Order['OrderStatus'] == '5':
-                if Order['InstrumentID'] == self.__a_instrument_id:
-                    self.__a_action_count_strategy += 1
-                else:
-                    self.__b_action_count_strategy += 1
+            # if Order['OrderStatus'] in ['0', '5']:  # '0': 全部成交，'5': 撤单
+            # A合约的Order
+            if Order['InstrumentID'] == self.__a_instrument_id:
+                self.__a_order_lots += Order['VolumeTotalOriginal']  # A委托手数
+                self.__a_order_times += 1  # A委托次数
+                self.__a_trade_rate = self.__a_traded_lots / self.__a_order_lots  # A成交率
+            # B合约的Order
+            elif Order['InstrumentID'] == self.__b_instrument_id:
+                self.__b_order_lots += Order['VolumeTotalOriginal']  # B委托手数
+                self.__b_order_times += 1  # B委托次数
+                self.__b_trade_rate = self.__b_traded_lots / self.__b_order_lots  # B成交率
+            # print(">>> Strategy.statistics_for_order() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "a_traded_lots / a_order_lots / a_order_times", self.__a_traded_lots, '/', self.__a_order_lots, '/', self.__a_order_times, "b_traded_lots / b_order_lots / b_order_times", self.__b_traded_lots, '/', self.__b_order_lots, '/', self.__b_order_times)
+            self.__dict_statistics['A_traded_rate'] = self.__a_trade_rate  # A成交率
+            self.__dict_statistics['B_traded_rate'] = self.__b_trade_rate  # B成交率
+        # print(">>>Strategy.statistics_for_order() user_id =", self.__user_id, "strategy_id =", self.__strategy_id)
+        # print(" A委托手数 =", self.__a_order_lots)
+        # print(" B委托手数 =", self.__b_order_lots)
+        # print(" A委托次数 =", self.__a_order_times)
+        # print(" B委托次数 =", self.__b_order_times)
 
     # 成交统计（trade）
     def statistics_for_trade(self, Trade):
@@ -1202,6 +1192,15 @@ class Strategy():
         #       "a_traded_lots / a_order_lots / a_order_times", self.__a_traded_lots, '/', self.__a_order_lots, '/',
         #       self.__a_order_times, "b_traded_lots / b_order_lots / b_order_times", self.__b_traded_lots, '/',
         #       self.__b_order_lots, '/', self.__b_order_times)
+
+    def count_instrument_action(self, OrderAction):
+        # 撤单数量统计
+        if OrderAction['InstrumentID'] == self.__a_instrument_id:
+            self.__a_action_count_strategy += 1
+            print(">>>Strategy.count_instrument_action() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, self.__a_instrument_id, self.__a_action_count_strategy)
+        elif OrderAction['InstrumentID'] == self.__b_instrument_id:
+            self.__b_action_count_strategy += 1
+            print(">>>Strategy.count_instrument_action() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, self.__b_instrument_id, self.__b_action_count_strategy)
 
     # order、trade统计
     def statistics(self, order=None, trade=None):
@@ -1805,7 +1804,7 @@ class Strategy():
             CombOffsetFlag = '4'  # 平昨
             CombHedgeFlag = '1'  # 投机
             InstrumentID = self.__a_instrument_id  # 合约代码
-            TradingDay = self.__TdApi_TradingDay
+            TradingDay = self.__MdApi_TradingDay
             self.set_list_position_detail_accessory(InstrumentID=InstrumentID,
                                                     Direction=Direction,
                                                     CombOffsetFlag=CombOffsetFlag,
@@ -1819,7 +1818,7 @@ class Strategy():
             CombOffsetFlag = '3'  # 平今
             CombHedgeFlag = '1'  # 投机
             InstrumentID = self.__a_instrument_id  # 合约代码
-            TradingDay = self.__TdApi_TradingDay
+            TradingDay = self.__MdApi_TradingDay
             self.set_list_position_detail_accessory(InstrumentID=InstrumentID,
                                                     Direction=Direction,
                                                     CombOffsetFlag=CombOffsetFlag,
@@ -1833,7 +1832,7 @@ class Strategy():
             CombOffsetFlag = '4'  # 平昨
             CombHedgeFlag = '1'  # 投机
             InstrumentID = self.__a_instrument_id  # 合约代码
-            TradingDay = self.__TdApi_TradingDay
+            TradingDay = self.__MdApi_TradingDay
             self.set_list_position_detail_accessory(InstrumentID=InstrumentID,
                                                     Direction=Direction,
                                                     CombOffsetFlag=CombOffsetFlag,
@@ -1847,7 +1846,7 @@ class Strategy():
             CombOffsetFlag = '3'  # 平今
             CombHedgeFlag = '1'  # 投机
             InstrumentID = self.__a_instrument_id  # 合约代码
-            TradingDay = self.__TdApi_TradingDay
+            TradingDay = self.__MdApi_TradingDay
             self.set_list_position_detail_accessory(InstrumentID=InstrumentID,
                                                     Direction=Direction,
                                                     CombOffsetFlag=CombOffsetFlag,
@@ -1861,7 +1860,7 @@ class Strategy():
             CombOffsetFlag = '4'  # 平昨
             CombHedgeFlag = '1'  # 投机
             InstrumentID = self.__b_instrument_id  # 合约代码
-            TradingDay = self.__TdApi_TradingDay
+            TradingDay = self.__MdApi_TradingDay
             self.set_list_position_detail_accessory(InstrumentID=InstrumentID,
                                                     Direction=Direction,
                                                     CombOffsetFlag=CombOffsetFlag,
@@ -1875,7 +1874,7 @@ class Strategy():
             CombOffsetFlag = '3'  # 平今
             CombHedgeFlag = '1'  # 投机
             InstrumentID = self.__b_instrument_id  # 合约代码
-            TradingDay = self.__TdApi_TradingDay
+            TradingDay = self.__MdApi_TradingDay
             self.set_list_position_detail_accessory(InstrumentID=InstrumentID,
                                                     Direction=Direction,
                                                     CombOffsetFlag=CombOffsetFlag,
@@ -1889,7 +1888,7 @@ class Strategy():
             CombOffsetFlag = '4'  # 平昨
             CombHedgeFlag = '1'  # 投机
             InstrumentID = self.__b_instrument_id  # 合约代码
-            TradingDay = self.__TdApi_TradingDay
+            TradingDay = self.__MdApi_TradingDay
             self.set_list_position_detail_accessory(InstrumentID=InstrumentID,
                                                     Direction=Direction,
                                                     CombOffsetFlag=CombOffsetFlag,
@@ -1903,7 +1902,7 @@ class Strategy():
             CombOffsetFlag = '3'  # 平今
             CombHedgeFlag = '1'  # 投机
             InstrumentID = self.__b_instrument_id  # 合约代码
-            TradingDay = self.__TdApi_TradingDay
+            TradingDay = self.__MdApi_TradingDay
             self.set_list_position_detail_accessory(InstrumentID=InstrumentID,
                                                     Direction=Direction,
                                                     CombOffsetFlag=CombOffsetFlag,
@@ -2107,6 +2106,7 @@ class Strategy():
 
     # 回调函数：行情推送
     def OnRtnDepthMarketData(self, tick):
+        # self.signal_handle_tick.emit(tick)  # 触发信号
         """ 行情推送
         # print(">>> Strategy.OnRtnDepthMarketData() tick=", tick)
         if tick is None:
@@ -2164,9 +2164,10 @@ class Strategy():
         # 刷新界面价差
         self.spread_to_ui()
         """
-        # self.slot_handle_tick(tick)  # 转到行情处理
-        print(">>>Strategy.OnRtnDepthMarketData() user_id =", self.__user_id, "strategy_id =", self.__strategy_id)
-        pass
+        if tick is None:
+            return
+
+        self.slot_handle_tick(tick)  # 转到行情处理
 
     @QtCore.pyqtSlot(dict)
     def slot_handle_tick(self, tick):
@@ -2183,14 +2184,12 @@ class Strategy():
 
         # 过滤出B合约的tick
         if tick['InstrumentID'] == self.__b_instrument_id:
-            # self.__b_tick = copy.deepcopy(tick)
-            self.__b_tick = tick
+            self.__b_tick = copy.deepcopy(tick)
             # self.update_profit_position(self.__b_tick)  # 更新持仓盈亏
             # print(self.__user_id + self.__strategy_id, "B合约：", self.__b_tick)
         # 过滤出A合约的tick
         elif tick['InstrumentID'] == self.__a_instrument_id:
-            # self.__a_tick = copy.deepcopy(tick)
-            self.__a_tick = tick
+            self.__a_tick = copy.deepcopy(tick)
             # self.update_profit_position(self.__b_tick)  # 更新持仓盈亏
             # print(self.__user_id + self.__strategy_id, "A合约：", self.__a_tick)
 
@@ -2231,36 +2230,30 @@ class Strategy():
                      'IsLast': IsLast}
         # self.trade_task(dict_args)  # 转到交易任务处理
 
-    def OnRspOrderAction(self, InputOrderAction, RspInfo, RequestID, IsLast):
-        """报单操作请求响应:撤单操作响应"""
-        if Utils.Strategy_print:
-            print('Strategy.OnRspOrderAction()', 'OrderRef:', InputOrderAction['OrderRef'], 'InputOrderAction:', InputOrderAction, 'RspInfo:', RspInfo, 'RequestID:', RequestID, 'IsLast:', IsLast)
-        dict_args = {'flag': 'OnRspOrderAction',
-                     'InputOrderAction': InputOrderAction,
-                     'RspInfo': RspInfo,
-                     'RequestID': RequestID,
-                     'IsLast': IsLast}
-        # self.trade_task(dict_args)  # 转到交易任务处理
+    # def OnRspOrderAction(self, InputOrderAction, RspInfo, RequestID, IsLast):
+    #     """报单操作请求响应:撤单操作响应"""
+    #     if Utils.Strategy_print:
+    #         print('Strategy.OnRspOrderAction()', 'OrderRef:', InputOrderAction['OrderRef'], 'InputOrderAction:', InputOrderAction, 'RspInfo:', RspInfo, 'RequestID:', RequestID, 'IsLast:', IsLast)
+    #     dict_args = {'flag': 'OnRspOrderAction',
+    #                  'InputOrderAction': InputOrderAction,
+    #                  'RspInfo': RspInfo,
+    #                  'RequestID': RequestID,
+    #                  'IsLast': IsLast}
+    #     # self.trade_task(dict_args)  # 转到交易任务处理
 
     def OnRtnOrder(self, Order):
-        # Order = copy.deepcopy(Order_input)  # 深度拷贝
         """报单回报"""
-        # print(">>> Strategy.OnRtnOrder() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "Order =", Order)
-        if Utils.Strategy_print:
-            print('Strategy.OnRtnOrder()', 'OrderRef:', Order['OrderRef'], 'Order', Order)
-
+        # print(">>>Strategy.OnRtnOrder() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "Order =", Order)
         # 添加字段，本次成交量'VolumeTradedBatch'
-        Order = self.add_VolumeTradedBatch(Order)
-
+        # Order = self.add_VolumeTradedBatch(Order)
         # 更新持仓明细列表
-        self.update_list_position_detail_for_order(Order)
-
+        # self.update_list_position_detail_for_order(Order)
         # 更新持仓变量
         # self.update_position_for_OnRtnOrder(Order)
         # self.update_position_of_position_detail_for_order()  # 遍历持仓明细更新持仓变量
 
-        series_order = Series(Order)
-        self.__df_OnRtnOrder = DataFrame.append(self.__df_OnRtnOrder, other=series_order, ignore_index=True)
+        # series_order = Series(Order)
+        # self.__df_OnRtnOrder = DataFrame.append(self.__df_OnRtnOrder, other=series_order, ignore_index=True)
 
         # 统计order指标
         # self.statistics(order=Order)
@@ -2283,15 +2276,11 @@ class Strategy():
         #   # 更新界面
 
     def OnRtnTrade(self, Trade):
-        # Trade = copy.deepcopy(trade_input)  # 形参深度拷贝到方法局部变量，目的是修改局部变量值不会影响到形参
         """成交回报"""
-        if Utils.Strategy_print:
-            print('Strategy.OnRtnTrade()', 'OrderRef:', Trade['OrderRef'], 'Trade', Trade)
-        # self.__queue_OnRtnTrade.put(Trade)  # 放入队列
-        # 检查，当前策略的Trade记录
+        # print(">>>Strategy.OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "Trade =", Trade)
         # 所有trade回调保存到DataFrame格式变量
-        series_order = Series(Trade)
-        self.__df_OnRtnTrade = DataFrame.append(self.__df_OnRtnTrade, other=series_order, ignore_index=True)
+        # series_order = Series(Trade)
+        # self.__df_OnRtnTrade = DataFrame.append(self.__df_OnRtnTrade, other=series_order, ignore_index=True)
 
         # 更新统计指标
         self.statistics_for_trade(Trade)
@@ -2321,6 +2310,12 @@ class Strategy():
         # self.statistics_for_trade(Trade)  # 交易数据统计
         # self.update_list_position_detail_for_trade(Trade)  # 更新持仓明细列表
         # self.signal_update_strategy_position.emit(self)  # 更新界面持仓
+
+    # 飞鼠柜台的撤单回报回调
+    def OnRspOrderAction(self, OrderAction):
+        """报单操作请求响应:撤单操作响应"""
+        # print(">>>Strategy.OnRspOrderAction() OrderAction =", OrderAction)
+        self.count_instrument_action(OrderAction)
 
     def OnErrRtnOrderAction(self, OrderAction, RspInfo):
         """ 报单操作错误回报 """
@@ -2809,15 +2804,15 @@ class Strategy():
 
     '''
     typedef char TThostFtdcOrderStatusType
-    Sgit_FTDC_OST_AllTraded = b'0'  # 全部成交
-    Sgit_FTDC_OST_PartTradedQueueing = b'1'  # 部分成交还在队列中
-    Sgit_FTDC_OST_PartTradedNotQueueing = b'2'  # 部分成交不在队列中
-    Sgit_FTDC_OST_NoTradeQueueing = b'3'  # 未成交还在队列中
-    Sgit_FTDC_OST_NoTradeNotQueueing = b'4'  # 未成交不在队列中
-    Sgit_FTDC_OST_Canceled = b'5'  # 撤单
-    Sgit_FTDC_OST_Unknown = b'a'  # 未知
-    Sgit_FTDC_OST_NotTouched = b'b'  # 尚未触发
-    Sgit_FTDC_OST_Touched = b'c'  # 已触发
+    THOST_FTDC_OST_AllTraded = b'0'  # 全部成交
+    THOST_FTDC_OST_PartTradedQueueing = b'1'  # 部分成交还在队列中
+    THOST_FTDC_OST_PartTradedNotQueueing = b'2'  # 部分成交不在队列中
+    THOST_FTDC_OST_NoTradeQueueing = b'3'  # 未成交还在队列中
+    THOST_FTDC_OST_NoTradeNotQueueing = b'4'  # 未成交不在队列中
+    THOST_FTDC_OST_Canceled = b'5'  # 撤单
+    THOST_FTDC_OST_Unknown = b'a'  # 未知
+    THOST_FTDC_OST_NotTouched = b'b'  # 尚未触发
+    THOST_FTDC_OST_Touched = b'c'  # 已触发
     '''
     # 更新挂单列表
     def update_list_order_pending(self, dict_args):

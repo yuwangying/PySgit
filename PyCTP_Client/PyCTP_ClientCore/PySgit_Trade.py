@@ -124,7 +124,7 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
             # 'IPAddress': OrderField.IPAddress,  # IP地址
             # 'MacAddress': OrderField.MacAddress  # Mac地址
         }
-        # print(">>>PySgit_Trade_API.OnRtnOrder() Order =", Order)
+        print(">>>PySgit_Trade_API.OnRtnOrder() Order =", Order)
         # print(">>>时序测试 OrderRef =", Order['OrderRef'], "OnRtnOrder()")
         self.__user.OnRtnOrder(Order)  # 转回调给User类的OnRtnOrder
 
@@ -134,13 +134,12 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
             'BrokerID': TradeField.BrokerID,  # 经纪公司代码
             'InvestorID': TradeField.InvestorID,  # 投资者代码
             'InstrumentID': TradeField.InstrumentID,  # 合约代码
-            'OrderRef': TradeField.OrderRef,  # 报单引用
+            'OrderRef': TradeField.OrderLocalID,  # 报单引用，飞鼠中的OrderLocalID等于CTP中的OrderRef
             'UserID': TradeField.UserID,  # 用户代码
             'ExchangeID': TradeField.ExchangeID,  # 交易所代码
             'TradeID': TradeField.TradeID,  # 成交编号
             'Direction': TradeField.Direction,  # 买卖方向
-            # 'OrderSysID': TradeField.OrderSysID,  # 报单编号
-            'OrderSysID': TradeField.OrderLocalID,  # 报单编号，飞鼠中的OrderLocalID等于CTP中的OrderSysID
+            'OrderSysID': TradeField.OrderSysID,  # 报单编号
             'ParticipantID': TradeField.ParticipantID,  # 会员代码
             'ClientID': TradeField.ClientID,  # 客户代码
             'TradingRole': TradeField.TradingRole,  # 交易角色

@@ -108,6 +108,7 @@ class Strategy():
         self.__sell_close_on_off = dict_args['sell_close_on_off']  # 价差卖平，开关，初始值为1，状态开
         self.__buy_open_on_off = dict_args['buy_open_on_off']     # 价差买开，开关，初始值为1，状态开
         self.__update_position_detail_record_time = dict_args['update_position_detail_record_time']  # 修改策略持仓时间，空字符串：本交易日没有修改持仓
+        self.__update_position_detail_record_orderref = dict_args['update_position_detail_record_orderref']  # 修改策略持仓时间，空字符串：本交易日没有修改持仓
         # print("Strategy.set_arguments() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__update_position_detail_record_time =", self.__update_position_detail_record_time)
 
     # 获取参数
@@ -260,16 +261,16 @@ class Strategy():
     # 装载持仓明细数据order和trade
     def init_position_detail(self):
         print("Strategy.init_position_detail() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "len(self.__update_position_detail_record_time) =", len(self.__update_position_detail_record_time))
+        self.__list_position_detail_for_order = list()  # 初始化本策略持仓明细order
+        self.__list_position_detail_for_trade = list()  # 初始化本策略持仓明细trade
         # RESUM模式启动，xml数据可用，装载xml数据
         if self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESUME:
             # 持仓明细order
-            self.__list_position_detail_for_order = list()  # 初始化本策略持仓明细order
             for i in self.__user.get_xml_list_position_detail_for_order():
                 if i['strategy_id'] == self.__strategy_id:
                     self.__list_position_detail_for_order.append(i)
 
             # 持仓明细trade
-            self.__list_position_detail_for_trade = list()  # 初始化本策略持仓明细trade
             for i in self.__user.get_xml_list_position_detail_for_trade():
                 if i['strategy_id'] == self.__strategy_id:
                     self.__list_position_detail_for_trade.append(i)
@@ -277,14 +278,13 @@ class Strategy():
         # RESTART模式启动，xml数据不可用，装载server数据
         elif self.__user.get_TdApi_start_model() == PyCTP.THOST_TERT_RESTART:  # RESTART模式启动，xml数据不可用
             # 当前交易日没有修改过策略持仓，持仓明细初始值为昨日持仓明细
-            if len(self.__update_position_detail_record_time) == 0:
+            # if len(self.__update_position_detail_record_time) == 0:
+            if len(self.__update_position_detail_record_orderref) == 0:
                 # 昨日持仓明细order
-                self.__list_position_detail_for_order = list()
                 for i in self.__user.get_server_list_position_detail_for_order_yesterday():
                     if i['StrategyID'] == self.__strategy_id:
                         self.__list_position_detail_for_order.append(i)
                 # 昨日持仓明细trade
-                self.__list_position_detail_for_trade = list()
                 for i in self.__user.get_server_list_position_detail_for_trade_yesterday():
                     if i['StrategyID'] == self.__strategy_id:
                         self.__list_position_detail_for_trade.append(i)
@@ -292,14 +292,13 @@ class Strategy():
                 len2 = len(self.__list_position_detail_for_trade)
                 print("Strategy.init_position_detail() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "昨持仓明细 为初始化持仓明细，order、trade持仓明细的长度分别为", len1, len2)
             # 当前交易日有修改过策略持仓，持仓明细初始值为修改策略持仓一刻时保存的今日持仓明细
-            else:
+            # elif len(self.__update_position_detail_record_time) > 0:
+            elif len(self.__update_position_detail_record_orderref) > 0:
                 # 今日持仓明细order
-                self.__list_position_detail_for_order = list()
                 for i in self.__user.get_server_list_position_detail_for_order_today():
                     if i['StrategyID'] == self.__strategy_id:
                         self.__list_position_detail_for_order.append(i)
                 # 今日持仓明细trade
-                self.__list_position_detail_for_trade = list()
                 for i in self.__user.get_server_list_position_detail_for_trade_today():
                     if i['StrategyID'] == self.__strategy_id:
                         self.__list_position_detail_for_trade.append(i)
@@ -471,13 +470,13 @@ class Strategy():
                         self.__list_position_detail_for_order.remove(self.__list_position_detail_for_order[i-shift])
                         shift += 1  # 游标修正值
 
-    def update_list_position_detail_for_trade(self, trade_input):
+    def update_list_position_detail_for_trade(self, trade):
         # order中的CombOffsetFlag 或 trade中的OffsetFlag值枚举：
         # '0'：开仓
         # '1'：平仓
         # '3'：平今
         # '4'：平昨
-        trade = copy.deepcopy(trade_input)  # 形参深度拷贝到方法局部变量，目的是修改局部变量值不会影响到形参
+        # trade = copy.deepcopy(trade_input)  # 形参深度拷贝到方法局部变量，目的是修改局部变量值不会影响到形参
         # self.statistics_for_trade(trade)  # 统计
         # trade_new中"OffsetFlag"值="0"为开仓，不用考虑全部成交还是部分成交，开仓trade直接添加到持仓明细列表里
         if trade['OffsetFlag'] == '0':
@@ -2277,7 +2276,7 @@ class Strategy():
 
     def OnRtnTrade(self, Trade):
         """成交回报"""
-        # print(">>>Strategy.OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "Trade =", Trade)
+        print(">>>Strategy.OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "Trade =", Trade)
         # 所有trade回调保存到DataFrame格式变量
         # series_order = Series(Trade)
         # self.__df_OnRtnTrade = DataFrame.append(self.__df_OnRtnTrade, other=series_order, ignore_index=True)
@@ -2285,13 +2284,16 @@ class Strategy():
         # 更新统计指标
         self.statistics_for_trade(Trade)
 
-        # 修改持仓的OnRtnTrade过滤：更新持仓量、更新持仓明细、更新占用保证金
+        # 当前交易日修改过持仓，对OnRtnTrade过滤：更新持仓量、更新持仓明细、更新占用保证金
         if self.__filter_OnRtnTrade:
             # print("Strategy.OnRtnTrade() self.__filter_date =", self.__filter_date, "self.__filter_time =", self.__filter_time)
             # print("Strategy.OnRtnTrade() Trade['TradeDate'] =", Trade['TradeDate'], "Trade['TradeTime'] =", Trade['TradeTime'])
-            if Trade['TradeDate'] < self.__filter_date \
-                    or (Trade['TradeDate'] == self.__filter_date and Trade['TradeTime'] < self.__filter_time):
-                print("Strategy.OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "时间过滤，跳过持仓量统计")
+            # if Trade['TradeDate'] < self.__filter_date \
+            #         or (Trade['TradeDate'] == self.__filter_date and Trade['TradeTime'] < self.__filter_time):
+            #     print("Strategy.OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "时间过滤，跳过持仓量统计")
+            #     return
+            if Trade['OrderRef'] < self.__update_position_detail_record_orderref:
+                print("Strategy.OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "过滤修改持仓之前的trade记录OrderRef <", self.__update_position_detail_record_orderref)
                 return
 
         # 更新持仓列表

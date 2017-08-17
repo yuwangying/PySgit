@@ -1102,6 +1102,7 @@ class User():
 
     # 从Queue结构取出order的处理
     def handle_OnRtnOrder(self, Order):
+        print(">>>User.handle_OnRtnOrder() Order =", Order)
         self.update_list_pending({'OnRtnOrder': Order})# 更新挂单列表
         self.count_commission_order(Order)  # 统计中金所部分品种的申报费
 
@@ -1121,6 +1122,7 @@ class User():
 
     # 从Queue结构取出trade的处理
     def handle_OnRtnTrade(self, Trade):
+        print(">>>User.handle_OnRtnTrade() Trade =", Trade)
         Trade = self.process_trade_offset_flag(Trade)  # 如果平仓标志位为1，则根据持仓明细转换为3或4
         self.update_list_pending({'OnRtnTrade': Trade})  # 更新挂单列表
         self.statistics_for_trade(Trade)

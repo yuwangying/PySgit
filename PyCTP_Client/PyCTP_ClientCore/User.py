@@ -1103,7 +1103,7 @@ class User():
     # 从Queue结构取出order的处理
     def handle_OnRtnOrder(self, Order):
         print(">>>User.handle_OnRtnOrder() Order =", Order)
-        self.update_list_pending({'OnRtnOrder': Order})# 更新挂单列表
+        self.update_list_pending({'OnRtnOrder': Order})  # 更新挂单列表
         self.count_commission_order(Order)  # 统计中金所部分品种的申报费
 
         # 过滤出小蜜蜂套利系统的Order，并将Order传给Strategy对象

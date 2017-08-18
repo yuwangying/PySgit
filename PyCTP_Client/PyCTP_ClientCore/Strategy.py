@@ -255,7 +255,7 @@ class Strategy():
                                      self.__b_trade_rate,
                                      self.__trade_model,
                                      self.__order_algorithm
-                                            ]
+                                    ]
         return self.__list_strategy_view
 
     # 装载持仓明细数据order和trade
@@ -2292,7 +2292,7 @@ class Strategy():
             #         or (Trade['TradeDate'] == self.__filter_date and Trade['TradeTime'] < self.__filter_time):
             #     print("Strategy.OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "时间过滤，跳过持仓量统计")
             #     return
-            if Trade['OrderRef'] < self.__update_position_detail_record_orderref:
+            if Trade['OrderRef'] <= self.__update_position_detail_record_orderref:
                 print("Strategy.OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "过滤修改持仓之前的trade记录OrderRef <", self.__update_position_detail_record_orderref)
                 return
 

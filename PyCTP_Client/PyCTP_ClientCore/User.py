@@ -1000,6 +1000,8 @@ class User():
             self.__dict_instrument_statistics[instrument_id]['action_count'] += 1
         else:  # 不存在的合约，初始化开仓手数和撤单次数
             self.__dict_instrument_statistics[instrument_id] = {'action_count': 1, 'open_count': 0}
+        # print(">>>User.instrument_action_count() self.__dict_instrument_statistics =", self.__dict_instrument_statistics)
+
         # 期货账户内具体合约的撤单次数赋值到对应策略对象合约撤单次数
         for strategy_id in self.__dict_strategy:
             if self.__dict_strategy[strategy_id].get_a_instrument_id() == instrument_id:
@@ -1102,7 +1104,7 @@ class User():
 
     # 从Queue结构取出order的处理
     def handle_OnRtnOrder(self, Order):
-        print(">>>User.handle_OnRtnOrder() Order =", Order)
+        # print(">>>User.handle_OnRtnOrder() Order =", Order)
         self.update_list_pending({'OnRtnOrder': Order})  # 更新挂单列表
         self.count_commission_order(Order)  # 统计中金所部分品种的申报费
 
@@ -1118,11 +1120,11 @@ class User():
                         found_flag = True
                 if not found_flag:
                     print("User.threading_run_OnRtnOrder() 异常，错误 user_id =", self.__user_id,
-                          "Order未传递给策略对象,Order结构体中StrategyID=", Order['StrategyID'])
+                          "Order未传递给策略对象,Order结构体中StrategyID=", Order['OrderRef'], "Order =", Order)
 
     # 从Queue结构取出trade的处理
     def handle_OnRtnTrade(self, Trade):
-        print(">>>User.handle_OnRtnTrade() Trade =", Trade)
+        # print(">>>User.handle_OnRtnTrade() Trade =", Trade)
         Trade = self.process_trade_offset_flag(Trade)  # 如果平仓标志位为1，则根据持仓明细转换为3或4
         self.update_list_pending({'OnRtnTrade': Trade})  # 更新挂单列表
         self.statistics_for_trade(Trade)
@@ -1152,7 +1154,7 @@ class User():
     # 从Queue结构取出OrderAction的处理
     def handle_OnRspOrderAction(self, OrderAction):
         OrderAction = self.add_InstrumentID_for_OrderAction(OrderAction)  # 遍历挂单列表self.__list_pending，在挂单列表中找到相同OrderRef的记录的InstrumentID值
-        print(">>>User.handle_OnRspOrderAction() OrderAction =", OrderAction)
+        # print(">>>User.handle_OnRspOrderAction() OrderAction =", OrderAction)
         self.update_list_pending({'OnRspOrderAction': OrderAction})  # 更新挂单列表
         self.instrument_action_count(OrderAction)  # 统计期货账户内合约撤单次数，包含但不限小蜜蜂套利系统的撤单
 
@@ -1472,7 +1474,7 @@ class User():
 
     # 更新挂单列表，形参类型有OnRtnOrder、OnRtnTrade、OnRspOrderAction，dict{'OnRtnOrder': {OrderField}}
     def update_list_pending(self, dict_input):
-        print(">>>User.update_list_pending() 开始长度 =", len(self.__list_pending))
+        # print(">>>User.update_list_pending() 开始长度 =", len(self.__list_pending))
         for dict_key in dict_input:
             dict_value = dict_input[dict_key]
             if dict_key == "OnRtnOrder":  # 往挂单列表里面添加挂单
@@ -1498,7 +1500,7 @@ class User():
                         break
                 if not found_flag:
                     print(">>>User.update_list_pending() 异常，OnRspOrderAction回调遍历挂单列表中未找到OrderRef为", dict_value['OrderRef'], "的挂单记录")
-        print(">>>User.update_list_pending() 结束长度 =", len(self.__list_pending))
+        # print(">>>User.update_list_pending() 结束长度 =", len(self.__list_pending))
 
     # 遍历挂单列表self.__list_pending，在挂单列表中找到相同OrderRef的记录的InstrumentID值，并填充到OrderAction结构体中
     def add_InstrumentID_for_OrderAction(self, OrderAction):
@@ -1512,7 +1514,6 @@ class User():
             print(">>>User.add_InstrumentID_for_OrderAction() 异常，OnRspOrderAction回调遍历挂单列表中未找到OrderRef为", OrderAction['OrderRef'],
                   "的挂单记录")
         return OrderAction
-
 
     # 计算平仓盈亏，形参分别为开仓和平仓的trade
     def count_profit_close(self, trade_close, trade_open, instrument_multiple):

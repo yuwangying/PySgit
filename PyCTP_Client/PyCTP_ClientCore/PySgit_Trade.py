@@ -124,7 +124,7 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
             # 'IPAddress': OrderField.IPAddress,  # IP地址
             # 'MacAddress': OrderField.MacAddress  # Mac地址
         }
-        print(">>>PySgit_Trade_API.OnRtnOrder() Order =", Order)
+        # print(">>>PySgit_Trade_API.OnRtnOrder() Order =", Order)
         # print(">>>时序测试 OrderRef =", Order['OrderRef'], "OnRtnOrder()")
         self.__user.OnRtnOrder(Order)  # 转回调给User类的OnRtnOrder
 
@@ -164,7 +164,7 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
             'BrokerOrderSeq': TradeField.BrokerOrderSeq,  # 经纪公司报单编号
             'TradeSource': TradeField.TradeSource  # 成交来源
         }
-        print(">>>PySgit_Trade_API.OnRtnTrade() Trade =", Trade)
+        # print(">>>PySgit_Trade_API.OnRtnTrade() Trade =", Trade)
         self.__user.OnRtnTrade(Trade)  # 转到user回调函数
 
     # 撤单回报
@@ -193,9 +193,10 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
                 # print(">>>时序测试 OrderRef =", OrderAction['OrderRef'], "OnRspOrderAction()")
                 self.__user.OnRspOrderAction(OrderAction)  # 转到user回调函数
             else:
-                print(">>>PySgit_Trade_API.OnRspOrderAction() pInputOrderAction is None")
+                # print(">>>PySgit_Trade_API.OnRspOrderAction() pInputOrderAction is None")
+                pass
         # 撤单失败，不需要处理
         else:
             print_str = pRspInfo.ErrorID
             # print_str = pRspInfo.ErrorMsg  # pRspInfo中没有ErrorMsg，该代码导致user进程异常退出
-            print(">>>PySgit_Trade_API.OnRspOrderAction() 撤单失败，ErrorID =", print_str)
+            # print(">>>PySgit_Trade_API.OnRspOrderAction() 撤单失败，ErrorID =", print_str)

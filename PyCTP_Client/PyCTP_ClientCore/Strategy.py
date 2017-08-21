@@ -61,8 +61,8 @@ class Strategy():
         #     return
         self.get_td_api_arguments()  # 从TdApi获取必要的参数（合约乘数、手续费等）
         self.init_position_detail()  # 初始化策略持仓明细order、持仓明细trade
-        # self.update_position_of_position_detail_for_trade()  # 利用trade持仓明细更新策略持仓变量
-        self.update_position_of_position_detail_for_order()  # 利用order持仓明细更新策略持仓变量
+        self.update_position_of_position_detail_for_trade()  # 利用trade持仓明细更新策略持仓变量
+        # self.update_position_of_position_detail_for_order()  # 利用order持仓明细更新策略持仓变量
         # self.init_position()  # 初始化策略持仓
         self.init_statistics()  # 初始化统计指标
         print('Strategy.__init__() 策略准备完成，user_id=', dict_args['user_id'], 'strategy_id=', dict_args['strategy_id'])
@@ -260,7 +260,7 @@ class Strategy():
 
     # 装载持仓明细数据order和trade
     def init_position_detail(self):
-        print("Strategy.init_position_detail() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "len(self.__update_position_detail_record_time) =", len(self.__update_position_detail_record_time))
+        print("Strategy.init_position_detail() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "len(self.__update_position_detail_record_orderref) =", len(self.__update_position_detail_record_orderref))
         self.__list_position_detail_for_order = list()  # 初始化本策略持仓明细order
         self.__list_position_detail_for_trade = list()  # 初始化本策略持仓明细trade
         # RESUM模式启动，xml数据可用，装载xml数据
@@ -629,7 +629,6 @@ class Strategy():
             # print(">>> Strategy.update_list_position_detail_for_trade_set_position() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "虚拟平昨")
             len_list_position_detail_for_trade = len(self.__list_position_detail_for_trade)
             for i in range(len_list_position_detail_for_trade):  # i为trade结构体，类型为dict
-                print(self.__list_position_detail_for_trade[i - shift]['TradingDay'], "!=", trade_new['TradingDay'], "\n", self.__list_position_detail_for_trade[i - shift]['InstrumentID'], "==", trade_new['InstrumentID'], "\n", self.__list_position_detail_for_trade[i - shift]['HedgeFlag'], "==", trade_new['HedgeFlag'], "\n", self.__list_position_detail_for_trade[i - shift]['Direction'], "!=", trade_new[ 'Direction'])
                 if self.__list_position_detail_for_trade[i - shift]['TradingDay'] != trade_new['TradingDay'] \
                         and self.__list_position_detail_for_trade[i - shift]['InstrumentID'] == trade_new[
                             'InstrumentID'] \
@@ -1196,10 +1195,10 @@ class Strategy():
         # 撤单数量统计
         if OrderAction['InstrumentID'] == self.__a_instrument_id:
             self.__a_action_count_strategy += 1
-            print(">>>Strategy.count_instrument_action() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, self.__a_instrument_id, self.__a_action_count_strategy)
+            # print(">>>Strategy.count_instrument_action() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, self.__a_instrument_id, self.__a_action_count_strategy)
         elif OrderAction['InstrumentID'] == self.__b_instrument_id:
             self.__b_action_count_strategy += 1
-            print(">>>Strategy.count_instrument_action() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, self.__b_instrument_id, self.__b_action_count_strategy)
+            # print(">>>Strategy.count_instrument_action() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, self.__b_instrument_id, self.__b_action_count_strategy)
 
     # order、trade统计
     def statistics(self, order=None, trade=None):
@@ -1680,13 +1679,12 @@ class Strategy():
     #     self.__b_action_count = self.__user.get_dict_action()[self.__b_instrument_id]
 
     def set_a_action_count(self, int_count):
-        print(">>> Strategy.set_a_action_count() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "instrument_id =", self.__a_instrument_id, "self.__a_action_count =", self.__a_action_count)
+        # print(">>> Strategy.set_a_action_count() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "instrument_id =", self.__a_instrument_id, "self.__a_action_count =", self.__a_action_count)
         self.__a_action_count = int_count
         # self.signal_update_strategy_position.emit(self)  # 更新界面
 
     def set_b_action_count(self, int_count):
-        print(">>> Strategy.set_b_action_count() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,
-              "instrument_id =", self.__b_instrument_id, "self.__b_action_count =", self.__b_action_count)
+        # print(">>> Strategy.set_b_action_count() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "instrument_id =", self.__b_instrument_id, "self.__b_action_count =", self.__b_action_count)
         self.__b_action_count = int_count
         # self.signal_update_strategy_position.emit(self)  # 更新界面
 

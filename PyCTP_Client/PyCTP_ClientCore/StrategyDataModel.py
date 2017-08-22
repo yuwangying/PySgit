@@ -264,8 +264,8 @@ class StrategyDataModel(QAbstractTableModel):
         row = index.row()
         column = index.column()
         if role == QtCore.Qt.CheckStateRole and column == 0:
-            print(">>>setData() value = ", value)
-            print(">>>setData() QtCore.Qt.Checked = ", QtCore.Qt.Checked)
+            # print(">>>setData() value = ", value)
+            # print(">>>setData() QtCore.Qt.Checked = ", QtCore.Qt.Checked)
             if value == QtCore.Qt.Checked:
                 self.__data_list[row][0].setCheckState(QtCore.Qt.Checked)
                 on_off = 1

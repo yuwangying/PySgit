@@ -334,7 +334,16 @@ class User():
         self.__QryInvestorPositionDetail = Utils.code_transform(self.__trader_api.QryInvestorPositionDetail())
         if isinstance(self.__QryInvestorPositionDetail, list):
             self.__dict_create_user_status['QryInvestorPositionDetail'] = 0
-            print("User.__init__() user_id=", self.__user_id, '查询投资者持仓明细成功，长度', len(self.__QryInvestorPositionDetail), self.__QryInvestorPositionDetail)
+            print("User.__init__() user_id=", self.__user_id, '查询投资者持仓明细成功，长度 =', len(self.__QryInvestorPositionDetail), self.__QryInvestorPositionDetail)
+            # 删除持仓明细中字段volume值为0的记录
+            len_QryInvestorPositionDetail = len(self.__QryInvestorPositionDetail)
+            i_offset = 0
+            for i in range(len_QryInvestorPositionDetail):
+                j = i - i_offset
+                if self.__QryInvestorPositionDetail[j]['Volume'] == 0:
+                    self.__QryInvestorPositionDetail.remove(self.__QryInvestorPositionDetail[j])
+                    i_offset += 1
+            print("User.__init__() user_id=", self.__user_id, '查询投资者持仓明细删除volume为0，长度 =', len(self.__QryInvestorPositionDetail), self.__QryInvestorPositionDetail)
             # self.__qry_investor_position_detail = copy.deepcopy(self.__QryInvestorPositionDetail)  # 深度拷贝，通过OnRtnTrade持续更新
 
             # 将从API查询的持仓明细转换格式为程序维护的持仓明细
@@ -1128,6 +1137,7 @@ class User():
         Trade = self.process_trade_offset_flag(Trade)  # 如果平仓标志位为1，则根据持仓明细转换为3或4
         self.update_list_pending({'OnRtnTrade': Trade})  # 更新挂单列表
         self.statistics_for_trade(Trade)
+        # print(">>>User.handle_OnRtnTrade() self.__date_qry_trading_account =", self.__date_qry_trading_account, "self.__time_qry_trading_account =", self.__time_qry_trading_account, "Trade['TradeDate'] =", Trade['TradeDate'], "Trade['TradeTime'] =", Trade['TradeTime'])
         # 过滤查询资金账户之前的Trade记录
         if Trade['TradeDate'] > self.__date_qry_trading_account \
                 or (Trade['TradeDate'] == self.__date_qry_trading_account
@@ -1363,7 +1373,7 @@ class User():
         # if trade['TradeDate'] > self.__date_qry_inverstor_position_detail \
         #         or (trade['TradeDate'] == self.__date_qry_inverstor_position_detail
         #             and trade['TradeTime'] >= self.__time_qry_inverstor_position_detail):
-        print(">>>User.update_list_position_detail_for_trade() user_id =", self.__user_id)
+        # print(">>>User.update_list_position_detail_for_trade() user_id =", self.__user_id)
         # # 开仓，所有交易所的开仓标志相同
         # if trade['OffsetFlag'] == 0:
         #     pass
@@ -1540,6 +1550,7 @@ class User():
             elif trade_close['Direction'] == '1':  # 卖平仓
                 profit_close = (trade_close['Price'] - trade_open['LastSettlementPrice']) * instrument_multiple * volume_traded
         self.__profit_close += profit_close
+        print(">>>User.count_profit_close() user_id =", self.__user_id, "self.__profit_close =", self.__profit_close)
 
     # 计算持仓盈亏
     def count_profit_position(self):

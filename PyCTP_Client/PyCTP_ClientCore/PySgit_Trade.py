@@ -130,6 +130,7 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
 
     def OnRtnTrade(self, TradeField):
         # print(">>>PySgit_Trade_API.OnRtnTrade() called")
+        date = datetime.now().strftime('%Y%m%d')
         Trade = {
             'BrokerID': TradeField.BrokerID,  # 经纪公司代码
             'InvestorID': TradeField.InvestorID,  # 投资者代码
@@ -148,8 +149,8 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
             'HedgeFlag': TradeField.HedgeFlag,  # 投机套保标志
             'Price': TradeField.Price,  # 价格
             'Volume': TradeField.Volume,  # 数量
-            'TradeDate': TradeField.TradeDate,  # 成交时期
-            # 'TradeDate': date,  # 成交时期
+            # 'TradeDate': TradeField.TradeDate,  # 成交时期
+            'TradeDate': date,  # 成交时期
             'TradeTime': TradeField.TradeTime,  # 成交时间
             # 'TradeTime': time,  # 成交时间
             'TradeType': TradeField.TradeType,  # 成交类型

@@ -285,6 +285,13 @@ class User():
         time_now = datetime.now()
         self.__date_qry_trading_account = time_now.strftime('%Y%m%d')  # 查询投资者持仓明细的北京时间
         self.__time_qry_trading_account = time_now.strftime('%H:%M:%S')  # 查询投资者持仓明细的北京时间
+        # 是否第二天查询
+        self.__qry_trading_account_is_second_day = False
+        if self.__time_qry_trading_account >= "00:00:00" and self.__time_qry_trading_account < "20:00:00":
+            self.__qry_trading_account_is_second_day = True
+        elif self.__time_qry_trading_account >= "20:00:00" and self.__time_qry_trading_account <= "23:59:59":
+            self.__qry_trading_account_is_second_day = False
+
         list_QryTradingAccount = self.__trader_api.QryTradingAccount()
         if isinstance(list_QryTradingAccount, list):
             if isinstance(list_QryTradingAccount[0], dict):
@@ -381,11 +388,12 @@ class User():
         # 查询合约，所有交易所的所有合约
         self.qry_api_interval_manager()  # API查询时间间隔管理
         self.__QryInstrument = Utils.code_transform(self.__trader_api.QryInstrument())
+        # print(">>>User.qry_instrument_info() user_id=", self.__user_id, "self.__QryInstrument =", self.__QryInstrument)
         if isinstance(self.__QryInstrument, list):
             if len(self.__QryInstrument) > 0:
                 self.__dict_create_user_status['QryInstrument'] = 0
-                # print("User.qry_instrument_info() user_id=", self.__user_id, "查询合约信息成功", self.__QryInstrument)
-
+                # print(">>>User.qry_instrument_info() user_id=", self.__user_id, "查询合约信息成功", self.__QryInstrument)
+                print(">>>User.qry_instrument_info() user_id=", self.__user_id, "查询合约信息成功，合约数量", len(self.__QryInstrument))
                 dict_msg = {
                     'DataFlag': 'QryInstrument',
                     'UserId': self.__user_id,
@@ -1128,24 +1136,45 @@ class User():
                         self.__dict_strategy[strategy_id].OnRtnOrder(Order)
                         found_flag = True
                 if not found_flag:
-                    print("User.handle_OnRtnOrder() 异常，错误 user_id =", self.__user_id,
-                          "Order未传递给策略对象,Order结构体中StrategyID=", Order['OrderRef'], "Order =", Order)
+                    pass
+                    # print("User.handle_OnRtnOrder() 异常，错误 user_id =", self.__user_id, "Order未传递给策略对象,Order结构体中StrategyID=", Order['OrderRef'], "Order =", Order)
 
     # 从Queue结构取出trade的处理
     def handle_OnRtnTrade(self, Trade):
         # print(">>>User.handle_OnRtnTrade() Trade =", Trade)
         Trade = self.process_trade_offset_flag(Trade)  # 如果平仓标志位为1，则根据持仓明细转换为3或4
+        trade_time = Trade['TradeTime']
         self.update_list_pending({'OnRtnTrade': Trade})  # 更新挂单列表
         self.statistics_for_trade(Trade)
         # print(">>>User.handle_OnRtnTrade() self.__date_qry_trading_account =", self.__date_qry_trading_account, "self.__time_qry_trading_account =", self.__time_qry_trading_account, "Trade['TradeDate'] =", Trade['TradeDate'], "Trade['TradeTime'] =", Trade['TradeTime'])
-        # 过滤查询资金账户之前的Trade记录
-        if Trade['TradeDate'] > self.__date_qry_trading_account \
-                or (Trade['TradeDate'] == self.__date_qry_trading_account
-                    and Trade['TradeTime'] >= self.__time_qry_trading_account):
-            self.update_list_position_detail_for_trade(Trade)  # 更新user持仓明细、统计平仓盈亏
-            self.__commission += self.count_commission(Trade)  # 统计手续费
+        filter_flag = False  # 初始化过滤标志位，trade记录中time与查询投资者账户时间可以直接对比大小
+        if self.__qry_trading_account_is_second_day:
+            if trade_time > "00:00:00" and trade_time < "15:01:00":
+                filter_flag = True
+            else:
+                filter_flag = False
         else:
-            print("User.handle_OnRtnTrade() 过滤查询投资者持仓明细之前的trade记录，trade['Date'] =", Trade['TradeDate'], "trade['TradeTime'] =", Trade['TradeTime'])
+            if trade_time > "20:00:00" and trade_time <= "23:59:59":
+                filter_flag = True
+            else:
+                filter_flag = False
+        # 过滤查询资金账户之前的Trade记录
+        if filter_flag:
+            if trade_time >= self.__time_qry_trading_account:
+                self.update_list_position_detail_for_trade(Trade)  # 更新user持仓明细、统计平仓盈亏
+                self.__commission += self.count_commission(Trade)  # 统计手续费
+        else:
+            pass
+            # print("User.handle_OnRtnTrade() 过滤查询投资者持仓明细之前的trade记录，trade['Date'] =", Trade['TradeDate'], "trade['TradeTime'] =", Trade['TradeTime'])
+
+        # # 过滤查询资金账户之前的Trade记录
+        # if Trade['TradeDate'] > self.__date_qry_trading_account \
+        #         or (Trade['TradeDate'] == self.__date_qry_trading_account
+        #             and Trade['TradeTime'] >= self.__time_qry_trading_account):
+        #     self.update_list_position_detail_for_trade(Trade)  # 更新user持仓明细、统计平仓盈亏
+        #     self.__commission += self.count_commission(Trade)  # 统计手续费
+        # else:
+        #     print("User.handle_OnRtnTrade() 过滤查询投资者持仓明细之前的trade记录，trade['Date'] =", Trade['TradeDate'], "trade['TradeTime'] =", Trade['TradeTime'])
 
         # 过滤出小蜜蜂套利系统的trade，并将trade传给Strategy对象
         OrderRef = Trade['OrderRef']
@@ -1378,7 +1407,8 @@ class User():
         # if trade['TradeDate'] > self.__date_qry_inverstor_position_detail \
         #         or (trade['TradeDate'] == self.__date_qry_inverstor_position_detail
         #             and trade['TradeTime'] >= self.__time_qry_inverstor_position_detail):
-        # print(">>>User.update_list_position_detail_for_trade() user_id =", self.__user_id)
+        #     print(">>>User.update_list_position_detail_for_trade() user_id =", self.__user_id, "过滤查询投资持仓明细之前的trade")
+        #     return
         # # 开仓，所有交易所的开仓标志相同
         # if trade['OffsetFlag'] == 0:
         #     pass
@@ -1393,97 +1423,98 @@ class User():
         #     # '1'：平仓
         #     # '3'：平今
         #     # '4'：平昨
-        trade_new = copy.deepcopy(trade)  # 形参深度拷贝到方法局部变量，目的是修改局部变量值不会影响到形参
-        instrument_id = trade_new['InstrumentID']
+        # trade = copy.deepcopy(trade_input)  # 形参深度拷贝到方法局部变量，目的是修改局部变量值不会影响到形参
+        trade_volume = trade['Volume']
+        instrument_id = trade['InstrumentID']
         instrument_multiple = self.get_instrument_multiple(instrument_id)
         instrument_margin_ratio = self.get_instrument_margin_ratio(instrument_id)
         # self.statistics_for_trade(trade)  # 统计
         # trade_new中"OffsetFlag"值="0"为开仓，不用考虑全部成交还是部分成交，开仓trade直接添加到持仓明细列表里
-        if trade_new['OffsetFlag'] == '0':
+        if trade['OffsetFlag'] == '0':
             # A合约
-            # if trade_new['InstrumentID'] == self.__a_instrument_id:
-            #     trade_new['CurrMargin'] = trade_new['Price'] * trade_new[
+            # if trade['InstrumentID'] == self.__a_instrument_id:
+            #     trade['CurrMargin'] = trade['Price'] * trade[
             #         'Volume'] * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
             # # B合约
-            # elif trade_new['InstrumentID'] == self.__b_instrument_id:
-            #     trade_new['CurrMargin'] = trade_new['Price'] * trade_new[
+            # elif trade['InstrumentID'] == self.__b_instrument_id:
+            #     trade['CurrMargin'] = trade['Price'] * trade[
             #         'Volume'] * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
-            trade_new['CurrMargin'] = trade_new['Price'] * trade_new['Volume'] * instrument_multiple * instrument_margin_ratio
-            self.__qry_investor_position_detail.append(trade_new)  # 添加到持仓明细列表
+            trade['CurrMargin'] = trade['Price'] * trade_volume * instrument_multiple * instrument_margin_ratio
+            self.__qry_investor_position_detail.append(trade)  # 添加到持仓明细列表
         # trade_new中"OffsetFlag"值="3"为平今
-        elif trade_new['OffsetFlag'] == '3':
+        elif trade['OffsetFlag'] == '3':
             shift = 0
             len_list_position_detail_for_trade = len(self.__qry_investor_position_detail)
             for i in range(len_list_position_detail_for_trade):  # i为order结构体，类型为dict
                 # 持仓明细中trade与trade_new比较：交易日相同、合约代码相同、投保标志相同
-                if self.__qry_investor_position_detail[i - shift]['TradingDay'] == trade_new['TradingDay'] \
-                        and self.__qry_investor_position_detail[i - shift]['InstrumentID'] == trade_new[
+                if self.__qry_investor_position_detail[i - shift]['TradingDay'] == trade['TradingDay'] \
+                        and self.__qry_investor_position_detail[i - shift]['InstrumentID'] == trade[
                             'InstrumentID'] \
-                        and self.__qry_investor_position_detail[i - shift]['HedgeFlag'] == trade_new[
+                        and self.__qry_investor_position_detail[i - shift]['HedgeFlag'] == trade[
                             'HedgeFlag'] \
-                        and self.__qry_investor_position_detail[i - shift]['Direction'] != trade_new[
+                        and self.__qry_investor_position_detail[i - shift]['Direction'] != trade[
                             'Direction']:
                     # trade_new的Volume等于持仓列表首个满足条件的trade的Volume
-                    if trade_new['Volume'] == self.__qry_investor_position_detail[i - shift]['Volume']:
-                        self.count_profit_close(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
+                    if trade_volume == self.__qry_investor_position_detail[i - shift]['Volume']:
+                        self.count_profit_close(trade, self.__qry_investor_position_detail[i - shift], instrument_multiple)
                         self.__qry_investor_position_detail.remove(
                             self.__qry_investor_position_detail[i - shift])
                         # shift += 1  # 游标修正值
                         break
                     # trade_new的Volume小于持仓列表首个满足条件的trade的Volume
-                    elif trade_new['Volume'] < self.__qry_investor_position_detail[i - shift]['Volume']:
-                        self.count_profit_close(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
+                    elif trade_volume < self.__qry_investor_position_detail[i - shift]['Volume']:
+                        self.count_profit_close(trade, self.__qry_investor_position_detail[i - shift], instrument_multiple)
                         # 平仓单数量小于持仓单数量，需从持仓记录中减去对应的被平仓的持仓保证金
-                        minus_margin = self.__qry_investor_position_detail[i - shift]['Price'] * trade_new['Volume'] * instrument_multiple * instrument_margin_ratio
+                        minus_margin = self.__qry_investor_position_detail[i - shift]['Price'] * trade_volume * instrument_multiple * instrument_margin_ratio
                         self.__qry_investor_position_detail[i - shift]['CurrMargin'] -= minus_margin
-                        self.__qry_investor_position_detail[i - shift]['Volume'] -= trade_new['Volume']
+                        self.__qry_investor_position_detail[i - shift]['Volume'] -= trade_volume
                         break
                     # trade_new的Volume大于持仓列表首个满足条件的trade的Volume
-                    elif trade_new['Volume'] > self.__qry_investor_position_detail[i - shift]['Volume']:
-                        self.count_profit_close(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
-                        trade_new['Volume'] -= self.__qry_investor_position_detail[i - shift]['Volume']
+                    elif trade_volume > self.__qry_investor_position_detail[i - shift]['Volume']:
+                        self.count_profit_close(trade, self.__qry_investor_position_detail[i - shift], instrument_multiple)
+                        trade_volume -= self.__qry_investor_position_detail[i - shift]['Volume']
                         self.__qry_investor_position_detail.remove(self.__qry_investor_position_detail[i - shift])
                         shift += 1  # 游标修正值
 
         # trade_new中"OffsetFlag"值="4"为平昨
-        elif trade_new['OffsetFlag'] == '4':
+        elif trade['OffsetFlag'] == '4':
             shift = 0
             # print(">>> Strategy.update_list_position_detail_for_trade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, " len(self.__qry_investor_position_detail) =", len(self.__qry_investor_position_detail))
             len_list_position_detail_for_trade = len(self.__qry_investor_position_detail)
             for i in range(len_list_position_detail_for_trade):  # i为trade结构体，类型为dict
                 # # 持仓明细中trade与trade_new比较：交易日不相同、合约代码相同、投保标志相同
                 # try:
-                #     print(">>>Strategy.update_list_position_detail_for_trade() TradingDay", self.__qry_investor_position_detail[i-shift]['TradingDay'], trade_new['TradingDay'])
+                #     print(">>>Strategy.update_list_position_detail_for_trade() TradingDay", self.__qry_investor_position_detail[i-shift]['TradingDay'], trade['TradingDay'])
                 # except:
                 #     print(">>>Strategy.update_list_position_detail_for_trade() self.__qry_investor_position_detail[i-shift] =", self.__qry_investor_position_detail[i-shift])
-                #     print(">>>Strategy.update_list_position_detail_for_trade() trade_new =", trade_new)
+                #     print(">>>Strategy.update_list_position_detail_for_trade() trade =", trade)
 
-                if self.__qry_investor_position_detail[i - shift]['TradingDay'] != trade_new['TradingDay'] \
-                        and self.__qry_investor_position_detail[i - shift]['InstrumentID'] == trade_new[
+                if self.__qry_investor_position_detail[i - shift]['TradingDay'] != trade['TradingDay'] \
+                        and self.__qry_investor_position_detail[i - shift]['InstrumentID'] == trade[
                             'InstrumentID'] \
-                        and self.__qry_investor_position_detail[i - shift]['HedgeFlag'] == trade_new[
+                        and self.__qry_investor_position_detail[i - shift]['HedgeFlag'] == trade[
                             'HedgeFlag'] \
-                        and self.__qry_investor_position_detail[i - shift]['Direction'] != trade_new[
+                        and self.__qry_investor_position_detail[i - shift]['Direction'] != trade[
                             'Direction']:
                     # trade_new的Volume等于持仓列表首个满足条件的trade的Volume
-                    if trade_new['Volume'] == self.__qry_investor_position_detail[i - shift]['Volume']:
-                        self.count_profit_close(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
+                    if trade_volume == self.__qry_investor_position_detail[i - shift]['Volume']:
+                        self.count_profit_close(trade, self.__qry_investor_position_detail[i - shift], instrument_multiple)
                         self.__qry_investor_position_detail.remove(
                             self.__qry_investor_position_detail[i - shift])
                         shift += 1  # 游标修正值
                         break
                     # trade_new的Volume小于持仓列表首个满足条件的trade的Volume
-                    elif trade_new['Volume'] < self.__qry_investor_position_detail[i - shift]['Volume']:
-                        self.count_profit_close(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
+                    elif trade_volume < self.__qry_investor_position_detail[i - shift]['Volume']:
+                        self.count_profit_close(trade, self.__qry_investor_position_detail[i - shift], instrument_multiple)
                         # 平仓单数量小于持仓单数量，需从持仓记录中减去对应的被平仓的持仓保证金
-                        minus_margin = self.__qry_investor_position_detail[i - shift]['Price'] * trade_new['Volume'] * instrument_multiple * instrument_margin_ratio
+                        minus_margin = self.__qry_investor_position_detail[i - shift]['Price'] * trade_volume * instrument_multiple * instrument_margin_ratio
                         self.__qry_investor_position_detail[i - shift]['CurrMargin'] -= minus_margin
-                        self.__qry_investor_position_detail[i - shift]['Volume'] -= trade_new['Volume']
+                        self.__qry_investor_position_detail[i - shift]['Volume'] -= trade_volume
                         break
                     # trade_new的Volume大于持仓列表首个满足条件的trade的Volume
-                    elif trade_new['Volume'] > self.__qry_investor_position_detail[i - shift]['Volume']:
-                        self.count_profit_close(trade_new, self.__qry_investor_position_detail[i - shift], instrument_multiple)
-                        trade_new['Volume'] -= self.__qry_investor_position_detail[i - shift]['Volume']
+                    elif trade_volume > self.__qry_investor_position_detail[i - shift]['Volume']:
+                        self.count_profit_close(trade, self.__qry_investor_position_detail[i - shift], instrument_multiple)
+                        trade_volume -= self.__qry_investor_position_detail[i - shift]['Volume']
                         self.__qry_investor_position_detail.remove(self.__qry_investor_position_detail[i - shift])
                         shift += 1  # 游标修正值
 

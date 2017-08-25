@@ -477,15 +477,16 @@ class Strategy():
         # '3'：平今
         # '4'：平昨
         # trade = copy.deepcopy(trade_input)  # 形参深度拷贝到方法局部变量，目的是修改局部变量值不会影响到形参
+        trade_volume = trade['Volume']
         # self.statistics_for_trade(trade)  # 统计
         # trade_new中"OffsetFlag"值="0"为开仓，不用考虑全部成交还是部分成交，开仓trade直接添加到持仓明细列表里
         if trade['OffsetFlag'] == '0':
             # A合约
             if trade['InstrumentID'] == self.__a_instrument_id:
-                trade['CurrMargin'] = trade['Price'] * trade['Volume'] * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
+                trade['CurrMargin'] = trade['Price'] * trade_volume * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
             # B合约
             elif trade['InstrumentID'] == self.__b_instrument_id:
-                trade['CurrMargin'] = trade['Price'] * trade['Volume'] * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
+                trade['CurrMargin'] = trade['Price'] * trade_volume * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
             self.__list_position_detail_for_trade.append(trade)  # 添加到持仓明细列表
         # trade_new中"OffsetFlag"值="3"为平今
         elif trade['OffsetFlag'] == '3':
@@ -498,20 +499,20 @@ class Strategy():
                         and self.__list_position_detail_for_trade[i-shift]['HedgeFlag'] == trade['HedgeFlag'] \
                         and self.__list_position_detail_for_trade[i-shift]['Direction'] != trade['Direction']:
                     # trade_new的Volume等于持仓列表首个满足条件的trade的Volume
-                    if trade['Volume'] == self.__list_position_detail_for_trade[i-shift]['Volume']:
+                    if trade_volume == self.__list_position_detail_for_trade[i-shift]['Volume']:
                         self.count_profit(trade, self.__list_position_detail_for_trade[i-shift])
                         self.__list_position_detail_for_trade.remove(self.__list_position_detail_for_trade[i-shift])
                         # shift += 1  # 游标修正值
                         break
                     # trade_new的Volume小于持仓列表首个满足条件的trade的Volume
-                    elif trade['Volume'] < self.__list_position_detail_for_trade[i-shift]['Volume']:
+                    elif trade_volume < self.__list_position_detail_for_trade[i-shift]['Volume']:
                         self.count_profit(trade, self.__list_position_detail_for_trade[i-shift])
-                        self.__list_position_detail_for_trade[i-shift]['Volume'] -= trade['Volume']
+                        self.__list_position_detail_for_trade[i-shift]['Volume'] -= trade_volume
                         break
                     # trade_new的Volume大于持仓列表首个满足条件的trade的Volume
-                    elif trade['Volume'] > self.__list_position_detail_for_trade[i-shift]['Volume']:
+                    elif trade_volume > self.__list_position_detail_for_trade[i-shift]['Volume']:
                         self.count_profit(trade, self.__list_position_detail_for_trade[i-shift])
-                        trade['Volume'] -= self.__list_position_detail_for_trade[i-shift]['Volume']
+                        trade_volume -= self.__list_position_detail_for_trade[i-shift]['Volume']
                         self.__list_position_detail_for_trade.remove(self.__list_position_detail_for_trade[i-shift])
                         shift += 1  # 游标修正值
         # trade_new中"OffsetFlag"值="4"为平昨
@@ -532,20 +533,20 @@ class Strategy():
                         and self.__list_position_detail_for_trade[i-shift]['HedgeFlag'] == trade['HedgeFlag'] \
                         and self.__list_position_detail_for_trade[i-shift]['Direction'] != trade['Direction']:
                     # trade_new的Volume等于持仓列表首个满足条件的trade的Volume
-                    if trade['Volume'] == self.__list_position_detail_for_trade[i-shift]['Volume']:
+                    if trade_volume == self.__list_position_detail_for_trade[i-shift]['Volume']:
                         self.count_profit(trade, self.__list_position_detail_for_trade[i-shift])
                         self.__list_position_detail_for_trade.remove(self.__list_position_detail_for_trade[i-shift])
                         shift += 1  # 游标修正值
                         break
                     # trade_new的Volume小于持仓列表首个满足条件的trade的Volume
-                    elif trade['Volume'] < self.__list_position_detail_for_trade[i-shift]['Volume']:
+                    elif trade_volume < self.__list_position_detail_for_trade[i-shift]['Volume']:
                         self.count_profit(trade, self.__list_position_detail_for_trade[i-shift])
-                        self.__list_position_detail_for_trade[i-shift]['Volume'] -= trade['Volume']
+                        self.__list_position_detail_for_trade[i-shift]['Volume'] -= trade_volume
                         break
                     # trade_new的Volume大于持仓列表首个满足条件的trade的Volume
-                    elif trade['Volume'] > self.__list_position_detail_for_trade[i-shift]['Volume']:
+                    elif trade_volume > self.__list_position_detail_for_trade[i-shift]['Volume']:
                         self.count_profit(trade, self.__list_position_detail_for_trade[i-shift])
-                        trade['Volume'] -= self.__list_position_detail_for_trade[i-shift]['Volume']
+                        trade_volume -= self.__list_position_detail_for_trade[i-shift]['Volume']
                         self.__list_position_detail_for_trade.remove(self.__list_position_detail_for_trade[i-shift])
                         shift += 1  # 游标修正值
         else:
@@ -684,6 +685,7 @@ class Strategy():
         self.__b_instrument_multiple = self.get_instrument_multiple(self.__b_instrument_id)  # B合约乘数
         self.__a_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__a_instrument_id)  # A合约保证金率
         self.__b_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__b_instrument_id)  # B合约保证金率
+        print(">>>Strategy.get_td_api_arguments() self.__a_instrument_margin_ratio =", self.__a_instrument_margin_ratio, "self.__b_instrument_margin_ratio =", self.__b_instrument_margin_ratio)
         self.__exchange_id_a = self.get_exchange_id(self.__a_instrument_id)  # A合约所属的交易所代码
         self.__exchange_id_b = self.get_exchange_id(self.__b_instrument_id)  # A合约所属的交易所代码
         self.__dict_commission_a = self.__user.get_commission(self.__a_instrument_id, self.__exchange_id_a)  # A合约手续费的dict
@@ -1287,7 +1289,13 @@ class Strategy():
         margin_buy = 0  # 买持仓保证金
         margin_sell = 0  # 卖持仓保证金
         for i in list_position_detail_for_trade_CFFEX:
-            i['CurrMargin'] = i['Price'] * i['Volume'] * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
+            if i['InstrumentID'] == self.__a_instrument_id:
+                instrument_multiple = self.__a_instrument_multiple
+                instrument_margin_ratio = self.__a_instrument_margin_ratio
+            elif i['InstrumentID'] == self.__b_instrument_id:
+                instrument_multiple = self.__b_instrument_multiple
+                instrument_margin_ratio = self.__b_instrument_margin_ratio
+            i['CurrMargin'] = i['Price'] * i['Volume'] * instrument_multiple * instrument_margin_ratio
             if i['Direction'] == '0':
                 margin_buy += i['CurrMargin']
             elif i['Direction'] == '1':
@@ -1303,7 +1311,7 @@ class Strategy():
         # print(">>>Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "len(self.__list_position_detail_for_trade) =", len(self.__list_position_detail_for_trade), "len(self.__list_position_detail_for_order) =", len(self.__list_position_detail_for_order))
         for i in self.__list_position_detail_for_trade:
             # print(">>>Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "i['ExchangeID'] =", i['ExchangeID'])
-            if i['ExchangeID'] == 'SHFE':
+            if i['ExchangeID'] == 'S':  # 飞鼠柜台返回交易所代码上期所为"S"
                 i['CommodityID'] = i['InstrumentID'][:2]
                 list_position_detail_for_trade_SHFE.append(i)
         if len(list_position_detail_for_trade_SHFE) == 0:  # 无上期所持仓，返回初始值0
@@ -1321,7 +1329,7 @@ class Strategy():
         # a合约和b合约是同一个品种
         if len(list_commodity_id) == 1:
             self.__Margin_Occupied_SHFE = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_SHFE)
-            # print(">>> Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__Margin_Occupied_SHFE =", self.__Margin_Occupied_SHFE)
+            # print(">>> Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "a合约和b合约是同一个品种 self.__Margin_Occupied_SHFE =", self.__Margin_Occupied_SHFE)
         # a合约和b合约是不同的品种
         elif len(list_commodity_id) == 2:
             # 分别选出两种持仓的明细
@@ -1336,6 +1344,8 @@ class Strategy():
             margin_0 = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_SHFE_0)
             margin_1 = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_SHFE_1)
             self.__Margin_Occupied_SHFE = margin_0 + margin_1
+            # print(">>> Strategy.Margin_Occupied_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "a合约和b合约是不同的品种 self.__Margin_Occupied_SHFE =", self.__Margin_Occupied_SHFE)
+
         return self.__Margin_Occupied_SHFE
 
     # 同一个品种持仓保证金计算，形参为持仓明细trade，返回实际保证金占用值
@@ -1344,7 +1354,14 @@ class Strategy():
         margin_buy = 0  # 买持仓保证金
         margin_sell = 0  # 卖持仓保证金
         for i in list_position_detail_for_trade_SHFE:
-            i['CurrMargin'] = i['Price'] * i['Volume'] * self.__a_instrument_multiple * self.__a_instrument_margin_ratio
+            if i['InstrumentID'] == self.__a_instrument_id:
+                instrument_multiple = self.__a_instrument_multiple
+                instrument_margin_ratio = self.__a_instrument_margin_ratio
+            elif i['InstrumentID'] == self.__b_instrument_id:
+                instrument_multiple = self.__b_instrument_multiple
+                instrument_margin_ratio = self.__b_instrument_margin_ratio
+            i['CurrMargin'] = i['Price'] * i['Volume'] * instrument_multiple * instrument_margin_ratio
+            # print(">>>Strategy.count_single_instrument_margin_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "instrument_id =", i['InstrumentID'], "instrument_multiple =", instrument_multiple, "instrument_margin_ratio =", instrument_margin_ratio, "i['Price'] =", i['Price'], "i['Volume'] =", i['Volume'])
             if i['Direction'] == '0':
                 margin_buy += i['CurrMargin']
             elif i['Direction'] == '1':
@@ -1656,6 +1673,7 @@ class Strategy():
         found = False
         for i in self.__user.get_instrument_info():
             if i['InstrumentID'] == instrument_id:
+                # print(">>>Strategy.get_instrument_margin_ratio() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "instrument_id =", instrument_id, i)
                 found = True
                 return i['LongMarginRatio']
         if found is False:

@@ -44,7 +44,7 @@ class User():
         # self.__queue_OnRtnOrder = queue.Queue(maxsize=0)  # 缓存OnRtnOrder回调数据
         # self.__queue_OnRtnTrade = queue.Queue(maxsize=0)  # 缓存OnRtnTrade回调数据
         # self.__queue_OnRspOrderAction = queue.Queue(maxsize=0)  # 缓存OnRspOrderAction回调数据
-        self.__threading_OnRtn = threading.Thread(target=self.threading_run_OnRtn)  #
+        self.__threading_OnRtn = threading.Thread(target=self.handle_OnRtn)  #
         # self.__threading_OnRtnOrder = threading.Thread(target=self.threading_run_OnRtnOrder)
         # self.__threading_OnRtnTrade = threading.Thread(target=self.threading_run_OnRtnTrade)
         # self.__threading_OnRspOrderAction = threading.Thread(target=self.threading_run_OnRspOrderAction)
@@ -91,7 +91,7 @@ class User():
 
         # 定时进程间通信,user子进程发送信息给main进程,主进程接收到信息后更新界面
         self.__timer_thread = threading.Thread(target=self.timer_queue_put)
-        self.__timer_thread.daemon = True
+        self.__timer_thread.setDaemon(True)
         self.__timer_thread.start()
 
         # strategy创建完成，发送进程间通信给主进程，主进程收到之后让user查询合约信息
@@ -1128,7 +1128,7 @@ class User():
                         self.__dict_strategy[strategy_id].OnRtnOrder(Order)
                         found_flag = True
                 if not found_flag:
-                    print("User.threading_run_OnRtnOrder() 异常，错误 user_id =", self.__user_id,
+                    print("User.handle_OnRtnOrder() 异常，错误 user_id =", self.__user_id,
                           "Order未传递给策略对象,Order结构体中StrategyID=", Order['OrderRef'], "Order =", Order)
 
     # 从Queue结构取出trade的处理
@@ -1158,7 +1158,7 @@ class User():
                         self.__dict_strategy[strategy_id].OnRtnTrade(Trade)
                         found_flag = True
                 if not found_flag:
-                    print("User.threading_run_OnRtnTrade() 异常，错误 user_id =", self.__user_id,
+                    print("User.handle_OnRtnTrade() 异常，错误 user_id =", self.__user_id,
                           "trade未传递给策略对象,Trade结构体中StrategyID=", Trade['StrategyID'])
 
     # 从Queue结构取出OrderAction的处理
@@ -1172,11 +1172,16 @@ class User():
         OrderRef = OrderAction['OrderRef']
         if len(OrderRef) == 12:
             if OrderRef[:1] == '1':
+                found_flag = False
                 strategy_id_OrderRef = OrderRef[10:]
                 # print(">>>User.handle_OnRspOrderAction() strategy_id_OrderRef =", strategy_id_OrderRef)
                 for strategy_id in self.__dict_strategy:
                     if strategy_id == strategy_id_OrderRef:
                         self.__dict_strategy[strategy_id].OnRspOrderAction(OrderAction)
+                    found_flag = True
+                if not found_flag:
+                    print("User.handle_OnRspOrderAction() 异常，错误 user_id =", self.__user_id,
+                          "Order未传递给策略对象,Order结构体中StrategyID=", OrderAction['OrderRef'], "Order =", OrderAction)
 
     def OnErrRtnOrderInsert(self, InputOrder, RspInfo):
         """报单录入错误回报"""
@@ -1203,7 +1208,7 @@ class User():
         # print(">>> User.OnRtnDepthMarketData() user_id =", self.__user_id, "len(self.__dict_last_tick) =", len(self.__dict_last_tick))
 
     # 处理OnRtnOrder、OnRtnTrade、OnRspOrderAction的线程
-    def threading_run_OnRtn(self):
+    def handle_OnRtn(self):
         print(">>>User.threading_run_OnRtn() user_id =", self.__user_id)
         while True:
             dict_field = self.__queue_OnRtn.get()

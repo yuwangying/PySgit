@@ -381,8 +381,8 @@ class QAccountWidget(QWidget, Ui_Form):
             self.__spread_short = a_AskPrice1 * a_scale - b_BidPrice1 * b_scale
         # 下单算法3
         elif order_algorithm == '03':
-            self.__spread_long = a_AskPrice1 * a_scale - b_AskPrice1 * b_scale
-            self.__spread_short = a_BidPrice1 * a_scale - b_BidPrice1 * b_scale
+            self.__spread_long = a_BidPrice1 * a_scale - b_BidPrice1 * b_scale
+            self.__spread_short = a_AskPrice1 * a_scale - b_AskPrice1 * b_scale
 
         # print(">>> QAccountWidget.slot_update_spread_ui() self.__spread_long =", self.__spread_long, "self.__spread_short =", self.__spread_short)
         if self.__spread_long != self.__spread_long_last:

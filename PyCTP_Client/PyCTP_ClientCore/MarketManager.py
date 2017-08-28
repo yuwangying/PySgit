@@ -367,7 +367,7 @@ class MarketManagerForUi(QObject):
                 self.__list_instrument_subscribed_detail_group_box.append(list_instrument_id_will_subscribe[i])
                 # 转换编码类型，MdApi接收b''类型
                 list_instrument_id_will_subscribe[i] = list_instrument_id_will_subscribe[i].encode()
-            print('MarketManagerForUi.group_box_sub_market() list_instrument_id_will_subscribe =', list_instrument_id_will_subscribe)
+            # print('MarketManagerForUi.group_box_sub_market() list_instrument_id_will_subscribe =', list_instrument_id_will_subscribe)
             print('MarketManagerForUi.group_box_sub_market() self.__market.SubMarketData() =',  Utils.code_transform(self.__market.SubMarketData(list_instrument_id_will_subscribe)))
 
         # 整理将要退订行情的合约代码list
@@ -392,10 +392,10 @@ class MarketManagerForUi(QObject):
                         break
                 # 转换编码类型，MdApi接收b''类型
                 list_instrument_id_will_unsubscribe[i] = list_instrument_id_will_unsubscribe[i].encode()
-            print('MarketManagerForUi.group_box_sub_market() list_instrument_id_will_unsubscribe =', list_instrument_id_will_unsubscribe)
+            # print('MarketManagerForUi.group_box_sub_market() list_instrument_id_will_unsubscribe =', list_instrument_id_will_unsubscribe)
             print('MarketManagerForUi.group_box_sub_market() self.__market.UnSubMarketData() =', Utils.code_transform(self.__market.UnSubMarketData(list_instrument_id_will_unsubscribe)))
 
-        print('MarketManagerForUi.group_box_sub_market() 用户维护的所有订阅行情', self.__list_instrument_subscribed_detail_group_box)
+        # print('MarketManagerForUi.group_box_sub_market() 用户维护的所有订阅行情', self.__list_instrument_subscribed_detail_group_box)
 
     # 登出行情账号，包含登出、断开连接、释放实例
     def un_connect(self):
@@ -410,7 +410,8 @@ class MarketManagerForUi(QObject):
         elif self.__b_instrument_id == tick['InstrumentID']:
             self.__b_tick = copy.deepcopy(tick)
         else:
-            print('MarketManagerForUi.OnRtnDepthMarketData() 想要订阅的行情为', self.__a_instrument_id, self.__b_instrument_id, "实际接收行情为", tick['InstrumentID'])
+            pass
+            # print('MarketManagerForUi.OnRtnDepthMarketData() 想要订阅的行情为', self.__a_instrument_id, self.__b_instrument_id, "实际接收行情为", tick['InstrumentID'])
         if self.__a_tick is None or self.__b_tick is None:
             return
 

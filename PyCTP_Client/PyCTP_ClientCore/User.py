@@ -443,29 +443,26 @@ class User():
     def load_xml_data(self, dict_arguments):
         # 从本地xml文件获取数据
         self.__xml_exist = dict_arguments['xml']['xml_exist']  # xml读取是否成功
-        print("User.load_xml_data() user_id =", self.__user_id, "self.__xml_exist =", self.__xml_exist)
+        # print("User.load_xml_data() user_id =", self.__user_id, "self.__xml_exist =", self.__xml_exist)
         if self.__xml_exist:
             # 从xml获取到的xml读取状态信息
             self.__xml_dict_user_save_info = dict_arguments['xml']['dict_user_save_info']
-            print("User.load_xml_data() self.__xml_dict_user_save_info =", self.__xml_dict_user_save_info)
+            # print("User.load_xml_data() self.__xml_dict_user_save_info =", self.__xml_dict_user_save_info)
             # 从xml获取到的list_strategy_arguments
             self.__xml_list_strategy_arguments = dict_arguments['xml']['list_strategy_arguments']
-            print("User.load_xml_data() self.__xml_list_strategy_arguments =", self.__xml_list_strategy_arguments)
+            # print("User.load_xml_data() self.__xml_list_strategy_arguments =", self.__xml_list_strategy_arguments)
             # 从xml获取到的list_strategy_statistics
             self.__xml_list_strategy_statistics = dict_arguments['xml']['list_strategy_statistics']
-            print("User.load_xml_data() self.__xml_list_strategy_statistics =", self.__xml_list_strategy_statistics)
+            # print("User.load_xml_data() self.__xml_list_strategy_statistics =", self.__xml_list_strategy_statistics)
             # 从xml获取到的list_user_instrument_statistics
             self.__xml_list_user_instrument_statistics = dict_arguments['xml']['list_user_instrument_statistics']
-            print("User.load_xml_data() self.__xml_list_user_instrument_statistics =",
-                  self.__xml_list_user_instrument_statistics)
+            # print("User.load_xml_data() self.__xml_list_user_instrument_statistics =", self.__xml_list_user_instrument_statistics)
             # 从xml获取到的list_position_detail_for_order
             self.__xml_list_position_detail_for_order = dict_arguments['xml']['list_position_detail_for_order']
-            print("User.load_xml_data() self.__xml_list_position_detail_for_order =",
-                  self.__xml_list_position_detail_for_order)
+            # print("User.load_xml_data() self.__xml_list_position_detail_for_order =", self.__xml_list_position_detail_for_order)
             # 从xml获取到的list_position_detail_for_trade
             self.__xml_list_position_detail_for_trade = dict_arguments['xml']['list_position_detail_for_trade']
-            print("User.load_xml_data() self.__xml_list_position_detail_for_trade =",
-                  self.__xml_list_position_detail_for_trade)
+            # print("User.load_xml_data() self.__xml_list_position_detail_for_trade =", self.__xml_list_position_detail_for_trade)
 
     # 组织从server获取到的数据
     def load_server_data(self, dict_arguments):
@@ -1165,7 +1162,7 @@ class User():
                 self.__commission += self.count_commission(Trade)  # 统计手续费
         else:
             pass
-            # print("User.handle_OnRtnTrade() 过滤查询投资者持仓明细之前的trade记录，trade['Date'] =", Trade['TradeDate'], "trade['TradeTime'] =", Trade['TradeTime'])
+            print("User.handle_OnRtnTrade() 过滤查询投资者持仓明细之前的trade记录，trade['Date'] =", Trade['TradeDate'], "trade['TradeTime'] =", Trade['TradeTime'])
 
         # # 过滤查询资金账户之前的Trade记录
         # if Trade['TradeDate'] > self.__date_qry_trading_account \
@@ -1180,6 +1177,7 @@ class User():
         OrderRef = Trade['OrderRef']
         if len(OrderRef) == 12:
             if OrderRef[:1] == '1':
+                print(">>> User.handle_OnRtnTrade() user_id =", self.__user_id, "属于小蜜蜂套利系统的报单")
                 found_flag = False
                 strategy_id_OrderRef = OrderRef[10:]
                 for strategy_id in self.__dict_strategy:
@@ -1728,8 +1726,8 @@ class User():
                 elif list_commodity_id[1] == i['CommodityID']:
                     list_position_detail_for_trade_CFFEX_1.append(i)
             # 计算两个品种分别占用的持仓保证金
-            margin_0 = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_CFFEX_0)
-            margin_1 = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_CFFEX_1)
+            margin_0 = self.count_single_instrument_margin_CFFEX(list_position_detail_for_trade_CFFEX_0)
+            margin_1 = self.count_single_instrument_margin_CFFEX(list_position_detail_for_trade_CFFEX_1)
             self.__Margin_Occupied_SHFE = margin_0 + margin_1
         # print(">>>User.Margin_Occupied_CFFEX() self.__Margin_Occupied_SHFE =", self.__Margin_Occupied_SHFE)
         return self.__Margin_Occupied_SHFE
@@ -1757,10 +1755,10 @@ class User():
         # 从持仓明细中过滤出上海期货交易所的持仓明细
         list_position_detail_for_trade_SHFE = list()
         for i in self.__qry_investor_position_detail:
-            if i['ExchangeID'] == 'SHFE':
+            if i['ExchangeID'] == 'SHFE':  # 从api方法查询持仓明细中ExchangeID的上期所值为'SHFE'
                 i['CommodityID'] = i['InstrumentID'][:2]
                 list_position_detail_for_trade_SHFE.append(i)
-        # print(">>> User.Margin_Occupied_SHFE() user_id =", self.__user_id, "len(list_position_detail_for_trade_SHFE) =", len(list_position_detail_for_trade_SHFE))
+        # print(">>>User.Margin_Occupied_SHFE() user_id =", self.__user_id, "len(list_position_detail_for_trade_SHFE) =", len(list_position_detail_for_trade_SHFE))
         if len(list_position_detail_for_trade_SHFE) == 0:  # 无上期所持仓，返回初始值0
             return self.__Margin_Occupied_SHFE
 
@@ -1792,13 +1790,14 @@ class User():
         for i in list_position_detail_for_trade_SHFE:
             instrument_id = i['InstrumentID']
             instrument_multiple = self.get_instrument_multiple(instrument_id)
-            instrument_margin_ratio = self.get_instrument_margin_ratio(instrument_id)
+            instrument_margin_ratio = self.get_instrument_margin_ratio(instrument_id) + 0.02  # 微调保证金比例，保证金比例保持与主席一致
             i['CurrMargin'] = i['Price'] * i['Volume'] * instrument_multiple * instrument_margin_ratio
             if i['Direction'] == '0':
                 margin_buy += i['CurrMargin']
             elif i['Direction'] == '1':
                 margin_sell += i['CurrMargin']
         margin = max(margin_buy, margin_sell)
+        # print(">>>User.count_single_instrument_margin_SHFE() user_id =", self.__user_id, "instrument_id =", instrument_id, "margin =", margin)
         return margin
 
     # 统计持仓明细中属于郑州期货交易所的持仓保证金

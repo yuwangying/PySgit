@@ -685,7 +685,7 @@ class Strategy():
         self.__b_instrument_multiple = self.get_instrument_multiple(self.__b_instrument_id)  # B合约乘数
         self.__a_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__a_instrument_id)  # A合约保证金率
         self.__b_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__b_instrument_id)  # B合约保证金率
-        print(">>>Strategy.get_td_api_arguments() self.__a_instrument_margin_ratio =", self.__a_instrument_margin_ratio, "self.__b_instrument_margin_ratio =", self.__b_instrument_margin_ratio)
+        print(">>>Strategy.get_td_api_arguments() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,"self.__a_instrument_margin_ratio =", self.__a_instrument_margin_ratio, "self.__b_instrument_margin_ratio =", self.__b_instrument_margin_ratio)
         self.__exchange_id_a = self.get_exchange_id(self.__a_instrument_id)  # A合约所属的交易所代码
         self.__exchange_id_b = self.get_exchange_id(self.__b_instrument_id)  # A合约所属的交易所代码
         self.__dict_commission_a = self.__user.get_commission(self.__a_instrument_id, self.__exchange_id_a)  # A合约手续费的dict
@@ -1356,10 +1356,10 @@ class Strategy():
         for i in list_position_detail_for_trade_SHFE:
             if i['InstrumentID'] == self.__a_instrument_id:
                 instrument_multiple = self.__a_instrument_multiple
-                instrument_margin_ratio = self.__a_instrument_margin_ratio
+                instrument_margin_ratio = self.__a_instrument_margin_ratio + 0.02  # 微调保证金比例，保证金比例保持与主席一致
             elif i['InstrumentID'] == self.__b_instrument_id:
                 instrument_multiple = self.__b_instrument_multiple
-                instrument_margin_ratio = self.__b_instrument_margin_ratio
+                instrument_margin_ratio = self.__b_instrument_margin_ratio + 0.02  # 微调保证金比例，保证金比例保持与主席一致
             i['CurrMargin'] = i['Price'] * i['Volume'] * instrument_multiple * instrument_margin_ratio
             # print(">>>Strategy.count_single_instrument_margin_SHFE() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "instrument_id =", i['InstrumentID'], "instrument_multiple =", instrument_multiple, "instrument_margin_ratio =", instrument_margin_ratio, "i['Price'] =", i['Price'], "i['Volume'] =", i['Volume'])
             if i['Direction'] == '0':

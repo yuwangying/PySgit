@@ -454,7 +454,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
             self.__SessionID = RspUserLogin['SessionID']
             self.__MaxOrderRef = RspUserLogin['MaxOrderRef']
             # print(">>> PyCTP_Trade.OnRspUserLogin() RspUserLogin['MaxOrderRef'] =", type(RspUserLogin['MaxOrderRef']), RspUserLogin['MaxOrderRef'], "RspUserLogin =", RspUserLogin)
-            print(">>> PyCtp_Trade.OnRspUserLogin() self.__MaxOrderRef =", self.__MaxOrderRef, type(self.__MaxOrderRef))
+            # print(">>> PyCtp_Trade.OnRspUserLogin() self.__MaxOrderRef =", self.__MaxOrderRef, type(self.__MaxOrderRef))
             self.__OrderRef = int(self.__MaxOrderRef)  # 初始化报单引用
             # self.__OrderRef = 0  # 初始化报单引用
             self.__OrderActionRef = int(self.__MaxOrderRef)

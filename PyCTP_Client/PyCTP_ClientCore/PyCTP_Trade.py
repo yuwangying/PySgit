@@ -53,7 +53,7 @@ class PyCTP_Trader_API(PyCTP.CThostFtdcTraderApi):
         self.RegisterSpi(self)
         self.SubscribePrivateTopic(model)  # 从本次连线之后开始发送数据
         self.SubscribePublicTopic(PyCTP.THOST_TERT_QUICK)
-        self.RegisterFront(frontAddr.encode())
+        self.RegisterFront(frontAddr)
         self.Init()
         self.__rsp_Connect = dict(event=threading.Event())
         self.__rsp_Connect['event'].clear()

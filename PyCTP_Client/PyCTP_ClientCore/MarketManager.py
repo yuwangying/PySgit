@@ -28,9 +28,10 @@ class MarketManager:
         print('MarketManager.__init__() process_id =', os.getpid(), 'dict_arguments =', dict_args)
         self.__broker_id = dict_args['brokerid']
         self.__front_address = dict_args['frontaddress']
-        self.__proxy_address = dict_args['proxy_address']
         self.__user_id = dict_args['userid']
         self.__password = dict_args['password']
+        self.__proxy_use = dict_args['proxy_use']
+        self.__proxy_address = dict_args['proxy_address']
         self.__list_instrument_subscribed_detail = list()
         self.__list_instrument_subscribed_detail_group_box = list()  # 界面groupBox订阅行情详情列表['cu1705', 'cu1706']
         # front_address = dict_args['frontaddress']
@@ -81,13 +82,22 @@ class MarketManager:
         s_part1 = (s_tmp[:n_position])
         s_part2 = (s_tmp[n_position+1:])
         s_path = b'conn/md/' + s_part1 + b'_' + s_part2 + b'/'
+        print(">>>MarketManager.__init__() s_path =", s_path)
         Utils.make_dirs(s_path)  # 创建流文件路劲
         self.__market = PyCTP_Market_API.CreateFtdcMdApi(s_path)
+        self.__market.set_MarketManager(self)
 
     # 连接行情前置
     def connect_front(self):
+        print(">>>MarketManager.connect_front() self.__front_address =", self.__front_address, type(self.__front_address), "self.__proxy_address =", self.__proxy_address, type(self.__proxy_address))
+        # 拼接行情前置地址
+        if self.__proxy_use:
+            address = self.__front_address.encode() + b" sock5://" + self.__proxy_address.encode()
+        else:
+            address = self.__front_address.encode()
+        print(">>>MarketManager.connect_front() address =", address)
         # 连接行情前置
-        self.__result_market_connect = Utils.code_transform(self.__market.Connect(self.__front_address, self.__proxy_address))
+        self.__result_market_connect = Utils.code_transform(self.__market.Connect(address))
         if self.__result_market_connect == 0:
             print('MarketManager.__init__() 连接行情前置成功，broker_id =', self.__broker_id)
         else:
@@ -314,14 +324,14 @@ class MarketManagerForUi(QObject):
 
     # 连接行情前置
     def connect_front(self):
-        print(">>>MarketManager.connect_front() self.__front_address =", self.__front_address, type(self.__front_address), "self.__proxy_address =", self.__proxy_address, type(self.__proxy_address))
+        print(">>>MarketManagerForUi.connect_front() self.__front_address =", self.__front_address, type(self.__front_address), "self.__proxy_address =", self.__proxy_address, type(self.__proxy_address))
         # 拼接行情前置地址
         if self.__proxy_use:
             address = self.__front_address.encode() + b" sock5://" + self.__proxy_address.encode()
         else:
             address = self.__front_address.encode()
         address = b'tcp://61.152.165.100:41211 sock5://127.0.0.1:1080'
-        print(">>>MarketManager.connect_front() address =", address)
+        print(">>>MarketManagerForUi.connect_front() address =", address)
         # 连接行情前置
         self.__result_market_connect = Utils.code_transform(self.__market.Connect(address))
         if self.__result_market_connect == 0:

@@ -35,8 +35,7 @@ class User():
     # def __init__(self, dict_arguments, parent=None, ctp_manager=None):
     def __init__(self, dict_arguments, Queue_main, Queue_user):
         # self.save_log(dict_arguments)  # 日志重定向到本地文件夹
-
-        # print('process_id =', os.getpid(), ', User.__init__() dict_arguments =', dict_arguments)
+        print('User.__init__() process_id =', os.getpid(), 'dict_arguments =', dict_arguments)
         self.__init_arguments = dict_arguments  # 转存形参
         self.__Queue_main = Queue_main  # 主进程put，user进程get
         self.__Queue_user = Queue_user  # user进程put，主进程get
@@ -147,10 +146,7 @@ class User():
     def create_market_ctp(self):
         self.__dict_create_user_status = dict()  # User创建状态详情，包含marekt创建信息
         dict_args = copy.deepcopy(self.__server_dict_market_info)
-        if self.__use_proxy:
-            dict_args['proxy_address'] = self.__proxy_address
-        else:
-            dict_args['proxy_address'] = {}
+        # print(">>>User.create_marekt_ctp() dict_args =", dict_args)
         self.__market_manager = MarketManager(dict_args)
         self.__market_manager.set_User(self)  # User设置为属性
         self.__dict_create_user_status['result_market_connect'] = self.__market_manager.get_result_market_connect()
@@ -238,29 +234,34 @@ class User():
         self.__trader_api.set_user(self)  # 将该类设置为trade的属性
 
         # 0：发送成功；-1：因网络原因发送失败；-2：未处理请求队列总数量超限；-3：每秒发送请求数量超限
-        connect_trade_front = self.__trader_api.Connect(self.__FrontAddress, self.__TdApi_start_model)
+        # 拼接行情前置地址
+        if self.__proxy_use:
+            address = self.__front_address.encode() + b" sock5://" + self.__proxy_address.encode()
+        else:
+            address = self.__front_address.encode()
+        print(">>>User.connect_trade_front() address =", address)
+        connect_trade_front = self.__trader_api.Connect(address, self.__TdApi_start_model)
         # 连接前置地址状态记录到CTPManager的user状态字典，成功为0
         self.__dict_create_user_status['connect_trade_front'] = connect_trade_front
 
-        # 连接交易前置错误提示
-        if connect_trade_front == -1:
-            self.signal_label_login_error_text.emit("期货账户" + self.__user_id + "因网络原因发送失败")
-            self.__dict_create_user_status['connect_trade_front'] = "因网络原因发送失败"
-        elif connect_trade_front == -2:
-            self.signal_label_login_error_text.emit("期货账户" + self.__user_id + "未处理请求队列总数量超限")
-            self.__dict_create_user_status[
-                'connect_trade_front'] = "未处理请求队列总数量超限"
-        elif connect_trade_front == -3:
-            self.signal_label_login_error_text.emit("期货账户" + self.__user_id + "每秒发送请求数量超限")
-            self.__dict_create_user_status['connect_trade_front'] = "每秒发送请求数量超限"
-        elif connect_trade_front == -4:
-            self.signal_label_login_error_text.emit("期货账户" + self.__user_id + "连接交易前置异常")
-            self.__dict_create_user_status['connect_trade_front'] = "连接交易前置异常"
+        # # 连接交易前置错误提示，向界面提示：通过进程通信user->main，主进程收到消息后向界面弹窗
+        # if connect_trade_front == -1:
+        #     self.signal_label_login_error_text.emit("期货账户" + self.__user_id + "因网络原因发送失败")
+        #     self.__dict_create_user_status['connect_trade_front'] = "因网络原因发送失败"
+        # elif connect_trade_front == -2:
+        #     self.signal_label_login_error_text.emit("期货账户" + self.__user_id + "未处理请求队列总数量超限")
+        #     self.__dict_create_user_status[
+        #         'connect_trade_front'] = "未处理请求队列总数量超限"
+        # elif connect_trade_front == -3:
+        #     self.signal_label_login_error_text.emit("期货账户" + self.__user_id + "每秒发送请求数量超限")
+        #     self.__dict_create_user_status['connect_trade_front'] = "每秒发送请求数量超限"
+        # elif connect_trade_front == -4:
+        #     self.signal_label_login_error_text.emit("期货账户" + self.__user_id + "连接交易前置异常")
+        #     self.__dict_create_user_status['connect_trade_front'] = "连接交易前置异常"
 
         if connect_trade_front != 0:
             self.__init_finished_succeed = False  # 初始化失败
-            print("User.__init__() user_id=", self.__user_id, '连接交易前置失败',
-                  Utils.code_transform(connect_trade_front))
+            print("User.__init__() user_id=", self.__user_id, '连接交易前置失败', Utils.code_transform(connect_trade_front))
         else:
             print("User.__init__() user_id=", self.__user_id, '连接交易前置成功', Utils.code_transform(connect_trade_front))
 
@@ -480,27 +481,10 @@ class User():
 
     # 组织代理数据
     def load_proxy_data(self, dict_arguments):
-        # print(">>>User.load_proxy_data() dict_arguments['proxy'] =", dict_arguments['proxy'])
         self.__proxy_info = dict_arguments['proxy']
-        # self.__use_proxy = self.__proxy_info['pro']
         print(">>>User.load_proxy_data() self.__proxy_info =", self.__proxy_info)
         self.__proxy_use = self.__proxy_info['proxy_use']
         self.__proxy_address = self.__proxy_info['proxy_address']
-        # # 不使用代理
-        # if not self.__proxy_use:
-        #     self.__use_proxy = False
-        #     self.__proxy_address = {}
-        # elif self.__proxy_use:
-        #     self.__use_proxy = True
-        #     self.__proxy_address = self.__proxy_info['address']  # {'address': address}
-        # # print(">>>User.load_proxy_data() self.__use_proxy =",  self.__use_proxy)
-        # # print(">>>User.load_proxy_data() self.__proxy_address =",  self.__proxy_address)
-
-    def get_use_proxy(self):
-        return self.__use_proxy
-
-    def get_proxy_address(self):
-        return self.__proxy_address
 
     # 组织从server获取到的数据
     def load_server_data(self, dict_arguments):
@@ -535,7 +519,7 @@ class User():
         self.__user_id = self.__server_dict_user_info['userid']
         self.__BrokerID = self.__server_dict_user_info['brokerid']
         self.__Password = self.__server_dict_user_info['password']
-        self.__FrontAddress = self.__server_dict_user_info['frontaddress']
+        self.__front_address = self.__server_dict_user_info['frontaddress']
         self.__user_id_sgit = self.__server_dict_user_info['userid_sgit']  # sgit的交易前置地址及登录信息
         self.__BrokerID_sgit = self.__server_dict_user_info['brokerid_sgit']
         self.__Password_sgit = self.__server_dict_user_info['password_sgit']
@@ -2056,6 +2040,8 @@ class User():
 
     # 统计trade
     def statistics_for_trade(self, trade):
+        if trade['OffsetFlag'] != '0':  # 非开仓，跳出
+            return
         instrument_id = trade['InstrumentID']
         # 统计合约开仓手数
         if instrument_id in self.__dict_instrument_statistics:  # 字典中存在合约代码键名

@@ -99,6 +99,8 @@ class Strategy():
         self.__b_wait_price_tick = dict_args['b_wait_price_tick']  # B合约挂单等待最小跳数
         self.__a_order_action_limit = dict_args['a_order_action_limit']  # A合约撤单次数限制
         self.__b_order_action_limit = dict_args['b_order_action_limit']  # B合约撤单次数限制
+        self.__a_order_open_num_limit = dict_args['a_order_open_num_limit']  # 限制A合约开仓手数
+        self.__b_order_open_num_limit = dict_args['b_order_open_num_limit']  # 限制B合约开仓手数
         self.__buy_open = dict_args['buy_open']  # 触发买开（开多单）
         self.__sell_close = dict_args['sell_close']  # 触发卖平（平多单）
         self.__sell_open = dict_args['sell_open']  # 触发卖开（开空单）
@@ -109,7 +111,8 @@ class Strategy():
         self.__buy_open_on_off = dict_args['buy_open_on_off']     # 价差买开，开关，初始值为1，状态开
         self.__update_position_detail_record_time = dict_args['update_position_detail_record_time']  # 修改策略持仓时间，空字符串：本交易日没有修改持仓
         self.__update_position_detail_record_orderref = dict_args['update_position_detail_record_orderref']  # 修改策略持仓时间，空字符串：本交易日没有修改持仓
-        # print("Strategy.set_arguments() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__update_position_detail_record_time =", self.__update_position_detail_record_time)
+        print("Strategy.set_arguments() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__a_order_open_num_limit =", self.__a_order_open_num_limit)
+        print("Strategy.set_arguments() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__b_order_open_num_limit =", self.__b_order_open_num_limit)
 
     # 获取参数
     def get_arguments(self):
@@ -135,6 +138,8 @@ class Strategy():
             'b_wait_price_tick': self.__b_wait_price_tick,
             'a_order_action_limit': self.__a_order_action_limit,
             'b_order_action_limit': self.__b_order_action_limit,
+            'a_order_open_num_limit': self.__a_order_open_num_limit,
+            'b_order_open_num_limit': self.__b_order_open_num_limit,
             'buy_open': self.__buy_open,
             'sell_close': self.__sell_close,
             'sell_open': self.__sell_open,
@@ -199,6 +204,8 @@ class Strategy():
         self.__b_action_count = 0  # 期货账户内的B撤单次数
         self.__a_action_count_strategy = 0  # 本策略的A撤单次数
         self.__b_action_count_strategy = 0  # 本策略的B撤单次数
+        self.__a_open_count =0  # 期货账户内A的开仓手数
+        self.__b_open_count =0  # 期货账户内B的开仓手数
         self.__current_margin = 0  # 占用保证金
 
         self.__dict_statistics = {
@@ -224,6 +231,8 @@ class Strategy():
             'b_order_count': self.__b_order_times,  # B委托次数
             'a_action_count': self.__a_action_count,  # A撤单次数
             'b_action_count': self.__b_action_count,  # B撤单次数
+            'a_open_count': self.__a_open_count,  # A开仓手数
+            'b_open_count': self.__b_open_count,  # B开仓手数
             'a_trade_rate': self.__a_trade_rate,  # A成交概率(成交手数/报单手数)
             'b_trade_rate': self.__b_trade_rate  # B成交概率(成交手数/报单手数)
         }
@@ -866,6 +875,8 @@ class Strategy():
                 'b_order_count': self.__b_order_times,  # B委托次数
                 'a_action_count': self.__a_action_count,  # A撤单次数
                 'b_action_count': self.__b_action_count,  # B撤单次数
+                'a_open_count': self.__a_open_count,  # A开仓手数
+                'b_open_count': self.__b_open_count,  # B开仓手数
                 'a_trade_rate': self.__a_trade_rate,  # A成交概率(成交手数/报单手数)
                 'b_trade_rate': self.__b_trade_rate  # B成交概率(成交手数/报单手数)
             }
@@ -1971,6 +1982,8 @@ class Strategy():
         self.__profit = dict_args['profit']
         self.__a_action_count = dict_args['a_action_count']
         self.__b_action_count = dict_args['b_action_count']
+        self.__a_open_count = dict_args['a_open_count']
+        self.__b_open_count = dict_args['b_open_count']
 
         # data_main = self.get_statistics()
         # data_main['strategy_id'] = self.__strategy_id  # dict结构体中加入strategy_id
@@ -2034,6 +2047,8 @@ class Strategy():
             'b_action_count': self.__b_action_count,  # B撤单次数
             'a_action_count_strategy': self.__a_action_count_strategy,  # A撤单次数
             'b_action_count_strategy': self.__b_action_count_strategy,  # B撤单次数
+            'a_open_count': self.__a_open_count,  # A开仓手数
+            'b_open_count': self.__b_open_count,  # B开仓手数
             'current_margin': self.update_current_margin()  # 占用保证金
         }
         return dict_statistics

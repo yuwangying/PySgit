@@ -68,6 +68,7 @@ class User():
         self.__Margin_Occupied_CZCE = 0
         self.__Margin_Occupied_DCE = 0
 
+        self.load_proxy_data(self.__init_arguments)  # 组织代理数据
         self.load_server_data(self.__init_arguments)  # 组织从server获取到的数据
         self.load_xml_data(self.__init_arguments)  # 组织从xml获取到的数据
 
@@ -145,7 +146,12 @@ class User():
     # 创建ctp行情
     def create_market_ctp(self):
         self.__dict_create_user_status = dict()  # User创建状态详情，包含marekt创建信息
-        self.__market_manager = MarketManager(self.__server_dict_market_info)
+        dict_args = copy.deepcopy(self.__server_dict_market_info)
+        if self.__use_proxy:
+            dict_args['proxy_address'] = self.__proxy_address
+        else:
+            dict_args['proxy_address'] = {}
+        self.__market_manager = MarketManager(dict_args)
         self.__market_manager.set_User(self)  # User设置为属性
         self.__dict_create_user_status['result_market_connect'] = self.__market_manager.get_result_market_connect()
         self.__dict_create_user_status['get_result_market_login'] = self.__market_manager.get_result_market_login()
@@ -361,6 +367,14 @@ class User():
                     instrument_multiple = self.get_instrument_multiple(instrument_id)
                     instrument_margin_ratio = self.get_instrument_margin_ratio(instrument_id)
                     current_margin = i['OpenPrice'] * i['Volume'] * instrument_multiple * instrument_margin_ratio
+                    if i['ExchangeID'] == 'SHFE':
+                        exchange_id = 'S'  # 飞鼠不同于CTP的ExchangeID
+                    elif i['ExchangeID'] == 'CFFEX':
+                        exchange_id = 'J'
+                    elif i['ExchangeID'] == 'CZCE':
+                        exchange_id = 'C'
+                    elif i['ExchangeID'] == 'DCE':
+                        exchange_id = 'D'
                     j = {
                         'UserID': i['InvestorID'],
                         'TradingDay': i['OpenDate'],  # 开仓交易日
@@ -370,7 +384,7 @@ class User():
                         'OffsetFlag': '0',  # 持仓单全部定义为开仓标志
                         'HedgeFlag': i['HedgeFlag'],
                         'Price': i['OpenPrice'],
-                        'ExchangeID': i['ExchangeID'],
+                        'ExchangeID': exchange_id,
                         'TradeDate': i['OpenDate'],  # 开仓的交易日
                         'Volume': i['Volume'],
                         'CurrMargin': current_margin,
@@ -463,6 +477,30 @@ class User():
             # 从xml获取到的list_position_detail_for_trade
             self.__xml_list_position_detail_for_trade = dict_arguments['xml']['list_position_detail_for_trade']
             # print("User.load_xml_data() self.__xml_list_position_detail_for_trade =", self.__xml_list_position_detail_for_trade)
+
+    # 组织代理数据
+    def load_proxy_data(self, dict_arguments):
+        # print(">>>User.load_proxy_data() dict_arguments['proxy'] =", dict_arguments['proxy'])
+        self.__proxy_info = dict_arguments['proxy']
+        # self.__use_proxy = self.__proxy_info['pro']
+        print(">>>User.load_proxy_data() self.__proxy_info =", self.__proxy_info)
+        self.__proxy_use = self.__proxy_info['proxy_use']
+        self.__proxy_address = self.__proxy_info['proxy_address']
+        # # 不使用代理
+        # if not self.__proxy_use:
+        #     self.__use_proxy = False
+        #     self.__proxy_address = {}
+        # elif self.__proxy_use:
+        #     self.__use_proxy = True
+        #     self.__proxy_address = self.__proxy_info['address']  # {'address': address}
+        # # print(">>>User.load_proxy_data() self.__use_proxy =",  self.__use_proxy)
+        # # print(">>>User.load_proxy_data() self.__proxy_address =",  self.__proxy_address)
+
+    def get_use_proxy(self):
+        return self.__use_proxy
+
+    def get_proxy_address(self):
+        return self.__proxy_address
 
     # 组织从server获取到的数据
     def load_server_data(self, dict_arguments):
@@ -1162,7 +1200,7 @@ class User():
                 self.__commission += self.count_commission(Trade)  # 统计手续费
         else:
             pass
-            print("User.handle_OnRtnTrade() 过滤查询投资者持仓明细之前的trade记录，trade['Date'] =", Trade['TradeDate'], "trade['TradeTime'] =", Trade['TradeTime'])
+            # print("User.handle_OnRtnTrade() 过滤查询投资者持仓明细之前的trade记录，trade['Date'] =", Trade['TradeDate'], "trade['TradeTime'] =", Trade['TradeTime'])
 
         # # 过滤查询资金账户之前的Trade记录
         # if Trade['TradeDate'] > self.__date_qry_trading_account \
@@ -1755,7 +1793,7 @@ class User():
         # 从持仓明细中过滤出上海期货交易所的持仓明细
         list_position_detail_for_trade_SHFE = list()
         for i in self.__qry_investor_position_detail:
-            if i['ExchangeID'] == 'SHFE':  # 从api方法查询持仓明细中ExchangeID的上期所值为'SHFE'
+            if i['ExchangeID'] == 'S':  # 从api方法查询持仓明细中ExchangeID的上期所值为'SHFE'
                 i['CommodityID'] = i['InstrumentID'][:2]
                 list_position_detail_for_trade_SHFE.append(i)
         # print(">>>User.Margin_Occupied_SHFE() user_id =", self.__user_id, "len(list_position_detail_for_trade_SHFE) =", len(list_position_detail_for_trade_SHFE))
@@ -1769,7 +1807,7 @@ class User():
                 pass
             else:
                 list_commodity_id.append(i['CommodityID'])
-        # print(">>> User.Margin_Occupied_SHFE() user_id =", self.__user_id, "list_commodity_id =", list_commodity_id)
+        # print(">>>User.Margin_Occupied_SHFE() user_id =", self.__user_id, "list_commodity_id =", list_commodity_id)
 
         # 同品种买持仓占用保证金求和n1、卖持仓保证金求和n2，保证金收取政策为max(n1,n2)
         margin_total = 0  # 所有上期所持仓保证金之和
@@ -1780,6 +1818,7 @@ class User():
                     list_position_detail_for_trade_SHFE_single_commodity.append(i)
             margin = self.count_single_instrument_margin_SHFE(list_position_detail_for_trade_SHFE_single_commodity)
             self.__Margin_Occupied_SHFE += margin
+        # print(">>>User.Margin_Occupied_SHFE() user_id =", self.__user_id, "self.__Margin_Occupied_SHFE =", self.__Margin_Occupied_SHFE)
         return self.__Margin_Occupied_SHFE
 
     # 同一个品种持仓保证金计算，形参为持仓明细trade，返回实际保证金占用值

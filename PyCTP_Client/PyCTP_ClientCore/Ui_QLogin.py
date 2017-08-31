@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\CTP\PyCTP\PyCTP_Client\PyCTP_ClientUI\QLogin.ui'
+# Form implementation generated from reading ui file 'D:\CTP\Sgit\PyCTP_Client\PyCTP_ClientUI\QLogin.ui'
 #
 # Created by: PyQt4 UI code generator 4.11.4
 #
@@ -47,7 +47,7 @@ class Ui_LoginForm(object):
         self.groupBox_login_form.setTitle(_fromUtf8(""))
         self.groupBox_login_form.setObjectName(_fromUtf8("groupBox_login_form"))
         self.pushButton_login = QtGui.QPushButton(self.groupBox_login_form)
-        self.pushButton_login.setGeometry(QtCore.QRect(60, 200, 130, 50))
+        self.pushButton_login.setGeometry(QtCore.QRect(60, 200, 140, 50))
         self.pushButton_login.setStyleSheet(_fromUtf8("QPushButton {\n"
 "      border: 2px solid #8f8f91;\n"
 "      border-radius: 6px;\n"
@@ -70,7 +70,7 @@ class Ui_LoginForm(object):
 "  }"))
         self.pushButton_login.setObjectName(_fromUtf8("pushButton_login"))
         self.pushButton_cancel = QtGui.QPushButton(self.groupBox_login_form)
-        self.pushButton_cancel.setGeometry(QtCore.QRect(200, 200, 130, 50))
+        self.pushButton_cancel.setGeometry(QtCore.QRect(218, 200, 140, 50))
         self.pushButton_cancel.setStyleSheet(_fromUtf8("QPushButton {\n"
 "      border: 2px solid #8f8f91;\n"
 "      border-radius: 6px;\n"
@@ -92,29 +92,37 @@ class Ui_LoginForm(object):
 "      border-color: navy; /* make the default button prominent */\n"
 "  }"))
         self.pushButton_cancel.setObjectName(_fromUtf8("pushButton_cancel"))
-        self.label_trader_id = QtGui.QLabel(self.groupBox_login_form)
-        self.label_trader_id.setGeometry(QtCore.QRect(60, 43, 90, 16))
-        self.label_trader_id.setObjectName(_fromUtf8("label_trader_id"))
-        self.lineEdit_trader_id = QtGui.QLineEdit(self.groupBox_login_form)
-        self.lineEdit_trader_id.setGeometry(QtCore.QRect(190, 40, 130, 27))
-        self.lineEdit_trader_id.setStyleSheet(_fromUtf8("border:1px solid black;"))
-        self.lineEdit_trader_id.setObjectName(_fromUtf8("lineEdit_trader_id"))
-        self.label_trader_password = QtGui.QLabel(self.groupBox_login_form)
-        self.label_trader_password.setGeometry(QtCore.QRect(60, 86, 90, 16))
-        self.label_trader_password.setObjectName(_fromUtf8("label_trader_password"))
-        self.lineEdit_trader_password = QtGui.QLineEdit(self.groupBox_login_form)
-        self.lineEdit_trader_password.setGeometry(QtCore.QRect(190, 80, 130, 27))
-        self.lineEdit_trader_password.setStyleSheet(_fromUtf8("border:1px solid black;"))
-        self.lineEdit_trader_password.setObjectName(_fromUtf8("lineEdit_trader_password"))
-        self.checkBox_isoffline = QtGui.QCheckBox(self.groupBox_login_form)
-        self.checkBox_isoffline.setEnabled(False)
-        self.checkBox_isoffline.setGeometry(QtCore.QRect(60, 120, 90, 19))
-        self.checkBox_isoffline.setObjectName(_fromUtf8("checkBox_isoffline"))
         self.label_login_error = QtGui.QLabel(self.groupBox_login_form)
         self.label_login_error.setGeometry(QtCore.QRect(60, 160, 247, 23))
         self.label_login_error.setStyleSheet(_fromUtf8("color: rgb(255, 0, 0);"))
         self.label_login_error.setText(_fromUtf8(""))
         self.label_login_error.setObjectName(_fromUtf8("label_login_error"))
+        self.layoutWidget = QtGui.QWidget(self.groupBox_login_form)
+        self.layoutWidget.setGeometry(QtCore.QRect(60, 40, 297, 97))
+        self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
+        self.formLayout = QtGui.QFormLayout(self.layoutWidget)
+        self.formLayout.setObjectName(_fromUtf8("formLayout"))
+        self.label_trader_id = QtGui.QLabel(self.layoutWidget)
+        self.label_trader_id.setObjectName(_fromUtf8("label_trader_id"))
+        self.formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, self.label_trader_id)
+        self.lineEdit_trader_id = QtGui.QLineEdit(self.layoutWidget)
+        self.lineEdit_trader_id.setStyleSheet(_fromUtf8("border:1px solid black;"))
+        self.lineEdit_trader_id.setObjectName(_fromUtf8("lineEdit_trader_id"))
+        self.formLayout.setWidget(0, QtGui.QFormLayout.FieldRole, self.lineEdit_trader_id)
+        self.label_trader_password = QtGui.QLabel(self.layoutWidget)
+        self.label_trader_password.setObjectName(_fromUtf8("label_trader_password"))
+        self.formLayout.setWidget(1, QtGui.QFormLayout.LabelRole, self.label_trader_password)
+        self.lineEdit_trader_password = QtGui.QLineEdit(self.layoutWidget)
+        self.lineEdit_trader_password.setStyleSheet(_fromUtf8("border:1px solid black;"))
+        self.lineEdit_trader_password.setObjectName(_fromUtf8("lineEdit_trader_password"))
+        self.formLayout.setWidget(1, QtGui.QFormLayout.FieldRole, self.lineEdit_trader_password)
+        self.checkBox_proxy = QtGui.QCheckBox(self.layoutWidget)
+        self.checkBox_proxy.setObjectName(_fromUtf8("checkBox_proxy"))
+        self.formLayout.setWidget(2, QtGui.QFormLayout.LabelRole, self.checkBox_proxy)
+        self.lineEdit_proxy = QtGui.QLineEdit(self.layoutWidget)
+        self.lineEdit_proxy.setStyleSheet(_fromUtf8("border:1px solid black;"))
+        self.lineEdit_proxy.setObjectName(_fromUtf8("lineEdit_proxy"))
+        self.formLayout.setWidget(2, QtGui.QFormLayout.FieldRole, self.lineEdit_proxy)
         self.label_login_image = QtGui.QLabel(LoginForm)
         self.label_login_image.setGeometry(QtCore.QRect(0, 0, 957, 599))
         self.label_login_image.setStyleSheet(_fromUtf8("background: url(:/image/login_bee.png) no-repeat;\n"
@@ -136,8 +144,7 @@ class Ui_LoginForm(object):
         self.retranslateUi(LoginForm)
         QtCore.QMetaObject.connectSlotsByName(LoginForm)
         LoginForm.setTabOrder(self.lineEdit_trader_id, self.lineEdit_trader_password)
-        LoginForm.setTabOrder(self.lineEdit_trader_password, self.checkBox_isoffline)
-        LoginForm.setTabOrder(self.checkBox_isoffline, self.pushButton_login)
+        LoginForm.setTabOrder(self.lineEdit_trader_password, self.pushButton_login)
         LoginForm.setTabOrder(self.pushButton_login, self.pushButton_cancel)
 
     def retranslateUi(self, LoginForm):
@@ -148,7 +155,8 @@ class Ui_LoginForm(object):
         self.pushButton_cancel.setShortcut(_translate("LoginForm", "Esc", None))
         self.label_trader_id.setText(_translate("LoginForm", "交易员账户", None))
         self.label_trader_password.setText(_translate("LoginForm", "交易员密码", None))
-        self.checkBox_isoffline.setText(_translate("LoginForm", "脱机登录", None))
+        self.checkBox_proxy.setText(_translate("LoginForm", "使用代理", None))
+        self.lineEdit_proxy.setText(_translate("LoginForm", "127.0.0.1:1080", None))
         self.label_software_name.setText(_translate("LoginForm", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"

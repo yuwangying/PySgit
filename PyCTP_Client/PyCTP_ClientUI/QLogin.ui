@@ -54,7 +54,7 @@ background:transparent;
      <rect>
       <x>60</x>
       <y>200</y>
-      <width>130</width>
+      <width>140</width>
       <height>50</height>
      </rect>
     </property>
@@ -90,9 +90,9 @@ background:transparent;
    <widget class="QPushButton" name="pushButton_cancel">
     <property name="geometry">
      <rect>
-      <x>200</x>
+      <x>218</x>
       <y>200</y>
-      <width>130</width>
+      <width>140</width>
       <height>50</height>
      </rect>
     </property>
@@ -125,74 +125,6 @@ background:transparent;
      <string>Esc</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_trader_id">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>43</y>
-      <width>90</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>交易员账户</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="lineEdit_trader_id">
-    <property name="geometry">
-     <rect>
-      <x>190</x>
-      <y>40</y>
-      <width>130</width>
-      <height>27</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">border:1px solid black;</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_trader_password">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>86</y>
-      <width>90</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>交易员密码</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="lineEdit_trader_password">
-    <property name="geometry">
-     <rect>
-      <x>190</x>
-      <y>80</y>
-      <width>130</width>
-      <height>27</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">border:1px solid black;</string>
-    </property>
-   </widget>
-   <widget class="QCheckBox" name="checkBox_isoffline">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>120</y>
-      <width>90</width>
-      <height>19</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>脱机登录</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_login_error">
     <property name="geometry">
      <rect>
@@ -208,6 +140,63 @@ background:transparent;
     <property name="text">
      <string/>
     </property>
+   </widget>
+   <widget class="QWidget" name="layoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>40</y>
+      <width>297</width>
+      <height>97</height>
+     </rect>
+    </property>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_trader_id">
+       <property name="text">
+        <string>交易员账户</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="lineEdit_trader_id">
+       <property name="styleSheet">
+        <string notr="true">border:1px solid black;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_trader_password">
+       <property name="text">
+        <string>交易员密码</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="lineEdit_trader_password">
+       <property name="styleSheet">
+        <string notr="true">border:1px solid black;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QCheckBox" name="checkBox_proxy">
+       <property name="text">
+        <string>使用代理</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="lineEdit_proxy">
+       <property name="styleSheet">
+        <string notr="true">border:1px solid black;</string>
+       </property>
+       <property name="text">
+        <string>127.0.0.1:1080</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QLabel" name="label_login_image">
@@ -268,7 +257,6 @@ p, li { white-space: pre-wrap; }
  <tabstops>
   <tabstop>lineEdit_trader_id</tabstop>
   <tabstop>lineEdit_trader_password</tabstop>
-  <tabstop>checkBox_isoffline</tabstop>
   <tabstop>pushButton_login</tabstop>
   <tabstop>pushButton_cancel</tabstop>
  </tabstops>

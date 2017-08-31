@@ -33,8 +33,8 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
 
     def Connect(self, frontAddr):
         """ 连接前置服务器 """
-        self.__FrontAddress = frontAddr
         self.RegisterSpi(self)
+        print(">>>PyCTP_Market.Connect() frontAddr =", frontAddr, type(frontAddr))
         self.RegisterFront(frontAddr)
         self.Init()
         self.__rsp_Connect = dict(event=threading.Event())
@@ -48,12 +48,12 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
         # self.RegisterSpi(None)
         self.Release()
 
-    def Login(self, BrokerID, UserID=b'', Password=b''):
+    def Login(self, BrokerID, UserID='', Password=''):
         """ 用户登录请求 """
         # 行情登录过程中的UserID和Password可以为空
-        reqUserLogin = dict(BrokerID=BrokerID,
-                            UserID=UserID,
-                            Password=Password)
+        reqUserLogin = dict(BrokerID=BrokerID.encode(),
+                            UserID=UserID.encode(),
+                            Password=Password.encode())
         if not PyCTP_Market_API.is_first_connect:
             pass
             #self.__rsp_Login = dict(RequestID=self.__IncRequestID())
@@ -221,7 +221,6 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
 
     def OnRtnDepthMarketData(self, DepthMarketData):
         """ 行情推送 """
-        import datetime
         # print('PyCTP_Market.OnRtnDepthMarketData() DepthMarketData=', DepthMarketData)
         tick = Utils.code_transform(DepthMarketData)
         # print('PyCTP_Market.OnRtnDepthMarketData() tick=', tick)
@@ -243,4 +242,5 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
 
     def set_MarketManager(self, obj):
         self.__market_manager = obj
+        print(">>>PyCTP_Market.set_MarketManager() called")
 

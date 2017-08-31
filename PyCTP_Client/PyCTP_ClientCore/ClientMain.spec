@@ -10,10 +10,13 @@ def get_pandas_path():
 added_files = [('D:\\Python34\\DLLs\\python3.dll', '.'),('*.dll', '.'),('img', 'img'),('image', 'image'),('config', 'config'),('log', 'log')]
 
 a = Analysis(['ClientMain.py'],
-             pathex=['.', 'D:\\CTP\\PyCTP\\PyCTP_Client\\PyCTP_ClientCore'],
+             pathex=['.', 'D:\\CTP\\Sgit\\PyCTP_Client\\PyCTP_ClientCore'],
              binaries=[('PyCTP.pyd',''),
+			 ('_pyctp.pyd', ''),
              ('thostmduserapi.dll',''),
-             ('thosttraderapi.dll','')],
+             ('thosttraderapi.dll',''),
+             ('sgitquotapi.dll',''),
+             ('sgittradeapi.dll','')],
              datas=added_files,
              hiddenimports=[],
              hookspath=[],

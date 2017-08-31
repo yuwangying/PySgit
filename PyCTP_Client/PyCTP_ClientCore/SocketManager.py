@@ -533,6 +533,7 @@ class SocketManager(QtCore.QThread):
             if buff['MsgType'] == 1:  # 收到：交易员登录验证，MsgType=1
                 print("SocketManager.receive_msg() MsgType=1，交易员登录", buff)
                 if buff['MsgResult'] == 0:  # 验证通过
+                    self.init_proxy_address()  # 交易员登录成功之后马上开始初始化代理数据
                     self.signal_label_login_error_text.emit('登陆成功')
                     self.set_trader_name(buff['TraderName'])
                     self.set_trader_id(buff['TraderID'])
@@ -555,7 +556,10 @@ class SocketManager(QtCore.QThread):
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     # self.__ctp_manager.set_list_market_info(buff['Info'])  # 将行情信息设置为ctp_manager的属性
                     self.set_list_market_info(buff['Info'])
-                    self.__market_manager_for_ui = MarketManagerForUi(buff['Info'][0])
+                    dict_args = buff['Info'][0]
+                    dict_args['proxy_use'] = self.__proxy_use
+                    dict_args['proxy_address'] = self.__proxy_address
+                    self.__market_manager_for_ui = MarketManagerForUi(dict_args)
                     self.__market_manager_for_ui.set_QAccountWidget(self.__QAccountWidget)  # 窗口对象设置为其属性
                     self.__market_manager_for_ui.signal_update_spread_ui.connect(self.__QAccountWidget.slot_update_spread_ui)
                     # self.qry_user_info()  # 发送：查询期货账户信息，MsgType=2
@@ -1068,6 +1072,24 @@ class SocketManager(QtCore.QThread):
         # self.__q_ctp.show()  # 显示主窗口
         # self.__q_login.hide()  # 隐藏登录窗口
 
+    # 初始化使用代理信息
+    def init_proxy_address(self):
+        # 使用代理，checkBox选中时的返回值为2
+        self.__proxy_address = self.__q_login.get_lineEdit_proxy_text()
+        if self.__q_login.get_checkBox_proxy_checkState() == 2:
+            self.__proxy_use = True
+        # 不适用代理，checkBox未选中时的返回值为0
+        elif self.__q_login.get_checkBox_proxy_checkState() == 0:
+            self.__proxy_use = False
+
+    # 获取是否使用代理
+    def get_proxy_use(self):
+        return self.__proxy_use
+
+    # 获取代理地址
+    def get_proxy_address(self):
+        return self.__proxy_address
+
     # 组织创建user进程所需要的所有信息，含xml文件信息和server端接收信息，合并为一个dict
     def data_structure(self):
         """
@@ -1138,9 +1160,12 @@ class SocketManager(QtCore.QThread):
         for i_user_info in self.__list_user_info:  # i_user_info为dict
             user_id = i_user_info['userid']  # str，期货账户id
             self.__dict_user_process_data[user_id] = dict()
+            self.__dict_user_process_data[user_id]['proxy'] = dict()  # 使用代理登录CTP td和api，解决局域网封闭端口问题
             self.__dict_user_process_data[user_id]['xml'] = dict()  # 保存从本地xml获取到的数据
             self.__dict_user_process_data[user_id]['server'] = dict()  # 保存从server端获取到的数据
             self.__dict_user_process_data[user_id]['running'] = dict()  # 保存程序运行中最新的数据结构
+
+            self.__dict_user_process_data[user_id]['proxy'] = {'proxy_use': self.__proxy_use, 'proxy_address': self.__proxy_address}
 
             # 组织从xml获取到的数据
             if self.__xml_manager.get_xml_exist():

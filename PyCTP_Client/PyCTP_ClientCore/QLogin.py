@@ -76,6 +76,14 @@ class QLoginForm(QWidget, Ui_LoginForm):
     def get_ClientMain(self):
         return self.__client_main
 
+    # 返回类型为int：2为checkBox选中，0为checkBox未选中
+    def get_checkBox_proxy_checkState(self):
+        return self.checkBox_proxy.checkState()
+
+    # 返回类型为string
+    def get_lineEdit_proxy_text(self):
+        return self.lineEdit_proxy.text()
+
     def closeEvent(self, QCloseEvent):
         print(">>> QLogin.closeEvent() ")
         # self.widget_QAccountWidget.get_SocketManager().set_recive_msg_flag(False)

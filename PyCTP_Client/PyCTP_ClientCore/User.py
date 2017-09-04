@@ -236,7 +236,7 @@ class User():
         # 0：发送成功；-1：因网络原因发送失败；-2：未处理请求队列总数量超限；-3：每秒发送请求数量超限
         # 拼接行情前置地址
         if self.__proxy_use:
-            address = self.__front_address.encode() + b" sock5://" + self.__proxy_address.encode()
+            address = b"socks5://" + self.__front_address.encode()[6:] + b'/' + self.__proxy_address.encode()
         else:
             address = self.__front_address.encode()
         print(">>>User.connect_trade_front() address =", address)
@@ -571,7 +571,7 @@ class User():
 
     # user进程收到主进程放到Queue的数据
     def handle_Queue_get(self, dict_data):
-        print(">>> User.handle_Queue_get() 进程通信main->user，user_id =", self.__user_id, "dict_data =", dict_data)
+        print(">>>User.handle_Queue_get() 进程通信main->user，user_id =", self.__user_id, "dict_data =", dict_data)
         # 修改交易员开关，"MsgType":8
         if dict_data['MsgType'] == 8:
             self.set_trader_on_off(dict_data['OnOff'])
@@ -610,7 +610,7 @@ class User():
         # 查询策略
         # 界面点击“查询”按钮触发的特殊进程间通信
         elif dict_data['MsgType'] == 91:
-            print(">>> User.handle_Queue_get() 进程通信main->user，user_id =", self.__user_id, "界面点击“查询”按钮触发的特殊进程间通信", dict_data)
+            print(">>>User.handle_Queue_get() 进程通信main->user，user_id =", self.__user_id, "界面点击“查询”按钮触发的特殊进程间通信", dict_data)
             # 91:保存OnRtnOrder、OnRtnTrade
             # for strategy_id in self.__dict_strategy:
                 # self.__dict_strategy[strategy_id].save_df_order_trade()
@@ -908,6 +908,10 @@ class User():
             list_strategy_data.append(strategy_arguments['b_instrument_id'])  # 46:B合约代码
             list_strategy_data.append(strategy_arguments['instrument_a_scale'])  # 47:A合约乘数
             list_strategy_data.append(strategy_arguments['instrument_b_scale'])  # 48:B合约乘数
+            list_strategy_data.append(str(strategy_arguments['a_order_open_num_limit']))  # 49:A开仓手数限制
+            list_strategy_data.append(str(strategy_arguments['b_order_open_num_limit']))  # 50:B开仓手数限制
+            list_strategy_data.append(str(strategy_statistics['a_open_count']))  # 51:A开仓手数统计
+            list_strategy_data.append(str(strategy_statistics['a_open_count']))  # 52:B开仓手数统计
             list_table_widget_data.append(list_strategy_data)
         list_table_widget_data = sorted(list_table_widget_data, key=itemgetter(2))
         return list_table_widget_data
@@ -1089,14 +1093,23 @@ class User():
         self.__queue_OnRtn.put({'OnRtnOrder': Order})  # 缓存期货账户的所有order
 
         # 根据字段“OrderRef”筛选出本套利系统的记录，OrderRef规则：第1位为‘1’，第2位至第10位为递增数，第11位至第12位为StrategyID
-        # if len(Order['OrderRef']) == 12 and Order['OrderRef'][:1] == '1':
-        #     # Order新增字段
-        #     Order['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
-        #     strategy_id = Order['OrderRef'][-2:]
-        #     Order['StrategyID'] = strategy_id  # 报单引用末两位是策略编号
-        #     Order['ReceiveLocalTime'] = t.strftime("%Y-%m-%d %H:%M:%S %f")  # 收到回报的时间
-        #     # Order['RecMicrosecond'] = t.strftime("%f")  # 收到回报中的时间毫秒
-        #
+        if len(Order['OrderRef']) == 12 and Order['OrderRef'][:1] == '1':
+            Order['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
+            strategy_id = Order['OrderRef'][-2:]
+            Order['StrategyID'] = strategy_id  # 报单引用末两位是策略编号
+        else:
+            Order['OperatorID'] = ''  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID，非小蜜蜂套利系统的值为空
+            Order['StrategyID'] = ''  # 报单引用末两位是策略编号，非小蜜蜂套利系统的值为空
+
+        # 进程间通信：'DataFlag': 'OnRtnOrder'
+        dict_data = {
+            'DataFlag': 'OnRtnOrder',
+            'UserId': self.__user_id,
+            'DataMain': Order
+        }
+        self.__Queue_user.put(dict_data)  # user进程put，main进程get
+
+
         #     self.instrument_action_count(Order)  # 统计合约撤单次数
         #
         #     # 进程间通信：'DataFlag': 'instrument_statistics'
@@ -1125,18 +1138,48 @@ class User():
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnTrade(self, Trade):
         # print(">>>User.OnRtnTrade() Trade =", Trade)
-        t = datetime.now()  # 取接收到回调数据的本地系统时间
-        # Trade新增字段
-        Trade['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
-        Trade['StrategyID'] = Trade['OrderRef'][-2:]  # 报单引用末两位是策略编号
-        Trade['ReceiveLocalTime'] = t.strftime("%Y-%m-%d %H:%M:%S %f")  # 收到回报的本地系统时间
+        # t = datetime.now()  # 取接收到回调数据的本地系统时间
         # self.__queue_OnRtnTrade.put(Trade)  # 缓存OnRtnTrade回调数据
         self.__queue_OnRtn.put({'OnRtnTrade': Trade})  # 缓存期货账户的所有order
+
+        # 根据字段“OrderRef”筛选出本套利系统的记录，OrderRef规则：第1位为‘1’，第2位至第10位为递增数，第11位至第12位为StrategyID
+        if len(Trade['OrderRef']) == 12 and Trade['OrderRef'][:1] == '1':
+            Trade['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
+            strategy_id = Trade['OrderRef'][-2:]
+            Trade['StrategyID'] = strategy_id  # 报单引用末两位是策略编号
+        else:
+            Trade['OperatorID'] = ''  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID，非小蜜蜂套利系统的值为空
+            Trade['StrategyID'] = ''  # 报单引用末两位是策略编号，非小蜜蜂套利系统的值为空
+
+        # 进程间通信：'DataFlag': 'OnRtnOrder'
+        dict_data = {
+            'DataFlag': 'OnRtnTrade',
+            'UserId': self.__user_id,
+            'DataMain': Trade
+        }
+        self.__Queue_user.put(dict_data)  # user进程put，main进程get
 
     # 撤单回报
     def OnRspOrderAction(self, OnRspOrderAction):
         # self.__queue_OnRspOrderAction.put(OnRspOrderAction)  # 缓存期货账户的所有order
         self.__queue_OnRtn.put({'OnRspOrderAction': OnRspOrderAction})  # 缓存期货账户的所有order
+
+        # 根据字段“OrderRef”筛选出本套利系统的记录，OrderRef规则：第1位为‘1’，第2位至第10位为递增数，第11位至第12位为StrategyID
+        if len(OnRspOrderAction['OrderRef']) == 12 and OnRspOrderAction['OrderRef'][:1] == '1':
+            OnRspOrderAction['OperatorID'] = self.__trader_id  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID
+            strategy_id = OnRspOrderAction['OrderRef'][-2:]
+            OnRspOrderAction['StrategyID'] = strategy_id  # 报单引用末两位是策略编号
+        else:
+            OnRspOrderAction['OperatorID'] = ''  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID，非小蜜蜂套利系统的值为空
+            OnRspOrderAction['StrategyID'] = ''  # 报单引用末两位是策略编号，非小蜜蜂套利系统的值为空
+
+        # 进程间通信：'DataFlag': 'OnRtnOrder'
+        dict_data = {
+            'DataFlag': 'OnRspOrderAction',
+            'UserId': self.__user_id,
+            'DataMain': OnRspOrderAction
+        }
+        self.__Queue_user.put(dict_data)  # user进程put，main进程get
 
     # 从Queue结构取出order的处理
     def handle_OnRtnOrder(self, Order):
@@ -1929,8 +1972,11 @@ class User():
 
     # 处理客户端点击查询操作
     def action_for_UI_query(self):
-        print(">>> User.action_for_UI_query() user_id =", self.__user_id, "self.__qry_investor_position_detail", self.__qry_investor_position_detail)
-
+        # 界面上点击查询按钮：user输出维护的最新持仓明细list
+        print(">>>User.action_for_UI_query() user_id =", self.__user_id, "self.__qry_investor_position_detail len =", len(self.__qry_investor_position_detail), "self.__qry_investor_position_detail")
+        print("     self.__profit_position =", self.__profit_position)
+        print("     self__profit_close =", self.__profit_close)
+        print("     self__commission =", self.__commission)
     # # 更新账户资金信息，并刷新界面
     # def update_panel_show_account(self):
     #     # {动态权益，静态权益，持仓盈亏，平仓盈亏，手续费，可用资金，占用保证金，下单冻结，风险度，今日入金，今日出金}

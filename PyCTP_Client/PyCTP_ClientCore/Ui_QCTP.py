@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\CTP\PyCTP\PyCTP_Client\PyCTP_ClientUI\QCTP.ui'
+# Form implementation generated from reading ui file 'D:\CTP\Sgit\PyCTP_Client\PyCTP_ClientUI\QCTP.ui'
 #
 # Created by: PyQt4 UI code generator 4.11.4
 #
@@ -25,7 +25,7 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(1425, 900)
+        MainWindow.resize(1425, 912)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -47,7 +47,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.setSpacing(5)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.splitter_mainwindow = QtGui.QSplitter(self.centralWidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.splitter_mainwindow.sizePolicy().hasHeightForWidth())
@@ -57,19 +57,20 @@ class Ui_MainWindow(object):
         self.splitter_mainwindow.setChildrenCollapsible(False)
         self.splitter_mainwindow.setObjectName(_fromUtf8("splitter_mainwindow"))
         self.widget_QAccountWidget = QAccountWidget(self.splitter_mainwindow)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.widget_QAccountWidget.sizePolicy().hasHeightForWidth())
         self.widget_QAccountWidget.setSizePolicy(sizePolicy)
+        self.widget_QAccountWidget.setMinimumSize(QtCore.QSize(0, 0))
         self.widget_QAccountWidget.setObjectName(_fromUtf8("widget_QAccountWidget"))
         self.tab_records = QtGui.QTabWidget(self.splitter_mainwindow)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tab_records.sizePolicy().hasHeightForWidth())
         self.tab_records.setSizePolicy(sizePolicy)
-        self.tab_records.setMinimumSize(QtCore.QSize(0, 330))
+        self.tab_records.setMinimumSize(QtCore.QSize(0, 0))
         self.tab_records.setObjectName(_fromUtf8("tab_records"))
         self.verticalLayout.addWidget(self.splitter_mainwindow)
         MainWindow.setCentralWidget(self.centralWidget)
@@ -113,6 +114,7 @@ class Ui_MainWindow(object):
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar", None))
 
 from QAccountWidget import QAccountWidget
+
 import img_rc
 
 if __name__ == "__main__":

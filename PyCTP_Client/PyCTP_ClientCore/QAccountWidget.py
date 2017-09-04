@@ -1642,6 +1642,18 @@ class QAccountWidget(QWidget, Ui_Form):
         self.lineEdit_Bchedanxianzhi.setText(self.__list_update_group_box_data[27])  # B撤单限制
         self.lineEdit_Achedan.setText(self.__list_update_group_box_data[28])  # A撤单
         self.lineEdit_Bchedan.setText(self.__list_update_group_box_data[29])  # B撤单
+        if self.__list_update_group_box_data[49] == '-1':
+            a_open_limit = ''
+        else:
+            a_open_limit = self.__list_update_group_box_data[49]
+        self.lineEdit_A_open_limit.setText(a_open_limit)  # A开仓手数限制
+        if self.__list_update_group_box_data[50] == '-1':
+            b_open_limit = ''
+        else:
+            b_open_limit = self.__list_update_group_box_data[50]
+        self.lineEdit_B_open_limit.setText(b_open_limit)  # B开仓手数限制
+        self.lineEdit_A_open_count.setText(self.__list_update_group_box_data[51])  # A开仓手数统计
+        self.lineEdit_B_open_count.setText(self.__list_update_group_box_data[52])  # B开仓手数统计
         self.doubleSpinBox_kongtoukai.setValue(self.__list_update_group_box_data[37])  # 空头开
         self.doubleSpinBox_kongtoukai.setSingleStep(self.__list_update_group_box_data[36])  # 设置step
         self.doubleSpinBox_kongtouping.setValue(self.__list_update_group_box_data[38])  # 空头平
@@ -1718,6 +1730,8 @@ class QAccountWidget(QWidget, Ui_Form):
         # self.lineEdit_Bchedanxianzhi.setText(self.__list_update_group_box_data[26])  # B撤单限制
         self.lineEdit_Achedan.setText(self.__list_update_group_box_data[28])  # A撤单
         self.lineEdit_Bchedan.setText(self.__list_update_group_box_data[29])  # B撤单
+        self.lineEdit_A_open_count.setText(self.__list_update_group_box_data[51])  # A开仓手数统计
+        self.lineEdit_B_open_count.setText(self.__list_update_group_box_data[52])  # B开仓手数统计
         # self.doubleSpinBox_kongtoukai.setValue(self.__list_update_group_box_data[36])  # 空头开
         # self.doubleSpinBox_kongtoukai.setSingleStep(1)  # 设置step
         # self.doubleSpinBox_kongtouping.setValue(self.__list_update_group_box_data[37])  # 空头平

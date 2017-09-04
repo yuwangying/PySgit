@@ -1043,11 +1043,17 @@ class SocketManager(QtCore.QThread):
             elif data_flag == 'OnRtnOrder':
                 # self.__dict_user_Queue_data[user_id]['OnRtnOrder'].append(data_main)
                 self.__dict_user_process_data[user_id]['running']['OnRtnOrder'].append(data_main)
+                # print(">>>SocketManager.handle_Queue_get() user_id =", user_id, "OnRtnOrder数量 =", len(self.__dict_user_process_data[user_id]['running']['OnRtnOrder']), data_main)
             # 'OnRtnTrade'
             elif data_flag == 'OnRtnTrade':
                 # self.__dict_user_Queue_data[user_id]['OnRtnTrade'].append(data_main)
                 self.__dict_user_process_data[user_id]['running']['OnRtnTrade'].append(data_main)
-            # print(">>> handle_Queue_get take user_id = %s data_flag = %s time = %s " %(user_id, data_flag, str(time.time() - start_time)))
+                # print(">>>SocketManager.handle_Queue_get() user_id =", user_id, "OnRtnTrade数量 =", len(self.__dict_user_process_data[user_id]['running']['OnRtnTrade']), data_main)
+            elif data_flag == 'OnRspOrderAction':
+                # self.__dict_user_Queue_data[user_id]['OnRtnTrade'].append(data_main)
+                self.__dict_user_process_data[user_id]['running']['OnRspOrderAction'].append(data_main)
+                # print(">>>SocketManager.handle_Queue_get() user_id =", user_id, "OnRspOrderAction数量 =", len(self.__dict_user_process_data[user_id]['running']['OnRspOrderAction']), data_main)
+
             elif data_flag == 'user_init_finished':
                 print(">>> SocketManager.handle_Queue_get() data_flag == 'user_init_finished'")
                 self.__dict_user_process_finished[user_id] = data_main
@@ -1278,6 +1284,7 @@ class SocketManager(QtCore.QThread):
                 self.__dict_user_process_data[user_id]['running']['instrument_statistics'] = dict()  # user进程发来，合约统计
                 self.__dict_user_process_data[user_id]['running']['OnRtnOrder'] = list()  # user进程发来，OnRtnOrder
                 self.__dict_user_process_data[user_id]['running']['OnRtnTrade'] = list()  # user进程发来，OnRtnTrade
+                self.__dict_user_process_data[user_id]['running']['OnRspOrderAction'] = list()  # user进程发来，OnRspOrderAction
 
     # 创建user进程
     def create_user_process(self):
@@ -1299,6 +1306,7 @@ class SocketManager(QtCore.QThread):
             self.__dict_user_process_data[user_id]['running']['instrument_statistics'] = dict()  # user进程发来，合约统计
             self.__dict_user_process_data[user_id]['running']['OnRtnOrder'] = list()  # user进程发来，OnRtnOrder
             self.__dict_user_process_data[user_id]['running']['OnRtnTrade'] = list()  # user进程发来，OnRtnTrade
+            self.__dict_user_process_data[user_id]['running']['OnRspOrderAction'] = list()  # user进程发来，OnRspOrderAction
 
             dict_user_info = self.__dict_user_process_data[user_id]  # 创建user进程必须的初始化参数
 

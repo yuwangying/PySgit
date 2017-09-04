@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1425</width>
-    <height>900</height>
+    <height>912</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -43,7 +43,7 @@
     <item>
      <widget class="QSplitter" name="splitter_mainwindow">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -59,7 +59,7 @@
       </property>
       <widget class="QAccountWidget" name="widget_QAccountWidget" native="true">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -67,13 +67,13 @@
        <property name="minimumSize">
         <size>
          <width>0</width>
-         <height>510</height>
+         <height>0</height>
         </size>
        </property>
       </widget>
       <widget class="QTabWidget" name="tab_records">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -81,7 +81,7 @@
        <property name="minimumSize">
         <size>
          <width>0</width>
-         <height>330</height>
+         <height>0</height>
         </size>
        </property>
        <property name="currentIndex">

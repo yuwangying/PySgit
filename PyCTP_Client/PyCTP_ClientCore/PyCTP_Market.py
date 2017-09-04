@@ -34,7 +34,7 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
     def Connect(self, frontAddr):
         """ 连接前置服务器 """
         self.RegisterSpi(self)
-        print(">>>PyCTP_Market.Connect() frontAddr =", frontAddr, type(frontAddr))
+        print(">>>PyCTP_Market.Connect() frontAddr =", frontAddr)
         self.RegisterFront(frontAddr)
         self.Init()
         self.__rsp_Connect = dict(event=threading.Event())

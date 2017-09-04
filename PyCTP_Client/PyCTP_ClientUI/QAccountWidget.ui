@@ -2008,6 +2008,57 @@ background-color: rgb(255, 255, 255);</string>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>pushButton_query_account</tabstop>
+  <tabstop>pushButton_start_strategy</tabstop>
+  <tabstop>lineEdit_qihuozhanghao</tabstop>
+  <tabstop>comboBox_jiaoyimoxing</tabstop>
+  <tabstop>lineEdit_celuebianhao</tabstop>
+  <tabstop>comboBox_xiadansuanfa</tabstop>
+  <tabstop>lineEdit_zongshou</tabstop>
+  <tabstop>lineEdit_meifen</tabstop>
+  <tabstop>lineEdit_Aheyue</tabstop>
+  <tabstop>lineEdit_Bheyue</tabstop>
+  <tabstop>lineEdit_A_open_limit</tabstop>
+  <tabstop>lineEdit_B_open_limit</tabstop>
+  <tabstop>lineEdit_A_open_count</tabstop>
+  <tabstop>lineEdit_B_open_count</tabstop>
+  <tabstop>lineEdit_Achedanxianzhi</tabstop>
+  <tabstop>lineEdit_Bchedanxianzhi</tabstop>
+  <tabstop>lineEdit_Achedan</tabstop>
+  <tabstop>lineEdit_Bchedan</tabstop>
+  <tabstop>spinBox_rangjia</tabstop>
+  <tabstop>spinBox_zhisun</tabstop>
+  <tabstop>lineEdit_kongtoujiacha</tabstop>
+  <tabstop>lineEdit_duotoujiacha</tabstop>
+  <tabstop>lineEdit_Achengshu</tabstop>
+  <tabstop>lineEdit_Bchengshu</tabstop>
+  <tabstop>spinBox_Adengdai</tabstop>
+  <tabstop>spinBox_Bdengdai</tabstop>
+  <tabstop>spinBox_Abaodanpianyi</tabstop>
+  <tabstop>spinBox_Bbaodanpianyi</tabstop>
+  <tabstop>checkBox_kongtoukai</tabstop>
+  <tabstop>checkBox_kongtouping</tabstop>
+  <tabstop>checkBox_duotouping</tabstop>
+  <tabstop>checkBox_duotoukai</tabstop>
+  <tabstop>doubleSpinBox_kongtoukai</tabstop>
+  <tabstop>doubleSpinBox_kongtouping</tabstop>
+  <tabstop>doubleSpinBox_duotouping</tabstop>
+  <tabstop>doubleSpinBox_duotoukai</tabstop>
+  <tabstop>lineEdit_Azongsell</tabstop>
+  <tabstop>lineEdit_Azuosell</tabstop>
+  <tabstop>lineEdit_Bzongbuy</tabstop>
+  <tabstop>lineEdit_Bzuobuy</tabstop>
+  <tabstop>lineEdit_Azongbuy</tabstop>
+  <tabstop>lineEdit_Azuobuy</tabstop>
+  <tabstop>lineEdit_Bzongsell</tabstop>
+  <tabstop>lineEdit_Bzuosell</tabstop>
+  <tabstop>pushButton_set_strategy</tabstop>
+  <tabstop>pushButton_liandongjia</tabstop>
+  <tabstop>pushButton_liandongjian</tabstop>
+  <tabstop>pushButton_query_strategy</tabstop>
+  <tabstop>pushButton_set_position</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

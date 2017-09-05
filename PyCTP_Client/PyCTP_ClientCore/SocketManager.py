@@ -1042,12 +1042,14 @@ class SocketManager(QtCore.QThread):
             # 'OnRtnOrder'
             elif data_flag == 'OnRtnOrder':
                 # self.__dict_user_Queue_data[user_id]['OnRtnOrder'].append(data_main)
-                self.__dict_user_process_data[user_id]['running']['OnRtnOrder'].append(data_main)
+                order = self.select_element_order(data_main)  # 从dict结构体里面删选出部分元素组成list目标结构体
+                self.__dict_user_process_data[user_id]['running']['OnRtnOrder'].append(order)
                 # print(">>>SocketManager.handle_Queue_get() user_id =", user_id, "OnRtnOrder数量 =", len(self.__dict_user_process_data[user_id]['running']['OnRtnOrder']), data_main)
             # 'OnRtnTrade'
             elif data_flag == 'OnRtnTrade':
                 # self.__dict_user_Queue_data[user_id]['OnRtnTrade'].append(data_main)
-                self.__dict_user_process_data[user_id]['running']['OnRtnTrade'].append(data_main)
+                trade = self.select_element_trade(data_main)  # 从dict结构体里面删选出部分元素组成list目标结构体
+                self.__dict_user_process_data[user_id]['running']['OnRtnTrade'].append(trade)
                 # print(">>>SocketManager.handle_Queue_get() user_id =", user_id, "OnRtnTrade数量 =", len(self.__dict_user_process_data[user_id]['running']['OnRtnTrade']), data_main)
             elif data_flag == 'OnRspOrderAction':
                 # self.__dict_user_Queue_data[user_id]['OnRtnTrade'].append(data_main)
@@ -1420,6 +1422,88 @@ class SocketManager(QtCore.QThread):
         print("B总买", buff['Info'][0]['position_b_buy'], "B昨买", buff['Info'][0]['position_b_buy_yesterday'])
         print("A总买", buff['Info'][0]['position_a_buy'], "A昨买", buff['Info'][0]['position_a_buy_yesterday'])
         print("B总卖", buff['Info'][0]['position_b_sell'], "B昨卖", buff['Info'][0]['position_b_sell_yesterday'])
+
+    # 从dict结构体里面删选出部分元素组成list目标结构体
+    def select_element_order(self, order):
+        if order['Direction'] == '0':
+            Direction = '买'
+        elif order['Direction'] == '1':
+            Direction = '卖'
+        if order['CombOffsetFlag'] == '0':
+            CombOffsetFlag = '开仓'
+        elif order['CombOffsetFlag'] == '1':
+            CombOffsetFlag = '平仓'
+        elif order['CombOffsetFlag'] == '3':
+            CombOffsetFlag = '平今'
+        elif order['CombOffsetFlag'] == '4':
+            CombOffsetFlag = '平昨'
+        else:
+            CombOffsetFlag = '未知'
+
+        if order['CombHedgeFlag'] == '1':
+            CombHedgeFlag = '投机'
+        elif order['CombHedgeFlag'] == '2':
+            CombHedgeFlag = '套利'
+        elif order['CombHedgeFlag'] == '3':
+            CombHedgeFlag = '套保'
+
+        list_output = [
+            order['UserID'],  # 期货账号
+            order['StrategyID'],  # 策略编号
+            order['InstrumentID'],  # 合约
+            Direction,  # 买卖
+            CombOffsetFlag,  # 开平
+            order['LimitPrice'],  # 报单价格
+            order['VolumeTotalOriginal'],  # 报单手数
+            '',  # 报单时间
+            order['CombHedgeFlag'],  # 投保
+            order['OrderRef'],  # 报单引用
+            order['OrderSysID'],  # 报单编号
+            order['ExchangeID']  # 交易所
+        ]
+        return list_output
+
+    # 从dict结构体里面删选出部分元素组成list目标结构体
+    def select_element_trade(self, trade):
+        if trade['Direction'] == '0':
+            Direction = '买'
+        elif trade['Direction'] == '1':
+            Direction = '卖'
+
+        if trade['CombOffsetFlag'] == '0':
+            OffsetFlag = '开仓'
+        elif trade['CombOffsetFlag'] == '1':
+            OffsetFlag = '平仓'
+        elif trade['CombOffsetFlag'] == '3':
+            OffsetFlag = '平今'
+        elif trade['CombOffsetFlag'] == '4':
+            OffsetFlag = '平昨'
+        else:
+            OffsetFlag = '未知'
+
+        if trade['CombHedgeFlag'] == '1':
+            HedgeFlag = '投机'
+        elif trade['CombHedgeFlag'] == '2':
+            HedgeFlag = ''
+        elif trade['CombHedgeFlag'] == '3':
+            HedgeFlag = ''
+
+        list_output = [
+            trade['UserID'],  # 期货账号
+            trade['StrategyID'],  # 策略编号
+            trade['InstrumentID'],  # 合约
+            Direction,  # 买卖
+            OffsetFlag,  # 开平
+            trade['Price'],  # 成交价格
+            trade['Volume'],  # 成交手数
+            trade['TradeTime'],  # 成交时间
+            trade['TradingDay'],  # 交易日
+            trade['HedgeFlag'],  # 投保
+            trade['OrderRef'],  # 报单引用
+            trade['TradeID'],  # 成交编号
+            trade['ExchangeID']  # 交易所
+        ]
+        return list_output
 
 if __name__ == '__main__':
     # 创建socket套接字

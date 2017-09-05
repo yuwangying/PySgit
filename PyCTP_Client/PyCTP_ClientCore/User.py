@@ -848,6 +848,18 @@ class User():
             a_instrument_id = strategy_arguments['a_instrument_id']
             b_instrument_id = strategy_arguments['b_instrument_id']
             min_move = self.__dict_strategy[strategy_id].get_price_tick(a_instrument_id)
+            if a_instrument_id in self.__dict_instrument_statistics:
+                a_action_count = self.__dict_instrument_statistics[a_instrument_id]['action_count']
+                a_traded_count = self.__dict_instrument_statistics[a_instrument_id]['open_count']
+            else:
+                a_action_count = 0
+                a_traded_count = 0
+            if b_instrument_id in self.__dict_instrument_statistics:
+                b_action_count = self.__dict_instrument_statistics[b_instrument_id]['action_count']
+                b_traded_count = self.__dict_instrument_statistics[b_instrument_id]['open_count']
+            else:
+                b_action_count = 0
+                b_traded_count = 0
             list_strategy_data.append(strategy_arguments['on_off'])  # 0:策略开关
             list_strategy_data.append(strategy_arguments['user_id'])  # 1:期货账号
             list_strategy_data.append(strategy_arguments['strategy_id'])  # 2:策略编号
@@ -877,14 +889,6 @@ class User():
             list_strategy_data.append(strategy_arguments['b_limit_price_shift'])  # 25:B报单偏移
             list_strategy_data.append(str(strategy_arguments['a_order_action_limit']))  # 26:A撤单限制
             list_strategy_data.append(str(strategy_arguments['b_order_action_limit']))  # 27:B撤单限制
-            if a_instrument_id in self.__dict_instrument_statistics:
-                a_action_count = self.__dict_instrument_statistics[a_instrument_id]['action_count']
-            else:
-                a_action_count = 0
-            if b_instrument_id in self.__dict_instrument_statistics:
-                b_action_count = self.__dict_instrument_statistics[b_instrument_id]['action_count']
-            else:
-                b_action_count = 0
             str_a_action = '/'.join([str(strategy_statistics['a_action_count_strategy']), str(a_action_count)])
             str_b_action = '/'.join([str(strategy_statistics['b_action_count_strategy']), str(b_action_count)])
             list_strategy_data.append(str_a_action)  # 28:A撤单次数, 内容：“本策略A合约撤单次数/期货账户A合约撤单次数”
@@ -910,8 +914,12 @@ class User():
             list_strategy_data.append(strategy_arguments['instrument_b_scale'])  # 48:B合约乘数
             list_strategy_data.append(str(strategy_arguments['a_order_open_num_limit']))  # 49:A开仓手数限制
             list_strategy_data.append(str(strategy_arguments['b_order_open_num_limit']))  # 50:B开仓手数限制
-            list_strategy_data.append(str(strategy_statistics['a_open_count']))  # 51:A开仓手数统计
-            list_strategy_data.append(str(strategy_statistics['a_open_count']))  # 52:B开仓手数统计
+            str_a_open_count = '/'.join([str(strategy_statistics['a_open_count_strategy']), str(a_traded_count)])
+            str_b_open_count = '/'.join([str(strategy_statistics['b_open_count_strategy']), str(b_traded_count)])
+            list_strategy_data.append(str_a_open_count)  # 51:A开仓手数统计
+            list_strategy_data.append(str_b_open_count)  # 52:B开仓手数统计
+            list_strategy_data.append(str_a_action)  # 28:A撤单次数, 内容：“本策略A合约撤单次数/期货账户A合约撤单次数”
+            list_strategy_data.append(str_b_action)  # 29:B撤单次数, 内容：“本策略B合约撤单次数/期货账户B合约撤单次数”
             list_table_widget_data.append(list_strategy_data)
         list_table_widget_data = sorted(list_table_widget_data, key=itemgetter(2))
         return list_table_widget_data

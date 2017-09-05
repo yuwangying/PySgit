@@ -634,7 +634,7 @@ QPushButton::pressed{
        <property name="minimumSize">
         <size>
          <width>0</width>
-         <height>380</height>
+         <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
@@ -655,7 +655,7 @@ QPushButton::pressed{
       </widget>
       <widget class="QGroupBox" name="groupBox_trade_args">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
+        <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
          <horstretch>6</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -663,7 +663,7 @@ QPushButton::pressed{
        <property name="minimumSize">
         <size>
          <width>416</width>
-         <height>410</height>
+         <height>0</height>
         </size>
        </property>
        <property name="styleSheet">

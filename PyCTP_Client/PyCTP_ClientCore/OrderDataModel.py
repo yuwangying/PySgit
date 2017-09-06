@@ -25,7 +25,8 @@ class OrderDataModel(QAbstractTableModel):
     def __init__(self, parent, mylist, header=None, *args):
         QAbstractTableModel.__init__(self, parent, *args)
         self.mylist = mylist
-        header = ['期货账号', '策略编号', '合约', '买卖', '开平', '报单价格', '报单手数', '报单时间', '投保', 'OrderRef', 'OrderSysID', 'ExchangeID']
+        # 系统编号=OrderSysID
+        header = ['期货账号', '策略编号', '合约', '买卖', '开平', '报单价格', '报单手数', '报单时间', '投保', '报单引用', '系统编号', '交易所']
         self.header = header
 
     def setDataList(self, mylist):

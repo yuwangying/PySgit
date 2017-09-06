@@ -25,7 +25,8 @@ class TradeDataModel(QAbstractTableModel):
     def __init__(self, parent, mylist, header=None, *args):
         QAbstractTableModel.__init__(self, parent, *args)
         self.mylist = mylist
-        header = ['期货账号', '策略编号', '合约', '买卖', '开平', '成交价格', '成交手数', '成交时间', '交易日', '投保', 'OrderRef', 'OrderSysID', 'TradeID', 'ExchangeID']
+        # 系统编号=OrderSysID
+        header = ['期货账号', '策略编号', '合约', '买卖', '开平', '成交价格', '成交手数', '成交时间', '交易日', '投保', '报单引用', '系统编号', '成交编号', '交易所']
         self.header = header
 
     def setDataList(self, mylist):
@@ -79,7 +80,7 @@ class TradeDataModel(QAbstractTableModel):
 
     def headerData(self, col, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            if (col < 18):
+            if (col < 14):
                 return self.header[col]
         return None
 

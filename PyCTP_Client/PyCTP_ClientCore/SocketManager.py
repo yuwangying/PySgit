@@ -69,15 +69,17 @@ class SocketManager(QtCore.QThread):
     signal_init_setTabIcon = QtCore.pyqtSignal()  # Socket收到查询期货账户信息 -> 界面初始化tab样式
     signal_show_alert = QtCore.pyqtSignal(dict)  # 定义信号：显示弹窗
     signal_on_pushButton_set_position_active = QtCore.pyqtSignal()  # 定义信号：激活界面设置持仓按钮
+    signal_set_data_list_order = QtCore.pyqtSignal(list)  # 定义信号：主进程收到user进程的order结构体数据，触发界面talbeView_order更新数据显示
+    signal_set_data_list_trade = QtCore.pyqtSignal(list)  # 定义信号：主进程收到user进程的trade结构体数据，触发界面talbeView_order更新数据显示
+    signal_set_resizeColumnsToContents_order = QtCore.pyqtSignal()  # 定义信号：设置列宽自适应tableView_order
+    signal_set_resizeColumnsToContents_trade = QtCore.pyqtSignal()  # 定义信号：设置列宽自适应tableView_trade
 
     def __init__(self, parent=None):
-        # threading.Thread.__init__(self)
         super(SocketManager, self).__init__(parent)
         self.read_ip_address()  # 读取本地xml文件，获得ip_address
-        # self.__ip_address = ip_address
-        # self.__port = port
         self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.__list_info_group = list()  # 一个消息分为多条发送，临时保存已经接收到的消息
+        self.init_varable()  # 初始化变量
 
         socket_value = self.__sockfd.getsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE)
         if socket_value == 0:
@@ -92,9 +94,6 @@ class SocketManager(QtCore.QThread):
         self.__thread_send_msg.start()  # 开始线程：发送socket消息线程
         self.__thread_heartbeat = threading.Thread(target=self.run_heartbeat)  # 创建心跳进程
         self.__thread_heartbeat.setDaemon(True)
-        # self.__hearbeat_flag = True  # 心跳标志初始值，True：心跳正常，False：心跳异常
-        # self.__thread_heartbeat.start()  # 开始线程：开始心跳
-        # self.__dict_user_Queue_data = dict()  # 进程间通信，接收到User进程发来的消息，存储结构
         self.__list_instrument_info = list()  # 所有合约信息
         self.__list_update_widget_data = list()  # 向ui发送更新界面信号的数据结构
         self.__dict_table_view_data = dict()  # 保存所有期货账户更新tableView的数据
@@ -108,12 +107,17 @@ class SocketManager(QtCore.QThread):
         self.__total_process_finished = False  # 所有进程初始化完成标志位，初始值为False
         self.__dict_user_on_off = dict()  # 期货账户开关信息dict{user_id: 1,}
         self.__recive_msg_flag = False  # 接收socket消息线程运行标志
-        # self.msg_box = MessageBox()  # 创建消息弹窗
         self.__list_panel_show_account = list()  # 更新界面资金条数据结构# 读取xml文件
 
         self.__thread_connect = threading.Thread(target=self.connect)
         self.__thread_connect.setDaemon(True)
         self.__thread_connect.start()
+
+    def init_varable(self):
+        self.__set_resizeColumnsToContents_flags_order = False  # 是否发送过设置tableView_order表的自适应列宽
+        self.__set_resizeColumnsToContents_flags_trade = False  # 是否发送过设置tableView_trade表的自适应列宽
+        self.__list_user_id = list()  # 期货账号list['800898', 86001222']
+        self.__list_strategy_id = list()  # 策略编号list['01', '02']
 
     def read_ip_address(self):
         xml_path = "config/trade_server_ip.xml"
@@ -566,6 +570,7 @@ class SocketManager(QtCore.QThread):
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
+
             elif buff['MsgType'] == 2:  # 收到：查询期货账户信息，MsgType=2
                 print("SocketManager.receive_msg() MsgType=2，查询期货账户", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
@@ -574,10 +579,11 @@ class SocketManager(QtCore.QThread):
                     self.__update_ui_user_id = buff['Info'][0]['userid']
                     for i in buff['Info']:
                         user_id = i['userid']
+                        self.__list_user_id.append(user_id)  # 期货账号list
                         self.__dict_user_on_off[user_id] = i['on_off']
                         self.__dict_table_view_data[user_id] = list()  # 初始化更新tableView的数据
                         self.__dict_panel_show_account_data[user_id] = list()  # 初始化更新panel_show_account的数据
-                    # print(">>>self.__dict_user_on_off =", self.__dict_user_on_off)
+                        # print(">>>self.__dict_user_on_off =", self.__dict_user_on_off)
                     # print(">>> self.__update_ui_user_id =", self.__update_ui_user_id)
                     # self.qry_algorithm_info()  # 发送：查询下单算法，MsgType=11
                 elif buff['MsgResult'] == 1:  # 消息结果失败
@@ -596,7 +602,11 @@ class SocketManager(QtCore.QThread):
                 print("SocketManager.receive_msg() MsgType=3，查询策略", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     self.set_list_strategy_info(buff['Info'])
-                    print(">>> ScoketManager.receive_msg() self.signal_init_tableWidget.emit(buff['Info'])")
+                    print(">>>>>>>>>>buff['Info']", buff['Info'])
+                    for strategy_info in buff['Info']:
+                        strategy_id = strategy_info['strategy_id']
+                        self.__list_strategy_id.append(strategy_id)
+                    print(">>>ScoketManager.receive_msg() self.signal_init_tableWidget.emit(buff['Info'])")
                     # self.signal_init_tableWidget.emit(buff['Info'])
                     # self.qry_position_detial_for_order()  # 发送：查询持仓明细order，MsgType=15
                     # user进程初始化完成，则将信息转发给user进程
@@ -1043,13 +1053,27 @@ class SocketManager(QtCore.QThread):
             elif data_flag == 'OnRtnOrder':
                 # self.__dict_user_Queue_data[user_id]['OnRtnOrder'].append(data_main)
                 order = self.select_element_order(data_main)  # 从dict结构体里面删选出部分元素组成list目标结构体
-                self.__dict_user_process_data[user_id]['running']['OnRtnOrder'].append(order)
+                # self.__dict_user_process_data[user_id]['running']['OnRtnOrder'].append(order)
+                self.__dict_user_process_data[user_id]['running']['OnRtnOrder'].insert(0, order)
+                list_data = self.__dict_user_process_data[user_id]['running']['OnRtnOrder']
+                # self.__QOrderWidget.order_data_model.slot_set_data_list(list_data)
+                self.signal_set_data_list_order.emit(list_data)  # 触发信号：发送order数据给界面数据模型，更新界面
+                if self.__set_resizeColumnsToContents_flags_order is False:
+                    self.signal_set_resizeColumnsToContents_order.emit()
+                    self.__set_resizeColumnsToContents_flags_order = True
                 # print(">>>SocketManager.handle_Queue_get() user_id =", user_id, "OnRtnOrder数量 =", len(self.__dict_user_process_data[user_id]['running']['OnRtnOrder']), data_main)
             # 'OnRtnTrade'
             elif data_flag == 'OnRtnTrade':
                 # self.__dict_user_Queue_data[user_id]['OnRtnTrade'].append(data_main)
                 trade = self.select_element_trade(data_main)  # 从dict结构体里面删选出部分元素组成list目标结构体
-                self.__dict_user_process_data[user_id]['running']['OnRtnTrade'].append(trade)
+                # self.__dict_user_process_data[user_id]['running']['OnRtnTrade'].append(trade)
+                self.__dict_user_process_data[user_id]['running']['OnRtnTrade'].insert(0, trade)
+                list_data = self.__dict_user_process_data[user_id]['running']['OnRtnTrade']
+                # self.__QOrderWidget.trade_data_model.slot_set_data_list(list_data)
+                self.signal_set_data_list_trade.emit(list_data)  # 触发信号：发送trade数据给界面数据模型，更新界面
+                if self.__set_resizeColumnsToContents_flags_trade is False:
+                    self.signal_set_resizeColumnsToContents_trade.emit()
+                    self.__set_resizeColumnsToContents_flags_trade = True
                 # print(">>>SocketManager.handle_Queue_get() user_id =", user_id, "OnRtnTrade数量 =", len(self.__dict_user_process_data[user_id]['running']['OnRtnTrade']), data_main)
             elif data_flag == 'OnRspOrderAction':
                 # self.__dict_user_Queue_data[user_id]['OnRtnTrade'].append(data_main)
@@ -1456,7 +1480,7 @@ class SocketManager(QtCore.QThread):
             order['LimitPrice'],  # 报单价格
             order['VolumeTotalOriginal'],  # 报单手数
             '',  # 报单时间
-            order['CombHedgeFlag'],  # 投保
+            CombHedgeFlag,  # 投保
             order['OrderRef'],  # 报单引用
             order['OrderSysID'],  # 报单编号
             order['ExchangeID']  # 交易所
@@ -1470,23 +1494,23 @@ class SocketManager(QtCore.QThread):
         elif trade['Direction'] == '1':
             Direction = '卖'
 
-        if trade['CombOffsetFlag'] == '0':
+        if trade['OffsetFlag'] == '0':
             OffsetFlag = '开仓'
-        elif trade['CombOffsetFlag'] == '1':
+        elif trade['OffsetFlag'] == '1':
             OffsetFlag = '平仓'
-        elif trade['CombOffsetFlag'] == '3':
+        elif trade['OffsetFlag'] == '3':
             OffsetFlag = '平今'
-        elif trade['CombOffsetFlag'] == '4':
+        elif trade['OffsetFlag'] == '4':
             OffsetFlag = '平昨'
         else:
             OffsetFlag = '未知'
 
-        if trade['CombHedgeFlag'] == '1':
+        if trade['HedgeFlag'] == '1':
             HedgeFlag = '投机'
-        elif trade['CombHedgeFlag'] == '2':
-            HedgeFlag = ''
-        elif trade['CombHedgeFlag'] == '3':
-            HedgeFlag = ''
+        elif trade['HedgeFlag'] == '2':
+            HedgeFlag = '套利'
+        elif trade['HedgeFlag'] == '3':
+            HedgeFlag = '保值'
 
         list_output = [
             trade['UserID'],  # 期货账号
@@ -1498,8 +1522,9 @@ class SocketManager(QtCore.QThread):
             trade['Volume'],  # 成交手数
             trade['TradeTime'],  # 成交时间
             trade['TradingDay'],  # 交易日
-            trade['HedgeFlag'],  # 投保
+            HedgeFlag,  # 投保
             trade['OrderRef'],  # 报单引用
+            trade['OrderSysID'],  # 系统编号
             trade['TradeID'],  # 成交编号
             trade['ExchangeID']  # 交易所
         ]

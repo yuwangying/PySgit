@@ -28,9 +28,11 @@ class ProxyOrderDataModel(QtGui.QSortFilterProxyModel):
         self.invalidateFilter()
 
     def filterAcceptsRow(self, source_row, source_parent):
-        index_UserID = self.sourceModel().index(source_row, 2, source_parent)
-        index_StrategyID = self.sourceModel().index(source_row, 3, source_parent)
-        if self.sourceModel().data(index_UserID, QtCore.Qt.DisplayRole) == self.user_id and self.sourceModel().data(index_StrategyID, QtCore.Qt.DisplayRole) == self.strategy_id:
+        index_UserID = self.sourceModel().index(source_row, 0, source_parent)
+        index_StrategyID = self.sourceModel().index(source_row, 1, source_parent)
+        # if self.strategy_id == "所有" and self.user_id == "":
+        # if self.sourceModel().data(index_UserID, QtCore.Qt.DisplayRole) == self.user_id and self.sourceModel().data(index_StrategyID, QtCore.Qt.DisplayRole) == self.strategy_id:
+        if True:
             return True
         else:
             return False

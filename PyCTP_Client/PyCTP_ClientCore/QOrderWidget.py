@@ -28,16 +28,42 @@ class QOrderWidget(QWidget, Ui_Form):
         self.setupUi(self)
         
         # 显示order结构体的viewTable
-        self.__order_data_model = OrderDataModel.OrderDataModel()
+        self.order_data_model = OrderDataModel.OrderDataModel(parent=self)
         self.__proxy_order_data_model = ProxyOrderDataModel.ProxyOrderDataModel()
-        self.__proxy_order_data_model.setSourceModel(self.__order_data_model)
+        self.__proxy_order_data_model.setSourceModel(self.order_data_model)
         self.tableView_order.setModel(self.__proxy_order_data_model)
+        self.order_data_model.set_QOrderWidget(self)
         # 显示trade结构体的viewTable
-        self.__trade_data_model = OrderDataModel.OrderDataModel()
+        self.trade_data_model = TradeDataModel.TradeDataModel(parent=self)
         self.__proxy_trade_data_model = ProxyOrderDataModel.ProxyOrderDataModel()
-        self.__proxy_trade_data_model.setSourceModel(self.__trade_data_model)
+        self.__proxy_trade_data_model.setSourceModel(self.trade_data_model)
         self.tableView_trade.setModel(self.__proxy_trade_data_model)
-    
+        self.trade_data_model.set_QOrderWidget(self)
+
+    def set_SocketManager(self, obj_SocketManager):
+        self.__set_socket_manager = True
+        self.__socket_manager = obj_SocketManager
+        # 信号槽连接：追进程收到user进程的order数据 -> 界面更新数据
+        self.__socket_manager.signal_set_data_list_order.connect(self.order_data_model.slot_set_data_list)
+        # 信号槽连接：追进程收到user进程的trade数据 -> 界面更新数据
+        self.__socket_manager.signal_set_data_list_trade.connect(self.trade_data_model.slot_set_data_list)
+        # 信号槽连接：market_manager发送设置自适应列宽信号 -> order_data_model设置自适应列宽
+        self.__socket_manager.signal_set_resizeColumnsToContents_order.connect(self.order_data_model.slot_set_resizeColumnsToContents)
+        # 信号槽连接：market_manager发送设置自适应列宽信号 -> trade_data_model设置自适应列宽
+        self.__socket_manager.signal_set_resizeColumnsToContents_trade.connect(self.trade_data_model.slot_set_resizeColumnsToContents)
+
+    # 初始化comboBox可选项：期货账号
+    def init_comboBox_account_id(self, list_input):
+        self.comboBox_account_id.clear()
+        list_menu = list_input.sort()
+        self.comboBox_account_id.insertItems(0, list_menu)
+
+    # 初始化comboBox可选项：策略编号
+    def init_comboBox_strategy_id(self, list_input):
+        self.comboBox_strategy_id.clear()
+        list_menu = list_input.sort()
+        self.comboBox_strategy_id.insertItems(0, list_menu)
+
     @pyqtSlot(str)
     def on_lineEdit_heyue_textChanged(self, p0):
         """
@@ -47,7 +73,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type str
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(str)
     def on_lineEdit_heyue_textEdited(self, p0):
@@ -58,7 +84,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type str
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(bool)
     def on_radioButton_kaicang_clicked(self, checked):
@@ -69,7 +95,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type bool
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot()
     def on_radioButton_kaicang_clicked(self):
@@ -77,7 +103,7 @@ class QOrderWidget(QWidget, Ui_Form):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(bool)
     def on_radioButton_kaicang_toggled(self, checked):
@@ -88,7 +114,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type bool
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(bool)
     def on_radioButton_maichu_clicked(self, checked):
@@ -99,7 +125,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type bool
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot()
     def on_radioButton_maichu_clicked(self):
@@ -107,7 +133,7 @@ class QOrderWidget(QWidget, Ui_Form):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(bool)
     def on_radioButton_maichu_toggled(self, checked):
@@ -118,7 +144,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type bool
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(bool)
     def on_radioButton_pingcang_clicked(self, checked):
@@ -129,7 +155,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type bool
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot()
     def on_radioButton_pingcang_clicked(self):
@@ -137,7 +163,7 @@ class QOrderWidget(QWidget, Ui_Form):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(bool)
     def on_radioButton_pingcang_toggled(self, checked):
@@ -148,7 +174,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type bool
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(int)
     def on_spinBox_shoushu_valueChanged(self, p0):
@@ -159,7 +185,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type int
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(str)
     def on_spinBox_shoushu_valueChanged(self, p0):
@@ -170,7 +196,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type str
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(bool)
     def on_radioButton_pingjin_clicked(self, checked):
@@ -181,7 +207,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type bool
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot()
     def on_radioButton_pingjin_clicked(self):
@@ -189,7 +215,7 @@ class QOrderWidget(QWidget, Ui_Form):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(bool)
     def on_radioButton_pingjin_toggled(self, checked):
@@ -200,7 +226,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type bool
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(bool)
     def on_radioButton_mairu_clicked(self, checked):
@@ -211,7 +237,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type bool
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot()
     def on_radioButton_mairu_clicked(self):
@@ -219,7 +245,7 @@ class QOrderWidget(QWidget, Ui_Form):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(bool)
     def on_radioButton_mairu_toggled(self, checked):
@@ -230,7 +256,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type bool
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(float)
     def on_doubleSpinBox_xiadanjiage_valueChanged(self, p0):
@@ -241,7 +267,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type float
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(str)
     def on_doubleSpinBox_xiadanjiage_valueChanged(self, p0):
@@ -252,7 +278,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type str
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot()
     def on_pushButton_xiadantiaocang_pressed(self):
@@ -260,7 +286,7 @@ class QOrderWidget(QWidget, Ui_Form):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot()
     def on_pushButton_xiadantiaocang_released(self):
@@ -268,7 +294,7 @@ class QOrderWidget(QWidget, Ui_Form):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot()
     def on_pushButton_xiadantiaocang_clicked(self):
@@ -276,7 +302,7 @@ class QOrderWidget(QWidget, Ui_Form):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot()
     def on_pushButton_xiandan_pressed(self):
@@ -284,7 +310,7 @@ class QOrderWidget(QWidget, Ui_Form):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot()
     def on_pushButton_xiandan_released(self):
@@ -292,7 +318,7 @@ class QOrderWidget(QWidget, Ui_Form):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot()
     def on_pushButton_xiandan_clicked(self):
@@ -300,7 +326,7 @@ class QOrderWidget(QWidget, Ui_Form):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot()
     def on_pushButton_xiadanquxiao_pressed(self):
@@ -308,7 +334,7 @@ class QOrderWidget(QWidget, Ui_Form):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot()
     def on_pushButton_xiadanquxiao_released(self):
@@ -316,7 +342,7 @@ class QOrderWidget(QWidget, Ui_Form):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot()
     def on_pushButton_xiadanquxiao_clicked(self):
@@ -324,7 +350,7 @@ class QOrderWidget(QWidget, Ui_Form):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(bool)
     def on_checkBox_taoli_clicked(self, checked):
@@ -335,7 +361,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type bool
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot()
     def on_checkBox_taoli_clicked(self):
@@ -343,7 +369,7 @@ class QOrderWidget(QWidget, Ui_Form):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(bool)
     def on_checkBox_taoli_toggled(self, checked):
@@ -354,7 +380,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type bool
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(int)
     def on_checkBox_taoli_stateChanged(self, p0):
@@ -365,7 +391,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type int
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(bool)
     def on_checkBox_baozhi_clicked(self, checked):
@@ -376,7 +402,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type bool
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot()
     def on_checkBox_baozhi_clicked(self):
@@ -384,7 +410,7 @@ class QOrderWidget(QWidget, Ui_Form):
         Slot documentation goes here.
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(bool)
     def on_checkBox_baozhi_toggled(self, checked):
@@ -395,7 +421,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type bool
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(int)
     def on_checkBox_baozhi_stateChanged(self, p0):
@@ -406,7 +432,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type int
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(int)
     def on_comboBox_account_id_activated(self, index):
@@ -417,7 +443,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type int
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(str)
     def on_comboBox_account_id_activated(self, p0):
@@ -428,7 +454,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type str
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(int)
     def on_comboBox_account_id_currentIndexChanged(self, index):
@@ -439,7 +465,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type int
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(str)
     def on_comboBox_account_id_currentIndexChanged(self, p0):
@@ -450,7 +476,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type str
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(int)
     def on_comboBox_strategy_id_activated(self, index):
@@ -461,7 +487,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type int
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(str)
     def on_comboBox_strategy_id_activated(self, p0):
@@ -472,7 +498,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type str
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(int)
     def on_comboBox_strategy_id_currentIndexChanged(self, index):
@@ -483,7 +509,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type int
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(str)
     def on_comboBox_strategy_id_currentIndexChanged(self, p0):
@@ -494,7 +520,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type str
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QPoint)
     def on_tableView_all_orders_customContextMenuRequested(self, pos):
@@ -505,7 +531,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QPoint
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QModelIndex)
     def on_tableView_all_orders_pressed(self, index):
@@ -516,7 +542,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QModelIndex
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QModelIndex)
     def on_tableView_all_orders_clicked(self, index):
@@ -527,7 +553,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QModelIndex
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QModelIndex)
     def on_tableView_all_orders_doubleClicked(self, index):
@@ -538,7 +564,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QModelIndex
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QModelIndex)
     def on_tableView_all_orders_activated(self, index):
@@ -549,7 +575,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QModelIndex
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QModelIndex)
     def on_tableView_all_orders_entered(self, index):
@@ -560,7 +586,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QModelIndex
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QPoint)
     def on_tableView_trade_customContextMenuRequested(self, pos):
@@ -571,7 +597,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QPoint
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QModelIndex)
     def on_tableView_trade_pressed(self, index):
@@ -582,7 +608,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QModelIndex
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QModelIndex)
     def on_tableView_trade_clicked(self, index):
@@ -593,7 +619,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QModelIndex
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QModelIndex)
     def on_tableView_trade_doubleClicked(self, index):
@@ -604,7 +630,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QModelIndex
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QModelIndex)
     def on_tableView_trade_activated(self, index):
@@ -615,7 +641,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QModelIndex
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QModelIndex)
     def on_tableView_trade_entered(self, index):
@@ -626,7 +652,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QModelIndex
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QPoint)
     def on_tableView_order_customContextMenuRequested(self, pos):
@@ -637,7 +663,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QPoint
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QModelIndex)
     def on_tableView_order_pressed(self, index):
@@ -648,7 +674,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QModelIndex
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QModelIndex)
     def on_tableView_order_clicked(self, index):
@@ -659,7 +685,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QModelIndex
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QModelIndex)
     def on_tableView_order_doubleClicked(self, index):
@@ -670,7 +696,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QModelIndex
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QModelIndex)
     def on_tableView_order_activated(self, index):
@@ -681,7 +707,7 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QModelIndex
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError
     
     @pyqtSlot(QModelIndex)
     def on_tableView_order_entered(self, index):
@@ -692,4 +718,4 @@ class QOrderWidget(QWidget, Ui_Form):
         @type QModelIndex
         """
         # TODO: not implemented yet
-        raise NotImplementedError
+        pass  # raise NotImplementedError

@@ -1,310 +1,310 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Tasks SYSTEM "Tasks-6.0.dtd">
 <!-- eric6 tasks file for project QCTP -->
-<!-- Saved: 2017-09-05, 17:11:01 -->
+<!-- Saved: 2017-09-07, 15:10:15 -->
 <Tasks version="6.0">
   <ProjectScanFilter></ProjectScanFilter>
-  <Task priority="1" completed="False" type="1" uid="{bcde525c-2daf-46e9-911e-cd781b91d22f}">
+  <Task priority="1" completed="False" type="1" uid="{a2df159b-31eb-43c7-a9c6-14b4660826f3}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:55</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>33</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{34edaa71-7903-4e62-bcc3-e997d7c1a1c6}">
+  <Task priority="1" completed="False" type="1" uid="{533c8655-62d9-4360-9d93-29186b3e261c}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:55</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>41</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{d42f2867-c616-4e8b-b842-e830e848edd0}">
+  <Task priority="1" completed="False" type="1" uid="{a78486f6-1345-41ee-a436-f5f65e90c769}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:55</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>49</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{f8f9f763-fcd3-4d42-a186-45b78e162153}">
+  <Task priority="1" completed="False" type="1" uid="{518ed676-6cc1-431e-b5d9-b82e44cd8229}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:55</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>57</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{715c5ec6-c58e-41c2-b0de-d6f799529a40}">
+  <Task priority="1" completed="False" type="1" uid="{d83dcffa-cbf2-4208-8de3-aff0ac67a41f}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:55</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>65</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{58b5ed79-e866-4d06-8498-574c942838e1}">
+  <Task priority="1" completed="False" type="1" uid="{525d0bb9-81bc-4f9a-bc8b-206bf8d02fab}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:55</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>73</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{50b8d8ed-aea5-4506-ba53-19c777836752}">
+  <Task priority="1" completed="False" type="1" uid="{079a5ac7-eb99-4075-9165-e4d0a9e005d1}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:55</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>81</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{c03ebf25-32d1-4b69-8c46-ee2b4cf54007}">
+  <Task priority="1" completed="False" type="1" uid="{9c0c502b-05d6-4b15-b3e1-b8aca5b4dcdd}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:55</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>92</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{4bf6aa7e-54da-4e4b-a49e-bb5db261fe4f}">
+  <Task priority="1" completed="False" type="1" uid="{4cebd496-bc96-42eb-9007-6415156a8ad2}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:55</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>103</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{76f2f01f-8183-4de8-b88d-10441e693bff}">
+  <Task priority="1" completed="False" type="1" uid="{3e749e53-b393-4b58-b572-53fadae6641b}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:55</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>114</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{e2719303-3553-4864-aa97-2ab0dffadb41}">
+  <Task priority="1" completed="False" type="1" uid="{5c024f22-fd72-467c-aafc-d464a318ee17}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:55</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>125</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{bb1e4270-7a47-492e-bbe6-87f75d21ca89}">
+  <Task priority="1" completed="False" type="1" uid="{27d6368c-cc02-4c7f-875b-1c4183d2e631}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:55</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>136</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{5fe5356d-cbc4-4ecd-b032-42ab76d1ca66}">
+  <Task priority="1" completed="False" type="1" uid="{7eaa32ab-7f5d-4fd4-b247-1c4be246a459}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>147</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{ed237623-f4ea-4202-9820-f1e10913cf07}">
+  <Task priority="1" completed="False" type="1" uid="{be02fb39-3087-4452-ab99-886e27cbc1d4}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>158</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{3cafce05-a784-438e-854f-5d1d3deba499}">
+  <Task priority="1" completed="False" type="1" uid="{923a1cfc-28e2-4776-ad67-e3592f357669}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>169</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{fdec5911-61b8-4e8b-9c6b-97cc41d718df}">
+  <Task priority="1" completed="False" type="1" uid="{facdd57e-3e88-4e76-8e77-ea08a1b5e247}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>180</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{bbd21362-2c89-47bd-8104-7cd7251f4536}">
+  <Task priority="1" completed="False" type="1" uid="{aca97a38-53a5-4c39-8583-c8b252bf1a95}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>193</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{d784b315-02ae-43b4-b0a6-4dfc22070544}">
+  <Task priority="1" completed="False" type="1" uid="{b9192bc3-99c6-4e9d-8e8a-0992d36bf0ce}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>211</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{80fc5208-f05e-42fa-9cc9-b2bda8723d16}">
+  <Task priority="1" completed="False" type="1" uid="{e0e0d596-a3e6-4228-a3ec-4ded65d58e56}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>222</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{d1b40aa2-1bba-420c-949e-7164ca4631ab}">
+  <Task priority="1" completed="False" type="1" uid="{132a4ce1-89fd-4f92-b340-00061d690547}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>233</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{225ecb80-8dd3-4bdc-ac29-d7365c3c2c4f}">
+  <Task priority="1" completed="False" type="1" uid="{27659739-c1c1-46da-baea-ba211a464fa8}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>244</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{f1be89f0-4bc8-4fa1-ab82-3854666a2bca}">
+  <Task priority="1" completed="False" type="1" uid="{cbda17ba-8c38-42d7-984c-c7c1fbc70035}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>255</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{1a9fd495-7b03-4872-8b8a-8d9387fb91c5}">
+  <Task priority="1" completed="False" type="1" uid="{d7cd744f-4e05-4aa8-a8c4-55e16c7365cd}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>266</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{b11aa42b-ddb1-4579-b00a-eff731b9944a}">
+  <Task priority="1" completed="False" type="1" uid="{adcc0042-54f7-451f-8d91-33e0c6396159}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>277</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{305e0e05-2022-44be-954a-aaadac56d6d6}">
+  <Task priority="1" completed="False" type="1" uid="{9bdbbb96-9fb1-4d51-a611-82d14a14e744}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>295</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{563541b0-15e3-4e02-bedd-cd863e76e19a}">
+  <Task priority="1" completed="False" type="1" uid="{e3d49763-2a9c-4f5b-b3e0-234f11176ea4}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>308</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{232c6201-03c6-4551-9524-863b8e158122}">
+  <Task priority="1" completed="False" type="1" uid="{a7824297-05fd-47ee-9bdb-ca813c358729}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>321</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{e9ab1ff5-0fb1-41d6-94b0-cf1207927271}">
+  <Task priority="1" completed="False" type="1" uid="{d967d7f2-2b0c-4566-8d94-557f48c71d31}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>332</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{4d5d26a1-cf55-4a15-bdf7-2963ec413ac6}">
+  <Task priority="1" completed="False" type="1" uid="{a48fc45d-d298-4bd4-be8a-761464325b41}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAccountWidget.py</Filename>
       <Linenumber>343</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{30c71cbb-cb4a-448f-b8a4-c25a56c3ae1d}">
+  <Task priority="1" completed="False" type="1" uid="{9ee6d649-ea19-427a-8e3c-d90bed83ca11}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QAlertBox.py</Filename>
       <Linenumber>32</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{900e8dda-4112-4513-9ea9-1d0af5570d4b}">
+  <Task priority="1" completed="False" type="1" uid="{6c2f1e35-e817-4b84-a1d7-3c4478a2941b}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QCTP.py</Filename>
       <Linenumber>35</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{b45b5040-8d8e-478e-ab14-29961e4bd61d}">
+  <Task priority="1" completed="False" type="1" uid="{6d76b7c8-198a-400e-ad41-4b1608c90c34}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QCTP.py</Filename>
       <Linenumber>46</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{d84d168a-9947-46e4-8651-7ca59951ea9c}">
+  <Task priority="1" completed="False" type="1" uid="{f8b9cc6a-1714-4b6f-bbff-de56b309fe11}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QStrategySetting.py</Filename>
       <Linenumber>32</Linenumber>
     </Resource>
   </Task>
-  <Task priority="1" completed="False" type="1" uid="{e95a08ef-6f4a-46e3-8278-5471ab5bb6ff}">
+  <Task priority="1" completed="False" type="1" uid="{3d38c3a9-4890-4cfc-a4a1-15c160cb2bdb}">
     <Summary>TODO: not implemented yet</Summary>
     <Description></Description>
-    <Created>2017-09-05, 10:56:01</Created>
+    <Created>2017-09-07, 14:10:56</Created>
     <Resource>
       <Filename>QStrategySetting.py</Filename>
       <Linenumber>40</Linenumber>

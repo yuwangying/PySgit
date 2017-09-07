@@ -26,6 +26,84 @@ class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
         Form.resize(1425, 326)
+        Form.setStyleSheet(_fromUtf8("QTabWidget::pane { /* The tab widget frame */\n"
+"      border-top: 2px solid #C2C7CB;\n"
+"}\n"
+"\n"
+"  QTabWidget::tab-bar {\n"
+"      left: 5px; /* move to the right by 5px */\n"
+"  }\n"
+"\n"
+"  /* Style the tab using the tab sub-control. Note that\n"
+"      it reads QTabBar _not_ QTabWidget */\n"
+"  QTabBar::tab {\n"
+"        \n"
+"    font: 11pt \"微软雅黑\";\n"
+"      background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n"
+"                                  stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,\n"
+"                                  stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);\n"
+"      border: 2px solid #C4C4C3;\n"
+"      border-bottom-color: #C2C7CB; /* same as the pane color */\n"
+"      border-top-left-radius: 4px;\n"
+"      border-top-right-radius: 4px;\n"
+"      min-width: 100px;\n"
+"      padding: 2px;\n"
+"  }\n"
+"\n"
+"  QTabBar::tab:selected, QTabBar::tab:hover {\n"
+"      background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n"
+"                                  stop: 0 #fafafa, stop: 0.4 #f4f4f4,\n"
+"                                  stop: 0.5 #e7e7e7, stop: 1.0 #fafafa);\n"
+"  }\n"
+"\n"
+"  QTabBar::tab:selected {\n"
+"      border-color: #9B9B9B;\n"
+"      border-bottom-color: #C2C7CB; /* same as pane color */\n"
+"  }\n"
+"\n"
+"  QTabBar::tab:!selected {\n"
+"      margin-top: 2px; /* make non-selected tabs look smaller */\n"
+"  }\n"
+"\n"
+"\n"
+"/*鼠标右击菜单样式*/\n"
+"QMenu {\n"
+"      background-color: #ABABAB; /* sets background of the menu */\n"
+"      border: 1px solid black;\n"
+"  }\n"
+"\n"
+"  QMenu::item {\n"
+"      /* sets background of menu item. set this to something non-transparent\n"
+"          if you want menu color and menu item color to be different */\n"
+"      background-color: transparent;\n"
+"  }\n"
+"\n"
+"  QMenu::item:selected { /* when user selects item using mouse or keyboard */\n"
+"      background-color: #654321;\n"
+"  }\n"
+"\n"
+"/*右下角托盘样式*/\n"
+"  QMenuBar {\n"
+"      background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,\n"
+"                                        stop:0 lightgray, stop:1 darkgray);\n"
+"  }\n"
+"\n"
+"  QMenuBar::item {\n"
+"      spacing: 3px; /* spacing between menu bar items */\n"
+"      padding: 1px 4px;\n"
+"      background: transparent;\n"
+"      border-radius: 4px;\n"
+"  }\n"
+"\n"
+"  QMenuBar::item:selected { /* when selected using mouse or keyboard */\n"
+"      background: #a8a8a8;\n"
+"  }\n"
+"\n"
+"  QMenuBar::item:pressed {\n"
+"      background: #888888;\n"
+"  }\n"
+"\n"
+""))
         self.horizontalLayout_3 = QtGui.QHBoxLayout(Form)
         self.horizontalLayout_3.setMargin(0)
         self.horizontalLayout_3.setSpacing(2)
@@ -68,9 +146,13 @@ class Ui_Form(object):
         self.splitter.setObjectName(_fromUtf8("splitter"))
         self.tableView_order = QtGui.QTableView(self.splitter)
         self.tableView_order.setStyleSheet(_fromUtf8("background-color: rgb(255, 255, 245);"))
+        self.tableView_order.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.tableView_order.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableView_order.setObjectName(_fromUtf8("tableView_order"))
         self.tableView_trade = QtGui.QTableView(self.splitter)
         self.tableView_trade.setStyleSheet(_fromUtf8("background-color: rgb(255, 255, 245);"))
+        self.tableView_trade.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.tableView_trade.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableView_trade.setObjectName(_fromUtf8("tableView_trade"))
         self.verticalLayout.addWidget(self.splitter)
         self.horizontalLayout_2.addLayout(self.verticalLayout)

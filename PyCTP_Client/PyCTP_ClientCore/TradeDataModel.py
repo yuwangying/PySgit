@@ -113,10 +113,12 @@ class TradeDataModel(QAbstractTableModel):
         t1 = self.index(0, 0)  # 左上角
         t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
         self.dataChanged.emit(t1, t2)
+        self.__QOrderWidget.update_trade_data_Filter()
+        # self.__QOrderWidget.tableView_trade.resizeColumnsToContents()  # tableView列宽自动适应
 
     # 设置列宽自适应
-    def slot_set_resizeColumnsToContents(self):
-        # if self.__set_resizeColumnsToContents_flags is False:  # not self.__set_resizeColumnsToContents_flags:
-        self.__QOrderWidget.tableView_trade.resizeColumnsToContents()  # tableView列宽自动适应
-        # self.__QAccountWidget.tableView_Trade_Args.resizeRowsToContents()  # tableView行高自动适应
-        self.__set_resizeColumnsToContents_flags = True  # 设置过列宽标志位为True
+    # def slot_set_resizeColumnsToContents(self):
+    #     # if self.__set_resizeColumnsToContents_flags is False:  # not self.__set_resizeColumnsToContents_flags:
+    #     self.__QOrderWidget.tableView_trade.resizeColumnsToContents()  # tableView列宽自动适应
+    #     # self.__QAccountWidget.tableView_Trade_Args.resizeRowsToContents()  # tableView行高自动适应
+    #     self.__set_resizeColumnsToContents_flags = True  # 设置过列宽标志位为True

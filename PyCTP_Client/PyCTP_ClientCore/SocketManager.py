@@ -71,8 +71,9 @@ class SocketManager(QtCore.QThread):
     signal_on_pushButton_set_position_active = QtCore.pyqtSignal()  # 定义信号：激活界面设置持仓按钮
     signal_set_data_list_order = QtCore.pyqtSignal(list)  # 定义信号：主进程收到user进程的order结构体数据，触发界面talbeView_order更新数据显示
     signal_set_data_list_trade = QtCore.pyqtSignal(list)  # 定义信号：主进程收到user进程的trade结构体数据，触发界面talbeView_order更新数据显示
-    signal_set_resizeColumnsToContents_order = QtCore.pyqtSignal()  # 定义信号：设置列宽自适应tableView_order
-    signal_set_resizeColumnsToContents_trade = QtCore.pyqtSignal()  # 定义信号：设置列宽自适应tableView_trade
+    # signal_set_resizeColumnsToContents_order = QtCore.pyqtSignal()  # 定义信号：设置列宽自适应tableView_order
+    # signal_set_resizeColumnsToContents_trade = QtCore.pyqtSignal()  # 定义信号：设置列宽自适应tableView_trade
+    signal_set_user_strategy_tree = QtCore.pyqtSignal(dict)  # 定义信号：设置trabeView_order的user_strategy信息，并更新combBox可选菜单
 
     def __init__(self, parent=None):
         super(SocketManager, self).__init__(parent)
@@ -114,10 +115,7 @@ class SocketManager(QtCore.QThread):
         self.__thread_connect.start()
 
     def init_varable(self):
-        self.__set_resizeColumnsToContents_flags_order = False  # 是否发送过设置tableView_order表的自适应列宽
-        self.__set_resizeColumnsToContents_flags_trade = False  # 是否发送过设置tableView_trade表的自适应列宽
-        self.__list_user_id = list()  # 期货账号list['800898', 86001222']
-        self.__list_strategy_id = list()  # 策略编号list['01', '02']
+        self.__dict_user_strategy_tree = dict()  # 保存期货账号和策略编号的树结构{'800898': ['01, '02'], 86001222': ['01, '02']}
 
     def read_ip_address(self):
         xml_path = "config/trade_server_ip.xml"
@@ -579,12 +577,12 @@ class SocketManager(QtCore.QThread):
                     self.__update_ui_user_id = buff['Info'][0]['userid']
                     for i in buff['Info']:
                         user_id = i['userid']
-                        self.__list_user_id.append(user_id)  # 期货账号list
+                        self.__dict_user_strategy_tree[user_id] = list()
                         self.__dict_user_on_off[user_id] = i['on_off']
                         self.__dict_table_view_data[user_id] = list()  # 初始化更新tableView的数据
                         self.__dict_panel_show_account_data[user_id] = list()  # 初始化更新panel_show_account的数据
                         # print(">>>self.__dict_user_on_off =", self.__dict_user_on_off)
-                    # print(">>> self.__update_ui_user_id =", self.__update_ui_user_id)
+                    # print(">>>self.__dict_user_strategy_tree =", self.__dict_user_strategy_tree)
                     # self.qry_algorithm_info()  # 发送：查询下单算法，MsgType=11
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
@@ -602,11 +600,12 @@ class SocketManager(QtCore.QThread):
                 print("SocketManager.receive_msg() MsgType=3，查询策略", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     self.set_list_strategy_info(buff['Info'])
-                    print(">>>>>>>>>>buff['Info']", buff['Info'])
                     for strategy_info in buff['Info']:
+                        user_id = strategy_info['user_id']
                         strategy_id = strategy_info['strategy_id']
-                        self.__list_strategy_id.append(strategy_id)
-                    print(">>>ScoketManager.receive_msg() self.signal_init_tableWidget.emit(buff['Info'])")
+                        self.__dict_user_strategy_tree[user_id].append(strategy_id)
+                    print(">>>ScoketManager.receive_msg() 查询策略 self.__dict_user_strategy_tree =", self.__dict_user_strategy_tree)
+                    self.signal_set_user_strategy_tree.emit(self.__dict_user_strategy_tree)
                     # self.signal_init_tableWidget.emit(buff['Info'])
                     # self.qry_position_detial_for_order()  # 发送：查询持仓明细order，MsgType=15
                     # user进程初始化完成，则将信息转发给user进程
@@ -656,6 +655,10 @@ class SocketManager(QtCore.QThread):
                     # self.create_strategy(buff['Info'][0])
                     # 进程间通信：main->user
                     user_id = buff['Info'][0]['user_id']  # 策略参数dict
+                    strategy_id = buff['Info'][0]['strategy_id']  # 策略参数dict
+                    self.__dict_user_strategy_tree[user_id].append(strategy_id)
+                    print(">>>ScoketManager.receive_msg() 新建策略 self.__dict_user_strategy_tree =", self.__dict_user_strategy_tree)
+                    self.signal_set_user_strategy_tree.emit(self.__dict_user_strategy_tree)
                     # self.signal_insert_strategy.emit(buff['Info'][0])  # 界面中新插入一行策略
                     self.__QAccountWidget.StrategyDataModel.set_update_once(True)  # 设置定时任务中刷新一次全部tableView
                     self.signal_QNewStrategy_hide.emit()  # 隐藏新建策略窗口
@@ -691,7 +694,11 @@ class SocketManager(QtCore.QThread):
             elif buff['MsgType'] == 7:  # 删除策略，MsgType=7
                 print("SocketManager.receive_msg() MsgType=7，删除策略", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
-                    dict_args = {'user_id': buff['UserID'], 'strategy_id': buff['StrategyID']}
+                    user_id = buff['UserID']
+                    strategy_id = buff['StrategyID']
+                    self.__dict_user_strategy_tree[user_id].remove(strategy_id)
+                    print(">>>ScoketManager.receive_msg() 删除策略 self.__dict_user_strategy_tree =", self.__dict_user_strategy_tree)
+                    self.signal_set_user_strategy_tree.emit(self.__dict_user_strategy_tree)
                     # self.__ctp_manager.delete_strategy(dict_args)
                     # {'MsgSendFlag': 1, 'MsgResult': 0, 'MsgErrorReason': '', 'MsgRef': 15, 'UserID': '058176', 'StrategyID': '20', 'MsgType': 7, 'MsgSrc': 0, 'TraderID': '1601'}
                     user_id = buff['UserID']
@@ -1058,9 +1065,7 @@ class SocketManager(QtCore.QThread):
                 list_data = self.__dict_user_process_data[user_id]['running']['OnRtnOrder']
                 # self.__QOrderWidget.order_data_model.slot_set_data_list(list_data)
                 self.signal_set_data_list_order.emit(list_data)  # 触发信号：发送order数据给界面数据模型，更新界面
-                if self.__set_resizeColumnsToContents_flags_order is False:
-                    self.signal_set_resizeColumnsToContents_order.emit()
-                    self.__set_resizeColumnsToContents_flags_order = True
+                # self.signal_set_resizeColumnsToContents_order.emit()  # 触发信号：自适应列宽
                 # print(">>>SocketManager.handle_Queue_get() user_id =", user_id, "OnRtnOrder数量 =", len(self.__dict_user_process_data[user_id]['running']['OnRtnOrder']), data_main)
             # 'OnRtnTrade'
             elif data_flag == 'OnRtnTrade':
@@ -1071,9 +1076,7 @@ class SocketManager(QtCore.QThread):
                 list_data = self.__dict_user_process_data[user_id]['running']['OnRtnTrade']
                 # self.__QOrderWidget.trade_data_model.slot_set_data_list(list_data)
                 self.signal_set_data_list_trade.emit(list_data)  # 触发信号：发送trade数据给界面数据模型，更新界面
-                if self.__set_resizeColumnsToContents_flags_trade is False:
-                    self.signal_set_resizeColumnsToContents_trade.emit()
-                    self.__set_resizeColumnsToContents_flags_trade = True
+                # self.signal_set_resizeColumnsToContents_trade.emit()  # 触发信号：自适应列宽
                 # print(">>>SocketManager.handle_Queue_get() user_id =", user_id, "OnRtnTrade数量 =", len(self.__dict_user_process_data[user_id]['running']['OnRtnTrade']), data_main)
             elif data_flag == 'OnRspOrderAction':
                 # self.__dict_user_Queue_data[user_id]['OnRtnTrade'].append(data_main)

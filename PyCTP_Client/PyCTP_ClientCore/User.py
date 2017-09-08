@@ -1427,10 +1427,10 @@ class User():
         # else:
         #     commodity_id = ''
         #     print("User.get_commission() 异常，交易所代码在四个交易所之外 user_id =", self.__user_id, "instrument_id =", instrument_id, "exchange_id =", exchange_id)
-        commodity_id = Utils.extract_commodity_id(instrument_id)
-        # print(">>>User.get_commission() commodity_id =", commodity_id)
 
-        if commodity_id not in self.__dict_commission:
+        # commodity_id = Utils.extract_commodity_id(instrument_id)
+        # print(">>>User.get_commission() commodity_id =", commodity_id)
+        if instrument_id not in self.__dict_commission:
             # 通过API查询单个品种的手续费率dict
             self.qry_api_interval_manager()  # API查询时间间隔管理
             # 尝试三次获取指定合约的手续费详细
@@ -1455,8 +1455,9 @@ class User():
             if flag_get_commission_success is False:  # 获取手续费失败，返回空dict
                 dict_commission = dict()
                 # 弹窗，或其他形式提醒，此处为初始化类错误，影响手续费统计结果!
-            self.__dict_commission[commodity_id] = dict_commission  # 将单个品种手续费率存入到user类的所有品种手续费率dict
-        return self.__dict_commission[commodity_id]
+            self.__dict_commission[instrument_id] = dict_commission  # 将单个品种手续费率存入到user类的所有品种手续费率dict
+            # print(">>>User.get_commission() self.__dict_commission =", len(self.__dict_commission), self.__dict_commission)
+        return self.__dict_commission[instrument_id]
 
     # 添加字段"本次成交量"，order结构中加入字段VolumeTradedBatch
     def add_VolumeTradedBatch(self, order):

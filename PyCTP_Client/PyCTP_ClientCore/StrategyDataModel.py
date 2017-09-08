@@ -217,6 +217,13 @@ class StrategyDataModel(QAbstractTableModel):
                 else:
                     value = '开'
             return value
+        elif role == QtCore.Qt.ForegroundRole and index.column() in [8, 9, 11]:
+            if value > 0:
+                return QtGui.QColor(204, 51, 102)
+            elif value < 0:
+                return QtGui.QColor(51, 153, 102)
+            elif value == 0:
+                return QtGui.QColor(0, 0, 0)
         # # ForegroundRole字体颜色
         # elif role == QtCore.Qt.ForegroundRole and index.column() == 1:
         #     return QtGui.QColor(255, 0, 0)

@@ -694,11 +694,12 @@ class Strategy():
         self.__b_instrument_multiple = self.get_instrument_multiple(self.__b_instrument_id)  # B合约乘数
         self.__a_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__a_instrument_id)  # A合约保证金率
         self.__b_instrument_margin_ratio = self.get_instrument_margin_ratio(self.__b_instrument_id)  # B合约保证金率
-        print(">>>Strategy.get_td_api_arguments() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,"self.__a_instrument_margin_ratio =", self.__a_instrument_margin_ratio, "self.__b_instrument_margin_ratio =", self.__b_instrument_margin_ratio)
+        # print(">>>Strategy.get_td_api_arguments() user_id =", self.__user_id, "strategy_id =", self.__strategy_id,"self.__a_instrument_margin_ratio =", self.__a_instrument_margin_ratio, "self.__b_instrument_margin_ratio =", self.__b_instrument_margin_ratio)
         self.__exchange_id_a = self.get_exchange_id(self.__a_instrument_id)  # A合约所属的交易所代码
         self.__exchange_id_b = self.get_exchange_id(self.__b_instrument_id)  # A合约所属的交易所代码
         self.__dict_commission_a = self.__user.get_commission(self.__a_instrument_id, self.__exchange_id_a)  # A合约手续费的dict
         self.__dict_commission_b = self.__user.get_commission(self.__b_instrument_id, self.__exchange_id_b)  # B合约手续费的dict
+        # print(">>>Strategy.get_td_api_arguments() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "self.__dict_commission_a =", self.__dict_commission_a, "self.__dict_commission_b =", self.__dict_commission_b)
 
     # 装载xml
     def load_xml(self):
@@ -1477,18 +1478,18 @@ class Strategy():
             # 开仓
             if trade['OffsetFlag'] == '0':
                 commission_amount = \
-                    self.__dict_commission_a['OpenRatioByMoney'] * trade['Price'] * trade['Volume'] * self.__a_instrument_multiple \
-                    + self.__dict_commission_a['OpenRatioByVolume'] * trade['Volume']
+                    self.__dict_commission_b['OpenRatioByMoney'] * trade['Price'] * trade['Volume'] * self.__b_instrument_multiple \
+                    + self.__dict_commission_b['OpenRatioByVolume'] * trade['Volume']
             # 平今
             elif trade['OffsetFlag'] == '3':
                 commission_amount = \
-                    self.__dict_commission_a['CloseTodayRatioByMoney'] * trade['Price'] * trade['Volume'] * self.__a_instrument_multiple \
-                    + self.__dict_commission_a['CloseTodayRatioByVolume'] * trade['Volume']
+                    self.__dict_commission_b['CloseTodayRatioByMoney'] * trade['Price'] * trade['Volume'] * self.__b_instrument_multiple \
+                    + self.__dict_commission_b['CloseTodayRatioByVolume'] * trade['Volume']
             # 平昨
             elif trade['OffsetFlag'] == '4':
                 commission_amount = \
-                    self.__dict_commission_a['CloseRatioByMoney'] * trade['Price'] * trade['Volume'] * self.__a_instrument_multiple \
-                    + self.__dict_commission_a['CloseRatioByVolume'] * trade['Volume']
+                    self.__dict_commission_b['CloseRatioByMoney'] * trade['Price'] * trade['Volume'] * self.__b_instrument_multiple \
+                    + self.__dict_commission_b['CloseRatioByVolume'] * trade['Volume']
         return commission_amount
 
     # 计算申报费
@@ -2292,7 +2293,7 @@ class Strategy():
 
     def OnRtnTrade(self, Trade):
         """成交回报"""
-        print(">>>Strategy.OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "Trade =", Trade)
+        # print(">>>Strategy.OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "Trade =", Trade)
         # 所有trade回调保存到DataFrame格式变量
         # series_order = Series(Trade)
         # self.__df_OnRtnTrade = DataFrame.append(self.__df_OnRtnTrade, other=series_order, ignore_index=True)

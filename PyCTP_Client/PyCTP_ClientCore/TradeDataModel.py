@@ -65,6 +65,16 @@ class TradeDataModel(QAbstractTableModel):
             return value
         elif role == QtCore.Qt.DisplayRole:
             return value
+        elif role == QtCore.Qt.ForegroundRole and index.column() == 3:
+            if value == '买    ':
+                return QtGui.QColor(204, 51, 102)
+            elif value == '    卖':
+                return QtGui.QColor(51, 153, 102)
+        elif role == QtCore.Qt.ForegroundRole and index.column() == 4:
+            if value == '开仓':
+                return QtGui.QColor(204, 51, 102)
+            elif value != '开仓':
+                return QtGui.QColor(51, 153, 102)
 
     def headerData(self, col, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:

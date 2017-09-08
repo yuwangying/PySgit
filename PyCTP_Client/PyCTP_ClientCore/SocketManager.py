@@ -1453,9 +1453,9 @@ class SocketManager(QtCore.QThread):
     # 从dict结构体里面删选出部分元素组成list目标结构体
     def select_element_order(self, order):
         if order['Direction'] == '0':
-            Direction = '买'
+            Direction = '买    '
         elif order['Direction'] == '1':
-            Direction = '卖'
+            Direction = '    卖'
         if order['CombOffsetFlag'] == '0':
             CombOffsetFlag = '开仓'
         elif order['CombOffsetFlag'] == '1':
@@ -1493,9 +1493,9 @@ class SocketManager(QtCore.QThread):
     # 从dict结构体里面删选出部分元素组成list目标结构体
     def select_element_trade(self, trade):
         if trade['Direction'] == '0':
-            Direction = '买'
+            Direction = '买    '
         elif trade['Direction'] == '1':
-            Direction = '卖'
+            Direction = '    卖'
 
         if trade['OffsetFlag'] == '0':
             OffsetFlag = '开仓'

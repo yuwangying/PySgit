@@ -62,6 +62,30 @@ class OrderDataModel(QAbstractTableModel):
             return value
         elif role == QtCore.Qt.DisplayRole:
             return value
+        elif role == QtCore.Qt.ForegroundRole and index.column() == 3:
+            if value == '买    ':
+                return QtGui.QColor(204, 51, 102)
+            elif value == '    卖':
+                return QtGui.QColor(51, 153, 102)
+        elif role == QtCore.Qt.ForegroundRole and index.column() == 4:
+            if value == '开仓':
+                return QtGui.QColor(204, 51, 102)
+            elif value != '开仓':
+                return QtGui.QColor(51, 153, 102)
+        # elif role == QtCore.Qt.ForegroundRole and index.column() == 2:
+        #     return QtGui.QColor(0, 255, 0)
+        # elif role == QtCore.Qt.FontRole and index.column() == 1:
+        #     font = QtGui.QFont()
+        #     font.setBold(True)
+        #     return font
+        # elif role == QtCore.Qt.FontRole and index.column() == 2:
+        #     font = QtGui.QFont()
+        #     font.setBold(True)
+        #     return font
+        # elif role == QtCore.Qt.TextAlignmentRole and index.column() == 3:
+        #     return QtCore.Qt.AlignCenter
+        # elif role == QtCore.Qt.TextAlignmentRole and index.column() == 2:
+        #     return QtCore.Qt.AlignCenter
 
     def headerData(self, col, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:

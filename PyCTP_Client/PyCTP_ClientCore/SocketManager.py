@@ -116,6 +116,7 @@ class SocketManager(QtCore.QThread):
 
     def init_varable(self):
         self.__dict_user_strategy_tree = dict()  # 保存期货账号和策略编号的树结构{'800898': ['01, '02'], 86001222': ['01, '02']}
+        self.__normal_update_trade_data = False  # trade数据可以刷新到界面
 
     def read_ip_address(self):
         xml_path = "config/trade_server_ip.xml"
@@ -1064,7 +1065,16 @@ class SocketManager(QtCore.QThread):
                 self.__dict_user_process_data[user_id]['running']['OnRtnOrder'].insert(0, order)
                 list_data = self.__dict_user_process_data[user_id]['running']['OnRtnOrder']
                 # self.__QOrderWidget.order_data_model.slot_set_data_list(list_data)
-                self.signal_set_data_list_order.emit(list_data)  # 触发信号：发送order数据给界面数据模型，更新界面
+                for i in self.__list_user_info:
+                    if i['userid'] == user_id and data_main['OrderRef'] >= i['orderref']:
+                        print(">>>SocketManager.handle_Queue_get() order data_main['OrderRef'] >= i['orderref']", data_main['OrderRef'], i['orderref'])
+                        self.signal_set_data_list_order.emit(list_data)  # 触发信号：发送order数据给界面数据模型，更新界面
+                    if i['userid'] == user_id and data_main['OrderRef'] == i['orderref']:
+                        print(">>>SocketManager.handle_Queue_get() trade第一次刷新 data_main['OrderRef'] == i['orderref']",
+                              data_main['OrderRef'], i['orderref'])
+                        list_data_trade = self.__dict_user_process_data[user_id]['running']['OnRtnTrade']
+                        self.signal_set_data_list_trade.emit(list_data_trade)  # 触发信号：发送order数据给界面数据模型，更新界面
+                        self.__normal_update_trade_data = True  # 更新一次之后可以正常刷新到界面
                 # self.signal_set_resizeColumnsToContents_order.emit()  # 触发信号：自适应列宽
                 # print(">>>SocketManager.handle_Queue_get() user_id =", user_id, "OnRtnOrder数量 =", len(self.__dict_user_process_data[user_id]['running']['OnRtnOrder']), data_main)
             # 'OnRtnTrade'
@@ -1075,7 +1085,9 @@ class SocketManager(QtCore.QThread):
                 self.__dict_user_process_data[user_id]['running']['OnRtnTrade'].insert(0, trade)
                 list_data = self.__dict_user_process_data[user_id]['running']['OnRtnTrade']
                 # self.__QOrderWidget.trade_data_model.slot_set_data_list(list_data)
-                self.signal_set_data_list_trade.emit(list_data)  # 触发信号：发送trade数据给界面数据模型，更新界面
+                # 在tableView中维护属性tableView_order的 {'801867': [order数据], '期货账户2':[order数据], '期货账户3': [order数据]}，tableView_trade同理
+                if self.__normal_update_trade_data:
+                    self.signal_set_data_list_trade.emit(list_data)  # 触发信号：发送trade数据给界面数据模型，更新界面
                 # self.signal_set_resizeColumnsToContents_trade.emit()  # 触发信号：自适应列宽
                 # print(">>>SocketManager.handle_Queue_get() user_id =", user_id, "OnRtnTrade数量 =", len(self.__dict_user_process_data[user_id]['running']['OnRtnTrade']), data_main)
             elif data_flag == 'OnRspOrderAction':

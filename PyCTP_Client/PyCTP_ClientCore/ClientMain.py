@@ -717,6 +717,10 @@ if __name__ == '__main__':
     socket_manager.signal_show_alert.connect(q_alert_box.slot_show_alert)  # 绑定信号槽：显示弹窗
     socket_manager.signal_on_pushButton_set_position_active.connect(q_ctp.widget_QAccountWidget.on_pushButton_set_position_active)  # 绑定信号槽：socket收到设置持仓消息 -> 激活界面设置持仓按钮
 
+    # 设置字体大小
+    # font = app.font()
+    # font.setPointSize(10)
+    # app.setFont(font)
     sys.exit(app.exec_())
 
 

@@ -348,7 +348,7 @@ class User():
         self.__QryInvestorPositionDetail = Utils.code_transform(self.__trader_api.QryInvestorPositionDetail())
         if isinstance(self.__QryInvestorPositionDetail, list):
             self.__dict_create_user_status['QryInvestorPositionDetail'] = 0
-            print("User.__init__() user_id=", self.__user_id, '查询投资者持仓明细成功，长度 =', len(self.__QryInvestorPositionDetail), self.__QryInvestorPositionDetail)
+            print("User.__init__() user_id=", self.__user_id, '查询投资者持仓明细成功，长度 =', len(self.__QryInvestorPositionDetail))
             # 删除持仓明细中字段volume值为0的记录
             len_QryInvestorPositionDetail = len(self.__QryInvestorPositionDetail)
             i_offset = 0
@@ -1097,6 +1097,8 @@ class User():
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnOrder(self, Order):
         # print(">>>User.OnRtnOrder() Order =", Order)
+        insert_time = datetime.now().strftime('%X')
+        Order['InsertTime'] = insert_time
         # self.__queue_OnRtnOrder.put(Order)  # 缓存期货账户的所有order
         self.__queue_OnRtn.put({'OnRtnOrder': Order})  # 缓存期货账户的所有order
 

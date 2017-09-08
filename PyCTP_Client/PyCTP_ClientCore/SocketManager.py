@@ -1482,7 +1482,7 @@ class SocketManager(QtCore.QThread):
             CombOffsetFlag,  # 开平
             order['LimitPrice'],  # 报单价格
             order['VolumeTotalOriginal'],  # 报单手数
-            '',  # 报单时间
+            order['InsertTime'],  # 报单时间
             CombHedgeFlag,  # 投保
             order['OrderRef'],  # 报单引用
             order['OrderSysID'],  # 报单编号

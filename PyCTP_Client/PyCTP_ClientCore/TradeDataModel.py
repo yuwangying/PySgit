@@ -29,6 +29,8 @@ class TradeDataModel(QAbstractTableModel):
         header = ['期货账号', '策略编号', '合约', '买卖', '开平', '成交价格', '成交手数', '成交时间', '交易日', '投保', '报单引用', '系统编号', '成交编号', '交易所']  # 14个
         self.header = header
         self.__set_resizeColumnsToContents_flags = False  # 设置过列宽标志位为False
+        # tableView_order的 {'801867': [order数据], '期货账户2': [order数据], '期货账户3': [order数据]}
+        self.__dict_origin_data = dict()
 
     def set_QOrderWidget(self, obj):
         self.__QOrderWidget = obj
@@ -125,6 +127,80 @@ class TradeDataModel(QAbstractTableModel):
         self.dataChanged.emit(t1, t2)
         self.__QOrderWidget.update_trade_data_Filter()
         # self.__QOrderWidget.tableView_trade.resizeColumnsToContents()  # tableView列宽自动适应
+
+    # 更新tableView，根据界面combBox组件的user_id、strategy_id来决定是否更新
+    def update_data(self):
+        user_id = self.__QOrderWidget.comboBox_account_id.currentText()
+        if user_id == '':
+            print(">>>TradeDataModel.update_data() 不需要更新的user_id =", user_id, type(user_id))
+            return
+        strategy_id = self.__QOrderWidget.comboBox_strategy_id.currentText()
+        print(">>>TradeDataModel.update_data() 需要更新的user_id =", user_id, type(user_id), "strategy_id =", strategy_id, type(strategy_id))
+        list_update_data = self.__dict_origin_data[user_id]
+        self.slot_set_data_list(list_update_data)
+
+    # 接收历史数据，形参{'801867': [trade数据]}
+    def slot_receive_previous_data_trade(self, dict_input):
+        for user_id in dict_input:
+            print(">>>TradeDataModel.slot_receive_previous_data_trade() user_id =", user_id, "dict_input['user_id'] 长度=",
+                  len(dict_input[user_id]))
+            self.__dict_origin_data[user_id] = list()  # 初始化结构体
+            for dict_trade in dict_input[user_id]:
+                list_trade = self.select_element_trade(dict_trade)  # 将原始回调数据结构dict转换为数据模型需要的结构list
+                self.__dict_origin_data[user_id].insert(0, list_trade)  # 最新的数据插入到list的0位置
+        print(">>>TradeDataModel.slot_receive_previous_data_trade() self.__dict_origin_data[user_id] 长度=", len(self.__dict_origin_data[user_id]))
+        self.update_data()  # 更新界面
+
+    # 接收最新的回调数据，形参{'801867': [order数据]}
+    def slot_receive_last_data_trade(self, dict_input):
+        # print(">>>TradeDataModel.slot_receive_last_data_trade() dict_input =", dict_input)
+        user_id = dict_input['UserID']
+        list_trade = self.select_element_trade(dict_input)
+        self.__dict_origin_data[user_id].insert(0, list_trade)  # 最新的数据插入到list的0位置
+        self.update_data()  # 更新界面
+
+    # 从dict结构体里面删选出部分元素组成list目标结构体
+    def select_element_trade(self, trade):
+        if trade['Direction'] == '0':
+            Direction = '买    '
+        elif trade['Direction'] == '1':
+            Direction = '    卖'
+
+        if trade['OffsetFlag'] == '0':
+            OffsetFlag = '开仓'
+        elif trade['OffsetFlag'] == '1':
+            OffsetFlag = '平仓'
+        elif trade['OffsetFlag'] == '3':
+            OffsetFlag = '平今'
+        elif trade['OffsetFlag'] == '4':
+            OffsetFlag = '平昨'
+        else:
+            OffsetFlag = '未知'
+
+        if trade['HedgeFlag'] == '1':
+            HedgeFlag = '投机'
+        elif trade['HedgeFlag'] == '2':
+            HedgeFlag = '套利'
+        elif trade['HedgeFlag'] == '3':
+            HedgeFlag = '保值'
+
+        list_output = [
+            trade['UserID'],  # 期货账号
+            trade['StrategyID'],  # 策略编号
+            trade['InstrumentID'],  # 合约
+            Direction,  # 买卖
+            OffsetFlag,  # 开平
+            trade['Price'],  # 成交价格
+            trade['Volume'],  # 成交手数
+            trade['TradeTime'],  # 成交时间
+            trade['TradingDay'],  # 交易日
+            HedgeFlag,  # 投保
+            trade['OrderRef'],  # 报单引用
+            trade['OrderSysID'],  # 系统编号
+            trade['TradeID'],  # 成交编号
+            trade['ExchangeID']  # 交易所
+        ]
+        return list_output
 
     # 设置列宽自适应
     # def slot_set_resizeColumnsToContents(self):

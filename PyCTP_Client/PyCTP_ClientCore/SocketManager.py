@@ -74,6 +74,10 @@ class SocketManager(QtCore.QThread):
     # signal_set_resizeColumnsToContents_order = QtCore.pyqtSignal()  # 定义信号：设置列宽自适应tableView_order
     # signal_set_resizeColumnsToContents_trade = QtCore.pyqtSignal()  # 定义信号：设置列宽自适应tableView_trade
     signal_set_user_strategy_tree = QtCore.pyqtSignal(dict)  # 定义信号：设置trabeView_order的user_strategy信息，并更新combBox可选菜单
+    signal_send_previous_data_order = QtCore.pyqtSignal(dict)  # 定义信号：发送历史的order记录数据到tableView的数据模型
+    signal_send_last_data_order = QtCore.pyqtSignal(dict)  # 定义信号：发送最新的order记录数据到tableView的数据模型
+    signal_send_previous_data_trade = QtCore.pyqtSignal(dict)  # 定义信号：发送历史的trade记录数据到tableView的数据模型
+    signal_send_last_data_trade = QtCore.pyqtSignal(dict)  # 定义信号：发送最新的trade记录数据到tableView的数据模型
 
     def __init__(self, parent=None):
         super(SocketManager, self).__init__(parent)
@@ -116,7 +120,6 @@ class SocketManager(QtCore.QThread):
 
     def init_varable(self):
         self.__dict_user_strategy_tree = dict()  # 保存期货账号和策略编号的树结构{'800898': ['01, '02'], 86001222': ['01, '02']}
-        self.__normal_update_trade_data = False  # trade数据可以刷新到界面
 
     def read_ip_address(self):
         xml_path = "config/trade_server_ip.xml"
@@ -542,12 +545,6 @@ class SocketManager(QtCore.QThread):
                     self.set_trader_id(buff['TraderID'])
                     self.set_trader_on_off(buff['OnOff'])
                     self.signal_init_ui_on_off.emit(buff['OnOff'])  # 初始化界面“开始策略”按钮
-                    # self.__client_main.set_trader_name(buff['TraderName'])
-                    # self.__client_main.set_trader_id(buff['TraderID'])
-                    # self.__ctp_manager.set_trader_name(buff['TraderName'])
-                    # self.__ctp_manager.set_trader_id(buff['TraderID'])
-                    # self.__ctp_manager.set_on_off(buff['OnOff'])
-                    # self.qry_market_info()  # 发送：查询行情配置，MsgType=4
                     self.set_dict_trader_info(buff)
                     self.__dict_user_on_off['所有账户'] = buff['OnOff']
                     # self.__thread_heartbeat.start()  # 开始线程：开始心跳
@@ -569,22 +566,27 @@ class SocketManager(QtCore.QThread):
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
-
             elif buff['MsgType'] == 2:  # 收到：查询期货账户信息，MsgType=2
                 print("SocketManager.receive_msg() MsgType=2，查询期货账户", buff)
                 if buff['MsgResult'] == 0:  # 消息结果成功
                     # self.__ctp_manager.set_list_user_info(buff['Info'])  # 将期货账户信息设置为ctp_manager的属性
-                    self.set_list_user_info(buff['Info'])
+                    self.__list_user_info = buff['Info']
                     self.__update_ui_user_id = buff['Info'][0]['userid']
+                    dict_init_data_model = dict()  # tableView初始化数据模型需要的数据结构
+                    self.__dict_user_onrtnorder_last_recieve = dict()  # 期货账户是否收到历史OnRtnOrder记录的最后一条
                     for i in buff['Info']:
                         user_id = i['userid']
                         self.__dict_user_strategy_tree[user_id] = list()
                         self.__dict_user_on_off[user_id] = i['on_off']
                         self.__dict_table_view_data[user_id] = list()  # 初始化更新tableView的数据
                         self.__dict_panel_show_account_data[user_id] = list()  # 初始化更新panel_show_account的数据
-                        # print(">>>self.__dict_user_on_off =", self.__dict_user_on_off)
-                    # print(">>>self.__dict_user_strategy_tree =", self.__dict_user_strategy_tree)
-                    # self.qry_algorithm_info()  # 发送：查询下单算法，MsgType=11
+                        if i['orderref'][:10] == '1000000000':
+                            self.__dict_user_onrtnorder_last_recieve[user_id] = True  # 期货账户历史的最后一条OrderRef是否被收到
+                        elif i['orderref'][:10] > '1000000000':
+                            self.__dict_user_onrtnorder_last_recieve[user_id] = False  # 期货账户历史的最后一条OrderRef是否被收到
+                        dict_init_data_model[user_id] = []  # tableView初始化数据模型需要的数据结构
+                    self.signal_send_previous_data_order.emit(dict_init_data_model)  # 发送初始化期货账号给tableView的数据模型作为初始化
+                    self.signal_send_previous_data_trade.emit(dict_init_data_model)  # 发送初始化期货账号给tableView的数据模型作为初始化
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
@@ -1059,42 +1061,36 @@ class SocketManager(QtCore.QThread):
                 # print(">>> SocketManager.handle_Queue_get() self.__dict_user_process_data[user_id]['running']['strategy_position'][strategy_id] =", self.__dict_user_process_data[user_id]['running']['strategy_position'][strategy_id])
             # 'OnRtnOrder'
             elif data_flag == 'OnRtnOrder':
-                # self.__dict_user_Queue_data[user_id]['OnRtnOrder'].append(data_main)
-                order = self.select_element_order(data_main)  # 从dict结构体里面删选出部分元素组成list目标结构体
-                # self.__dict_user_process_data[user_id]['running']['OnRtnOrder'].append(order)
-                self.__dict_user_process_data[user_id]['running']['OnRtnOrder'].insert(0, order)
-                list_data = self.__dict_user_process_data[user_id]['running']['OnRtnOrder']
-                # self.__QOrderWidget.order_data_model.slot_set_data_list(list_data)
-                for i in self.__list_user_info:
-                    if i['userid'] == user_id and data_main['OrderRef'] >= i['orderref']:
-                        print(">>>SocketManager.handle_Queue_get() order data_main['OrderRef'] >= i['orderref']", data_main['OrderRef'], i['orderref'])
-                        self.signal_set_data_list_order.emit(list_data)  # 触发信号：发送order数据给界面数据模型，更新界面
-                    if i['userid'] == user_id and data_main['OrderRef'] == i['orderref']:
-                        print(">>>SocketManager.handle_Queue_get() trade第一次刷新 data_main['OrderRef'] == i['orderref']",
-                              data_main['OrderRef'], i['orderref'])
-                        list_data_trade = self.__dict_user_process_data[user_id]['running']['OnRtnTrade']
-                        self.signal_set_data_list_trade.emit(list_data_trade)  # 触发信号：发送order数据给界面数据模型，更新界面
-                        self.__normal_update_trade_data = True  # 更新一次之后可以正常刷新到界面
-                # self.signal_set_resizeColumnsToContents_order.emit()  # 触发信号：自适应列宽
-                # print(">>>SocketManager.handle_Queue_get() user_id =", user_id, "OnRtnOrder数量 =", len(self.__dict_user_process_data[user_id]['running']['OnRtnOrder']), data_main)
+                self.__dict_user_process_data[user_id]['running']['OnRtnOrder'].append(data_main)
+                # 已经收到最后一条历史记录，将最新的order直接交给tableView的数据模型
+                if self.__dict_user_onrtnorder_last_recieve[user_id]:
+                    # dict_data_order = {user_id: data_main}
+                    self.signal_send_last_data_order.emit(data_main)  # 最新的order数据发送给tableView的数据模型
+                else:  # 还未收到最后一条记录
+                    for i in self.__list_user_info:
+                        if i['userid'] == user_id:
+                            last_order_ref = i['orderref']  # TS保存的最后的报单引用
+                            break
+                    if data_main['OrderRef'] == last_order_ref:  # 最后一条历史记录，将order\trade记录发送给tableView的数据模型
+                        print(">>>SocketManager.handle_Queue_get() last_order_ref =", last_order_ref)
+                        self.__dict_user_onrtnorder_last_recieve[user_id] = True  # 收到最后一条报单记录标志值为true
+                        list_data_order = self.__dict_user_process_data[user_id]['running']['OnRtnOrder']  # 单个期货账户所有order历史记录
+                        dict_data_order = {user_id: list_data_order}
+                        self.signal_send_previous_data_order.emit(dict_data_order)  # order历史记录发送给tableView的数据模型
+                        list_data_trade = self.__dict_user_process_data[user_id]['running']['OnRtnTrade']  # 单个期货账户所有trade历史记录
+                        dict_data_trade = {user_id: list_data_trade}
+                        self.signal_send_previous_data_trade.emit(dict_data_trade)  # trade历史记录发送给tableView的数据模型
             # 'OnRtnTrade'
             elif data_flag == 'OnRtnTrade':
-                # self.__dict_user_Queue_data[user_id]['OnRtnTrade'].append(data_main)
-                trade = self.select_element_trade(data_main)  # 从dict结构体里面删选出部分元素组成list目标结构体
-                # self.__dict_user_process_data[user_id]['running']['OnRtnTrade'].append(trade)
-                self.__dict_user_process_data[user_id]['running']['OnRtnTrade'].insert(0, trade)
-                list_data = self.__dict_user_process_data[user_id]['running']['OnRtnTrade']
-                # self.__QOrderWidget.trade_data_model.slot_set_data_list(list_data)
-                # 在tableView中维护属性tableView_order的 {'801867': [order数据], '期货账户2':[order数据], '期货账户3': [order数据]}，tableView_trade同理
-                if self.__normal_update_trade_data:
-                    self.signal_set_data_list_trade.emit(list_data)  # 触发信号：发送trade数据给界面数据模型，更新界面
-                # self.signal_set_resizeColumnsToContents_trade.emit()  # 触发信号：自适应列宽
-                # print(">>>SocketManager.handle_Queue_get() user_id =", user_id, "OnRtnTrade数量 =", len(self.__dict_user_process_data[user_id]['running']['OnRtnTrade']), data_main)
+                self.__dict_user_process_data[user_id]['running']['OnRtnTrade'].append(data_main)
+                # 已经收到最后一条历史记录，将最新的trade直接交给tableView的数据模型
+                if self.__dict_user_onrtnorder_last_recieve[user_id]:
+                    dict_data_trade = {user_id: data_main}
+                    self.signal_send_last_data_trade.emit(dict_data_trade)  # 最新的trade数据发送给tableView的数据模型
             elif data_flag == 'OnRspOrderAction':
                 # self.__dict_user_Queue_data[user_id]['OnRtnTrade'].append(data_main)
                 self.__dict_user_process_data[user_id]['running']['OnRspOrderAction'].append(data_main)
                 # print(">>>SocketManager.handle_Queue_get() user_id =", user_id, "OnRspOrderAction数量 =", len(self.__dict_user_process_data[user_id]['running']['OnRspOrderAction']), data_main)
-
             elif data_flag == 'user_init_finished':
                 print(">>> SocketManager.handle_Queue_get() data_flag == 'user_init_finished'")
                 self.__dict_user_process_finished[user_id] = data_main

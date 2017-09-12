@@ -137,6 +137,7 @@ class QOrderWidget(QWidget, Ui_Form):
         self.__add_all_strategy_in_menu = False  # 策略的combBox中已经插入过“所有”
         # self.__flag_list_menu_modify = False  # 策略的combBox菜单长度有变化
         self.__last_len_list_menu = 0  # 策略combBox菜单长度初始值
+        self.__combBox_current_user_id = '所有'
 
     def set_SocketManager(self, obj_SocketManager):
         self.__set_socket_manager = True
@@ -151,6 +152,14 @@ class QOrderWidget(QWidget, Ui_Form):
         # self.__socket_manager.signal_set_resizeColumnsToContents_trade.connect(self.trade_data_model.slot_set_resizeColumnsToContents)
         # 信号槽连接：socket_manager发送dcit_user_strategy_tree -> QOrderWidget设置期货账户和策略的combBox菜单
         self.__socket_manager.signal_set_user_strategy_tree.connect(self.slot_set_combBox_user_strategy)
+        # 信号槽连接：socket_manager发送历史order记录 -> order_data_model接收历史order记录
+        self.__socket_manager.signal_send_previous_data_order.connect(self.order_data_model.slot_receive_previous_data_order)
+        # 信号槽连接：socket_manager发送最新order记录 -> order_data_model接收最新order记录
+        self.__socket_manager.signal_send_last_data_order.connect(self.order_data_model.slot_receive_last_data_order)
+        # 信号槽连接：socket_manager发送历史trade记录 -> order_data_model接收历史trade记录
+        self.__socket_manager.signal_send_previous_data_trade.connect(self.trade_data_model.slot_receive_previous_data_trade)
+        # 信号槽连接：socket_manager发送最新trade记录 -> order_data_model接收最新trade记录
+        self.__socket_manager.signal_send_last_data_trade.connect(self.trade_data_model.slot_receive_last_data_trade)
 
     # 初始化comboBox可选项：期货账号
     def init_comboBox_account_id(self, list_input):
@@ -620,16 +629,17 @@ class QOrderWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         pass  # raise NotImplementedError
-    @pyqtSlot(str)
-    def on_comboBox_account_id_currentIndexChanged(self, p0):
-        """
-        Slot documentation goes here.
-        
-        @param p0 DESCRIPTION
-        @type str
-        """
-        # TODO: not implemented yet
-        pass  # raise NotImplementedError
+
+    # @pyqtSlot(str)
+    # def on_comboBox_account_id_currentIndexChanged(self, p0):
+    #     """
+    #     Slot documentation goes here.
+    #
+    #     @param p0 DESCRIPTION
+    #     @type str
+    #     """
+    #     # TODO: not implemented yet
+    #     pass  # raise NotImplementedError
     
     @pyqtSlot(int)
     def on_comboBox_strategy_id_activated(self, index):

@@ -21,7 +21,7 @@ class TradeModel():
         self.__select_model = int_input
 
     # 交易模型1
-    def trade_model_one(self):
+    def trade_model_bool(self):
         pass
 
     # 初始化交易模型

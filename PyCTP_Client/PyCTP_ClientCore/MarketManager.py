@@ -89,13 +89,13 @@ class MarketManager:
 
     # 连接行情前置
     def connect_front(self):
-        print(">>>MarketManager.connect_front() self.__front_address =", self.__front_address, type(self.__front_address), "self.__proxy_address =", self.__proxy_address, type(self.__proxy_address))
+        # print(">>>MarketManager.connect_front() self.__front_address =", self.__front_address, type(self.__front_address), "self.__proxy_address =", self.__proxy_address, type(self.__proxy_address))
         # 拼接行情前置地址
         if self.__proxy_use:
-            address = b'socks5://' + self.__front_address.encode()[6:] + b"/" + self.__proxy_address.encode()
+            address = b'socks5://' + self.__front_address.encode()[6:] + b"/yuwangying:yuwangying@" + self.__proxy_address.encode()
         else:
             address = self.__front_address.encode()
-        print(">>>MarketManager.connect_front() address =", address)
+        # print(">>>MarketManager.connect_front() address =", address)
         # 连接行情前置
         self.__result_market_connect = Utils.code_transform(self.__market.Connect(address))
         if self.__result_market_connect == 0:
@@ -327,11 +327,11 @@ class MarketManagerForUi(QObject):
         # print(">>>MarketManagerForUi.connect_front() self.__front_address =", self.__front_address, type(self.__front_address), "self.__proxy_address =", self.__proxy_address, type(self.__proxy_address))
         # 拼接行情前置地址
         if self.__proxy_use:
-            address = b'socks5://' + self.__front_address.encode()[6:] + b"/" + self.__proxy_address.encode()
+            address = b'socks5://' + self.__front_address.encode()[6:] + b"/yuwangying:yuwangying@" + self.__proxy_address.encode()
         else:
             address = self.__front_address.encode()
         # address = b'tcp://61.152.165.100:41211 sock5://127.0.0.1:1080'
-        # print(">>>MarketManagerForUi.connect_front() address =", address)
+        print(">>>MarketManagerForUi.connect_front() address =", address)
         # 连接行情前置
         self.__result_market_connect = Utils.code_transform(self.__market.Connect(address))
         if self.__result_market_connect == 0:

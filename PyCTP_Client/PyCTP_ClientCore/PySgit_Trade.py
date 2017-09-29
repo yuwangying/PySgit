@@ -20,7 +20,7 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
         self.user_id = user_id
         self.password = password
 
-        self.api = pyctp.CSgitFtdcTraderApi_CreateFtdcTraderApi("./conn/sgit_td")
+        self.api = pyctp.CSgitFtdcTraderApi_CreateFtdcTraderApi("./conn/sgit_td/")
         self.api.SubscribePrivateTopic(pyctp.Sgit_TERT_RESTART)
         self.api.SubscribePublicTopic(pyctp.Sgit_TERT_RESTART)
         self.api.RegisterSpi(self)
@@ -56,7 +56,7 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
             pass
         else:  # 报单失败
             print(">>>PySgit_Trade_API.OnRtnOrder() ErrorID =", pRspInfo.ErrorID)
-            return
+            # return
 
         Order = {
             'BrokerID': OrderField.BrokerID,  # 经纪公司代码
@@ -125,6 +125,7 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
             # 'MacAddress': OrderField.MacAddress  # Mac地址
         }
         # print(">>>PySgit_Trade_API.OnRtnOrder() Order =", Order)
+        # print(">>>PySgit_Trade_API.OnRtnOrder() Order['OrderRef'] =", Order['OrderRef'])
         # print(">>>时序测试 OrderRef =", Order['OrderRef'], "OnRtnOrder()")
         self.__user.OnRtnOrder(Order)  # 转回调给User类的OnRtnOrder
 

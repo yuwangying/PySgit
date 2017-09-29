@@ -580,9 +580,10 @@ class SocketManager(QtCore.QThread):
                         self.__dict_user_on_off[user_id] = i['on_off']
                         self.__dict_table_view_data[user_id] = list()  # 初始化更新tableView的数据
                         self.__dict_panel_show_account_data[user_id] = list()  # 初始化更新panel_show_account的数据
-                        if i['orderref'][:10] == '1000000000':
+                        print(">>>SocketManager.receive_msg() MsgType=2，i['orderref'] =", i['orderref'])
+                        if i['orderref'][:10] == '1000000001':
                             self.__dict_user_onrtnorder_last_recieve[user_id] = True  # 期货账户历史的最后一条OrderRef是否被收到
-                        elif i['orderref'][:10] > '1000000000':
+                        elif i['orderref'][:10] > '1000000001':
                             self.__dict_user_onrtnorder_last_recieve[user_id] = False  # 期货账户历史的最后一条OrderRef是否被收到
                         dict_init_data_model[user_id] = []  # tableView初始化数据模型需要的数据结构
                     self.signal_send_previous_data_order.emit(dict_init_data_model)  # 发送初始化期货账号给tableView的数据模型作为初始化
@@ -1071,8 +1072,9 @@ class SocketManager(QtCore.QThread):
                         if i['userid'] == user_id:
                             last_order_ref = i['orderref']  # TS保存的最后的报单引用
                             break
-                    if data_main['OrderRef'] == last_order_ref:  # 最后一条历史记录，将order\trade记录发送给tableView的数据模型
-                        print(">>>SocketManager.handle_Queue_get() last_order_ref =", last_order_ref)
+                    # print(">>>SocketManager.handle_Queue_get() if data_main['OrderRef'][:10] == last_order_ref[:10]:", data_main['OrderRef'][:10], last_order_ref[:10])
+                    if data_main['OrderRef'][:10] == last_order_ref[:10]:  # 最后一条历史记录，将order\trade记录发送给tableView的数据模型
+                        print(">>>SocketManager.handle_Queue_get() 最后一条OrderRef，last_order_ref =", last_order_ref)
                         self.__dict_user_onrtnorder_last_recieve[user_id] = True  # 收到最后一条报单记录标志值为true
                         list_data_order = self.__dict_user_process_data[user_id]['running']['OnRtnOrder']  # 单个期货账户所有order历史记录
                         dict_data_order = {user_id: list_data_order}
@@ -1085,8 +1087,7 @@ class SocketManager(QtCore.QThread):
                 self.__dict_user_process_data[user_id]['running']['OnRtnTrade'].append(data_main)
                 # 已经收到最后一条历史记录，将最新的trade直接交给tableView的数据模型
                 if self.__dict_user_onrtnorder_last_recieve[user_id]:
-                    dict_data_trade = {user_id: data_main}
-                    self.signal_send_last_data_trade.emit(dict_data_trade)  # 最新的trade数据发送给tableView的数据模型
+                    self.signal_send_last_data_trade.emit(data_main)  # 最新的trade数据发送给tableView的数据模型
             elif data_flag == 'OnRspOrderAction':
                 # self.__dict_user_Queue_data[user_id]['OnRtnTrade'].append(data_main)
                 self.__dict_user_process_data[user_id]['running']['OnRspOrderAction'].append(data_main)

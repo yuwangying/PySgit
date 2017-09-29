@@ -156,7 +156,7 @@ class Ui_LoginForm(object):
         self.label_trader_id.setText(_translate("LoginForm", "交易员账户", None))
         self.label_trader_password.setText(_translate("LoginForm", "交易员密码", None))
         self.checkBox_proxy.setText(_translate("LoginForm", "使用代理", None))
-        self.lineEdit_proxy.setText(_translate("LoginForm", "127.0.0.1:1080", None))
+        self.lineEdit_proxy.setText(_translate("LoginForm", "101.132.99.239:1080", None))
         self.label_software_name.setText(_translate("LoginForm", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"

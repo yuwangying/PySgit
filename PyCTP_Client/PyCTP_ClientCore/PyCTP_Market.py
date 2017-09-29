@@ -242,5 +242,4 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
 
     def set_MarketManager(self, obj):
         self.__market_manager = obj
-        print(">>>PyCTP_Market.set_MarketManager() called")
 

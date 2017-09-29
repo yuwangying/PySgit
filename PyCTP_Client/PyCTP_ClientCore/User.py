@@ -236,7 +236,7 @@ class User():
         # 0：发送成功；-1：因网络原因发送失败；-2：未处理请求队列总数量超限；-3：每秒发送请求数量超限
         # 拼接行情前置地址
         if self.__proxy_use:
-            address = b"socks5://" + self.__front_address.encode()[6:] + b'/' + self.__proxy_address.encode()
+            address = b"socks5://" + self.__front_address.encode()[6:] + b'/yuwangying:yuwangying@' + self.__proxy_address.encode()
         else:
             address = self.__front_address.encode()
         print(">>>User.connect_trade_front() address =", address)
@@ -1096,7 +1096,7 @@ class User():
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnOrder(self, Order):
-        # print(">>>User.OnRtnOrder() Order =", Order)
+        # print(">>>User.OnRtnOrder() Order['OrderRef'] =", Order['OrderRef'])
         insert_time = datetime.now().strftime('%X')
         Order['InsertTime'] = insert_time
         # self.__queue_OnRtnOrder.put(Order)  # 缓存期货账户的所有order
@@ -1252,7 +1252,7 @@ class User():
         OrderRef = Trade['OrderRef']
         if len(OrderRef) == 12:
             if OrderRef[:1] == '1':
-                print(">>> User.handle_OnRtnTrade() user_id =", self.__user_id, "属于小蜜蜂套利系统的报单")
+                # print(">>>User.handle_OnRtnTrade() user_id =", self.__user_id, "属于小蜜蜂套利系统的报单")
                 found_flag = False
                 strategy_id_OrderRef = OrderRef[10:]
                 for strategy_id in self.__dict_strategy:

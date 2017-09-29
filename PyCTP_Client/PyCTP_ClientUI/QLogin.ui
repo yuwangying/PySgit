@@ -192,7 +192,7 @@ background:transparent;
         <string notr="true">border:1px solid black;</string>
        </property>
        <property name="text">
-        <string>127.0.0.1:1080</string>
+        <string>101.132.99.239:1080</string>
        </property>
       </widget>
      </item>

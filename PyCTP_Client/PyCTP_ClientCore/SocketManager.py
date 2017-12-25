@@ -82,7 +82,7 @@ class SocketManager(QtCore.QThread):
     def __init__(self, parent=None):
         super(SocketManager, self).__init__(parent)
         self.read_ip_address()  # 读取本地xml文件，获得ip_address
-        self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 创建socket通信服务实例
         self.__list_info_group = list()  # 一个消息分为多条发送，临时保存已经接收到的消息
         self.init_varable()  # 初始化变量
 
@@ -111,12 +111,12 @@ class SocketManager(QtCore.QThread):
         self.__dict_user_process_finished = dict()  # 子进程初始化完成信息
         self.__total_process_finished = False  # 所有进程初始化完成标志位，初始值为False
         self.__dict_user_on_off = dict()  # 期货账户开关信息dict{user_id: 1,}
-        self.__recive_msg_flag = False  # 接收socket消息线程运行标志
+        self.__socket_connect_flag = False  # 接收socket消息线程运行标志
         self.__list_panel_show_account = list()  # 更新界面资金条数据结构# 读取xml文件
 
         self.__thread_connect = threading.Thread(target=self.connect)
         self.__thread_connect.setDaemon(True)
-        self.__thread_connect.start()
+        self.__thread_connect.start()  # 启动socket连接
 
     def init_varable(self):
         self.__dict_user_strategy_tree = dict()  # 保存期货账号和策略编号的树结构{'800898': ['01, '02'], 86001222': ['01, '02']}
@@ -343,12 +343,12 @@ class SocketManager(QtCore.QThread):
 
     # 接收socket消息线程结束标志位，False结束线程，True运行线程
     def set_recive_msg_flag(self, bool_in):
-        self.__recive_msg_flag = bool_in
+        self.__socket_connect_flag = bool_in
 
     # 连接服务器
     def connect(self):
-        while self.__recive_msg_flag is False:
-            self.__recive_msg_flag = True
+        while self.__socket_connect_flag is False:
+            self.__socket_connect_flag = True  # socket连接标志
             # 创建socket套接字
             if self.__sockfd:
                 # 连接服务器: IP,port
@@ -357,11 +357,11 @@ class SocketManager(QtCore.QThread):
                     # 进行与服务端的连接(ip地址根据实际情况进行更改)
                     self.__sockfd.connect((self.__ip_address, self.__port))
                 except socket.error as e:
-                    self.__recive_msg_flag = False
+                    self.__socket_connect_flag = False  # socket连接标志
                     print("SocketManager.connect() socket error", e)
                     # self.signal_label_login_error_text.emit('登录失败,自动重连')
                     # MessageBox().showMessage("错误", "连接服务器失败！")
-                    dict_args = {"title": "消息", "main": "注意：连接服务器失败"}
+                    dict_args = {"title": "消息", "main": "<font color='red'>连接服务器失败</font>"}
                     self.signal_show_alert.emit(dict_args)
                     time.sleep(5)
                     # self.connect()
@@ -369,8 +369,32 @@ class SocketManager(QtCore.QThread):
                     # self.signal_show_alert.emit(dict_args)
                     # sys.exit(1)
                 finally:
-                    if self.__recive_msg_flag is not False:
-                        self.__recive_msg_flag = True
+                    if self.__socket_connect_flag is not False:
+                        self.__socket_connect_flag = True    # socket连接标志
+
+    # 断线自动重连
+    def re_connect(self, host, port):
+        # print("SocketManager.re_connect() called")
+        while self.__socket_connect_flag is False:
+            # print("SocketManager.re_connect() while self.__socket_connect_flag is False")
+            # sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 创建socket通信服务实例
+            try:
+                sock.connect((host, port))
+                self.__socket_connect_flag = True  # socket连线
+                # print("SocketManager.re_connect() 与服务端连接成功！")
+                self.__sockfd = sock
+                dict_args = {"title": "消息", "main": "与服务端连接成功！"}
+                self.signal_show_alert.emit(dict_args)
+                # time.sleep(5.0)
+            except:
+                # print("SocketManager.re_connect() 尝试与服务器建立连接！")
+                self.__socket_connect_flag = False  # socket断线
+                time.sleep(5.0)
+        # if self.__socket_connect_flag:
+        #     return self.__sockfd
+        # else:
+        #     return sock
 
     # ------------------------------------------------------
     # RecvN
@@ -385,13 +409,17 @@ class SocketManager(QtCore.QThread):
                 # self.__RecvN = True
             except socket.error as e:
                 self.__RecvN = False
+                self.__socket_connect_flag = False  # socket连接中断
                 print("SocketManager.RecvN()", e, n, totalRecved)
-                # MessageBox().showMessage("错误", "接收消息失败！")
-                dict_args = {"title": "消息", "main": "注意：接收服务端消息失败"}
+                dict_args = {"title": "消息", "main": "<font color='red'>与服务端断开连接</font>"}
                 self.signal_show_alert.emit(dict_args)
-                self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.__thread_connect.start()
-                return None
+                # self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                # self.__thread_connect.start()
+                time.sleep(5)
+                self.re_connect(self.__ip_address, self.__port)  # 断线重连后新建socket服务实例
+                self.__RecvN = True
+                # self.__recive_msg_flag = True
+                return 'reConnect'
             # print("onceContent", onceContent)
             totalContent += onceContent
             totalRecved = len(totalContent)
@@ -409,9 +437,14 @@ class SocketManager(QtCore.QThread):
     # 向socket服务端发送数据
     @QtCore.pyqtSlot(str)
     def send_msg_to_server(self, buff):  # sockfd为socket套接字，buff为消息体json数据
+        if self.__socket_connect_flag is False:
+            print("SocketManager.slot_send_msg() 与服务端断开连接，不能发送消息")
+            dict_args = {"title": "消息", "main": "<font color='red'>与服务端断开连接，不能发送消息</font>"}
+            self.signal_show_alert.emit(dict_args)
+            return
+
         # 构造Message
         m = Message("gmqh_sh_2016", 0, buff)
-
         # 数据发送前,将校验数据填入Message结构体
         checknum = self.msg_check(m)
         m = Message("gmqh_sh_2016", checknum, buff)
@@ -423,17 +456,29 @@ class SocketManager(QtCore.QThread):
             size = self.__sockfd.send(data)  # 发送数据
         except socket.error as e:
             print("SocketManager.slot_send_msg() except socket.error as e:", e)
-            # MessageBox().showMessage("错误", "发送消息失败")
-            dict_args = {"title": "消息", "main": "注意：与服务端断开连接"}
+            # MessageBox().showMessage("错误", "发送消息失败")  # 此弹窗有bug
+            dict_args = {"title": "消息", "main": "<font color='red'>注意：与服务端断开连接，自动重连</font>"}
             self.signal_show_alert.emit(dict_args)
-        except socket.timeout as e:
-            print("SocketManager.slot_send_msg() except socket.timeout as e:", e)
-            # MessageBox().showMessage("错误", "发送消息失败")
-            dict_args = {"title": "消息", "main": "注意：与服务端断开连接"}
-            self.signal_show_alert.emit(dict_args)
-            self.__recive_msg_flag = False
-            self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.__thread_connect.start()
+            time.sleep(3)
+            self.re_connect(self.__ip_address, self.__port)  # 断线重连后新建socket服务实例
+            # self.__recive_msg_flag = True  # soket重新连接上
+            # print "\r\nsocket error,do reconnect "
+            # sockLocal = doConnect(host,port)
+        # except socket.timeout as e:
+        #     print("SocketManager.slot_send_msg() except socket.timeout as e:", e)
+        #     # MessageBox().showMessage("错误", "发送消息失败")
+        #     dict_args = {"title": "消息", "main": "注意：与服务端断开连接"}
+        #     self.signal_show_alert.emit(dict_args)
+        #     self.__recive_msg_flag = False
+        #     # self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #     # self.__thread_connect.start()
+        #     time.sleep(3)
+        #     self.__sockfd = self.re_connect(self.__ip_address, self.__port)  # 断线重连后新建socket服务实例
+        #     self.__recive_msg_flag = True
+        except:
+            print("SocketManager.slot_send_msg() 连接失败，三秒后自动重连")
+            self.__socket_connect_flag = False  # socket连接标志
+            time.sleep(3)
         self.__event.clear()
         return size if self.__event.wait(2.0) else -1
 
@@ -447,12 +492,10 @@ class SocketManager(QtCore.QThread):
 
     # 接收消息线程
     def run(self):
-        # thread = threading.current_thread()
-        # print(">>> SocketManager.run() thread.getName()=", thread.getName())
-        while self.__recive_msg_flag:
-            start_time = time.time()
+        while True:
             # 收消息
             if self.__RecvN:  # RecvN状态正常
+                print(">>> SocketManager run() 监听接收消息")
                 try:
                     # 接收数据1038个字节(与服务器端统一:13位head+1位checknum+1024数据段)
                     # data = self.__sockfd.recv(30 * 1024 + 14)
@@ -461,7 +504,7 @@ class SocketManager(QtCore.QThread):
                     print(e)
 
                 # 解包数据
-                if data is not None:
+                if data != 'reConnect':  # 非断线重连的消息，正常处理
                     # return
                     head, checknum, buff = struct.unpack(">13s1B" + str(len(data) - 14) + "s", data)
                     # print(head, checknum, buff, '\n')
@@ -480,14 +523,19 @@ class SocketManager(QtCore.QThread):
                     else:
                         print("SocketManager.run() 接收到的数据有误", m.buff)
                         continue
+                print(">>> SocketManager.run() 收到断线重连的消息，需解锁界面")
             # print(">>> SocketManager run() takes time = %s" % (time.time() - start_time))
+            else:
+                print(">>> SocketManager run() self.__RecvN == False")
+                time.sleep(1.0)
         print(">>> SocketManager run() stop")
 
     # 心跳进程
     def run_heartbeat(self):
         while True:
             time.sleep(20)
-            self.send_heartbeat_msg()  # 发送心跳
+            if self.__socket_connect_flag:
+                self.send_heartbeat_msg()  # 发送心跳
             # if self.__hearbeat_flag:
             #     # print("SocketManager.run_heartbeat() 心跳正常")
             #     self.__hearbeat_flag = False
@@ -504,11 +552,12 @@ class SocketManager(QtCore.QThread):
         # 发消息
         while True:
             tmp_msg = self.__queue_send_msg.get()
-            if tmp_msg is not None:
-                if tmp_msg['MsgType'] != 23:
-                    print("SocketManager.run_send_msg() MsgType =", tmp_msg['MsgType'], tmp_msg)
-                json_tmp_msg = json.dumps(tmp_msg)
-                self.send_msg_to_server(json_tmp_msg)
+            # if tmp_msg is not None:
+            #     if tmp_msg['MsgType'] != 23:
+            #         print("SocketManager.run_send_msg() MsgType =", tmp_msg['MsgType'], tmp_msg)
+            # print("SocketManager.run_send_msg() tmp_msg =", tmp_msg)
+            json_tmp_msg = json.dumps(tmp_msg)
+            self.send_msg_to_server(json_tmp_msg)
 
     # 组装分段发送的消息，当IsLast==1，消息接收完成
     def receive_part_msg(self, buff):
@@ -547,7 +596,6 @@ class SocketManager(QtCore.QThread):
                     self.signal_init_ui_on_off.emit(buff['OnOff'])  # 初始化界面“开始策略”按钮
                     self.set_dict_trader_info(buff)
                     self.__dict_user_on_off['所有账户'] = buff['OnOff']
-                    # self.__thread_heartbeat.start()  # 开始线程：开始心跳
                 elif buff['MsgResult'] == 1:  # 验证不通过
                     self.signal_label_login_error_text.emit(buff['MsgErrorReason'])
                     self.signal_pushButton_login_set_enabled.emit(True)  # 登录按钮激活
@@ -670,7 +718,8 @@ class SocketManager(QtCore.QThread):
                 elif buff['MsgResult'] == 1:  # 消息结果失败
                     # print("SocketManager.receive_msg() ", buff['MsgErrorReason'])
                     # MessageBox().showMessage("错误", buff['MsgErrorReason'])
-                    dict_args = {"title": "消息", "main": buff['MsgErrorReason']}
+                    str_msg = buff['MsgErrorReason']
+                    dict_args = {"title": "消息", "main": "<font color='red'>"+str_msg+"</font>"}
                     self.signal_show_alert.emit(dict_args)
             elif buff['MsgType'] == 5:  # 修改策略参数，MsgType=5
                 print("SocketManager.receive_msg() MsgType=5，修改策略参数", buff)
@@ -692,7 +741,7 @@ class SocketManager(QtCore.QThread):
                     print("SocketManager.receive_msg() MsgType=12 修改策略持仓失败")
                     # message_list = ['消息', 'TS：修改策略持仓失败']
                     # self.signal_show_message.emit(message_list)
-                    dict_args = {"title": "消息", "main": "错误：修改策略持仓失败"}
+                    dict_args = {"title": "消息", "main": "<font color='red'>修改策略持仓失败</font>"}
                     self.signal_show_alert.emit(dict_args)
                 self.signal_on_pushButton_set_position_active.emit()
             elif buff['MsgType'] == 7:  # 删除策略，MsgType=7
@@ -761,7 +810,7 @@ class SocketManager(QtCore.QThread):
                     self.signal_show_alert.emit(dict_args)
                 elif buff['MsgResult'] == 1:
                     print("SocketManager.receive_msg() MsgType=18，服务端行情连接断开", buff)
-                    dict_args = {"title": "消息", "main": "注意，服务端行情连接断开"}
+                    dict_args = {"title": "消息", "main": "<font color='red'>服务端行情连接断开</font>"}
                     self.signal_show_alert.emit(dict_args)
                 else:
                     print("SocketManager.receive_msg() MsgType=18，服务端行情连接或断开的客户端界面提醒异常", buff)
@@ -773,7 +822,7 @@ class SocketManager(QtCore.QThread):
                     self.signal_show_alert.emit(dict_args)
                 elif buff['MsgResult'] == 1:
                     print("SocketManager.receive_msg() MsgType=19，UserID=", buff['UserID'], "服务端交易连接断开", buff)
-                    str_print = ''.join(["期货账号", buff['UserID'], "交易连接断开"])
+                    str_print = ''.join(["期货账号", buff['UserID'], "<font color='red'>交易连接断开</font>"])
                     dict_args = {"title": "消息", "main": str_print}
                     self.signal_show_alert.emit(dict_args)
                 else:
@@ -1062,7 +1111,9 @@ class SocketManager(QtCore.QThread):
                 # print(">>> SocketManager.handle_Queue_get() self.__dict_user_process_data[user_id]['running']['strategy_position'][strategy_id] =", self.__dict_user_process_data[user_id]['running']['strategy_position'][strategy_id])
             # 'OnRtnOrder'
             elif data_flag == 'OnRtnOrder':
+                # 将收到的回调记录存入到结构体中self.__dict_user_process_data
                 self.__dict_user_process_data[user_id]['running']['OnRtnOrder'].append(data_main)
+
                 # 已经收到最后一条历史记录，将最新的order直接交给tableView的数据模型
                 if self.__dict_user_onrtnorder_last_recieve[user_id]:
                     # dict_data_order = {user_id: data_main}
@@ -1074,7 +1125,7 @@ class SocketManager(QtCore.QThread):
                             break
                     # print(">>>SocketManager.handle_Queue_get() if data_main['OrderRef'][:10] == last_order_ref[:10]:", data_main['OrderRef'][:10], last_order_ref[:10])
                     if data_main['OrderRef'][:10] == last_order_ref[:10]:  # 最后一条历史记录，将order\trade记录发送给tableView的数据模型
-                        print(">>>SocketManager.handle_Queue_get() 最后一条OrderRef，last_order_ref =", last_order_ref)
+                        print(">>>SocketManager.handle_Queue_get() 收到最后一条OrderRef，last_order_ref =", last_order_ref)
                         self.__dict_user_onrtnorder_last_recieve[user_id] = True  # 收到最后一条报单记录标志值为true
                         list_data_order = self.__dict_user_process_data[user_id]['running']['OnRtnOrder']  # 单个期货账户所有order历史记录
                         dict_data_order = {user_id: list_data_order}
@@ -1429,7 +1480,7 @@ class SocketManager(QtCore.QThread):
             # message_list = ['消息', '注意：服务端与客户端持仓不一致']
             # self.signal_show_message.emit(message_list)
             # self.msg_box.exec()
-            dict_args = {"title": "消息", "main": "注意，服务端与客户端持仓不一致"}
+            dict_args = {"title": "消息", "main": "<font color='red'>服务端与客户端持仓不一致</font>"}
             self.signal_show_alert.emit(dict_args)
 
     # 输出特定策略的持仓变量，格式如下

@@ -145,7 +145,7 @@ class OrderDataModel(QAbstractTableModel):
             print(">>>OrderDataModel.update_data() 不需要更新的user_id =", user_id, type(user_id))
             return
         strategy_id = self.__QOrderWidget.comboBox_strategy_id.currentText()
-        print(">>>OrderDataModel.update_data() 需要更新的user_id =", user_id, type(user_id), "strategy_id =", strategy_id, type(strategy_id))
+        # print(">>>OrderDataModel.update_data() 需要更新的user_id =", user_id, type(user_id), "strategy_id =", strategy_id, type(strategy_id))
         list_update_data = self.__dict_origin_data[user_id]
         self.slot_set_data_list(list_update_data)
 
@@ -170,7 +170,7 @@ class OrderDataModel(QAbstractTableModel):
 
     # 接收最新的回调数据，形参dict,order结构体
     def slot_receive_last_data_order(self, dict_input):
-        print(">>>OrderDataModel.slot_receive_last_data_order() dict_input =", dict_input)
+        # print(">>>OrderDataModel.slot_receive_last_data_order() dict_input =", dict_input)
         user_id = dict_input['UserID']
         list_order = self.select_element_order(dict_input)
         self.__dict_origin_data[user_id].insert(0, list_order)  # 最新的数据插入到list的0位置

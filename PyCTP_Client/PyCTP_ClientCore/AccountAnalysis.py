@@ -1,3 +1,4 @@
+import math
 import queue
 import urllib.parse
 from pymongo import MongoClient
@@ -7,9 +8,37 @@ import pandas
 import numpy as np
 
 
+# 新增列：手续费返还累积
+def count_commission_accumulate(df):
+    for index, row in df.iterrows():
+        print(">>>count_commission_accumulate", row['TradingDay'], row['Available'])
+    return df
+
+
 # 目标df数据分析
 def df_count(df):
-    print(">>>df_count() called")
+    # 净平仓盈亏 = 平仓盈亏 - 手续费
+    df['NetCloseProfit'] = df.apply(lambda row: row.CloseProfit - row.Commission, axis=1)
+    # 手续费返还金额 = 手续费 * (1/1.1) * 0.4 * 0.7
+    df['CommissionReturn'] = df.apply(lambda row: row.Commission * 0.25454545, axis=1)
+    # 手续费返还累积
+    df['CommissionReturnAccumulate'] = df['CommissionReturn'].cumsum()
+    # 风险度 = 占用保证金 / (占用保证金 + 可用资金)
+    df['RsikRatio'] = df.apply(lambda row: row.CurrMargin / (row.CurrMargin + row.Available), axis=1)
+    # 动态权益 = 占用保证金 + 可用资金
+    df['ActiveDeposit'] = df.apply(lambda row: row.Available + row.CurrMargin, axis=1)
+    # 昨日动态权益
+    df['PreActiveDeposit'] = df['ActiveDeposit'].shift() if np.isnan(df['ActiveDeposit'].shift()) is not True else df['ActiveDeposit']
+    # 动态权益变化 = 今日动态权益 - 昨日动态权益 + 出金 - 入金
+    df['ActiveDepositChange'] = df['ActiveDeposit'] - df['PreActiveDeposit'] + df['Withdraw'] - df['Deposit']
+    # 动态权益收益率 = 昨日动态权益 + 入金
+    df['ActiveDepositRateOfReturn'] = df['ActiveDepositChange'] / (df['ActiveDeposit'] + df['Withdraw'])
+    # 动态权益变化累积
+    df['ActiveDepositChangeAccumulate'] = df['ActiveDepositChange'].cumsum()
+    # 当日全部净盈亏 =  当日动态权益较静态权益变化 + 手续费返还
+    df['NetTotalProfit'] = df.apply(lambda row: row.ActiveDepositChange + row.CommissionReturn, axis=1)
+    # 当日全部净盈亏累积
+    df['NetTotalProfitAccumulate'] = df['NetTotalProfit'].cumsum()
     return df
 
 
@@ -65,11 +94,19 @@ if __name__ == '__main__':
     array_accout = np.unique(df_data[['AccountID']].values)  # 选出期货账户
     writer = pandas.ExcelWriter('C:/Users/yuwangying/Desktop/tmp/AccountAnalysis/AccountAnalysis.xlsx')  # 创建xlsx写文件实例
     for account_id in array_accout:
+        print(">>account_id =", account_id)
+        # 过滤出单个期货账号的每日账户资金记录
         df_filtered = df_data.loc[df_data['AccountID'] == account_id]
+        # list_index = list(range(len(df_filtered) - 1))
+        # print(list_index)
+        # df_filtered.set_index(list_index)
+        # 单个期货账号每日资金数据分析
         df_analysis = df_count(df_filtered)
+        # 单期货账号统计后的数据保存为excel的sheet
         df_analysis.to_excel(excel_writer=writer,
                              sheet_name=account_id
                              )
+    df_analysis = df_count(df_data)
     df_data.to_excel(excel_writer=writer,
                      sheet_name='all_account'
                      )

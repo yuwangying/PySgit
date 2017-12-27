@@ -14,22 +14,45 @@ import multiprocessing
 import win32api
 import shutil
 import datetime
-# from TimerThread import TimerThread
-# from multiprocessing import Process, Manager, Value, Array, Queue, Pipe
-# from CTPManager import CTPManager
-# from QAccountWidget import QAccountWidget
-# from QNewStrategy import QNewStrategy
-# from SocketManager import SocketManager
-# import Utils
-# import time
-# from MarketManager import MarketManager
-# from Trader import Trader
-# from User import User
-# from MessageBox import MessageBox
+import glob  # 文件操作
+
+
+# 日志文件管理
+def log_manage():
+    # 创建log文件夹
+    if not os.path.exists('log'):
+        os.mkdir('log')
+    # 删除30天之前的日志文件
+    for str_file_name in glob.glob("log/*"):
+        str_file_date = str_file_name[4:12]
+        dt_file_date = datetime.datetime.strptime(str_file_date, "%Y%m%d").date()
+        if dt_file_date < datetime.datetime.now().date() - datetime.timedelta(30):
+            os.remove(str_file_name)
+
+
+# print重定向
+def print_redirect():
+    time_str = datetime.datetime.now().strftime('%Y%m%d %H%M%S')
+    file_path_1 = 'log/' + time_str + '_main'
+
+    file_path_error = file_path_1 + '_error.log'
+    stderr_handler = open(file_path_error, 'a')
+    sys.stderr = stderr_handler
+
+    file_path_stdout = file_path_1 + '_stdout.log'
+    stdout_handler = open(file_path_stdout, 'a')
+    sys.stdout = stdout_handler
+
+    print('>>>ClientMain.print_transfer() frozen =', frozen)
+    print('>>>ClientMain.print_transfer() bundle_dir =', bundle_dir)
+    print('>>>ClientMain.print_transfer() sys.argv[0] =', sys.argv[0])
+    print('>>>ClientMain.print_transfer() sys.executable =', sys.executable)
+    print('>>>ClientMain.print_transfer() os.getcwd() =', os.getcwd())
+    print('>>>ClientMain.print_transfer() os.getpid() =', os.getpid())
+    print('>>>ClientMain.print_transfer() threading.current_thread().getName() =', threading.current_thread().getName())
 
 
 class ClientMain(QtCore.QObject):
-
     signal_send_msg = QtCore.pyqtSignal(str)  # 定义信号：发送到服务端的json格式数据
     signal_pushButton_query_strategy_setEnabled = QtCore.pyqtSignal(bool)  # 定义信号：控制查询是否可用
     signal_pushButton_set_position_setEnabled = QtCore.pyqtSignal()  # 定义信号：按钮设置为可用
@@ -582,30 +605,8 @@ if __name__ == '__main__':
     win32api.SetDllDirectory(bundle_dir)
     sys.path.append(bundle_dir)
 
-    # 删除log文件夹，创建log文件夹
-    if os.path.exists('log'):
-        pass  # 已存在文件夹，什么都不用操作
-        # print("ClientMin.'__main__' log文件夹存在，删除重建log文件夹")
-        # shutil.rmtree('log')
-    else:
-        # print("ClientMin.'__main__' log文件夹不存在，创建log文件夹")
-        os.mkdir('log')
-
-    # # 标准输出重新定向保存到本地log
-    # time_str = datetime.datetime.now().strftime('%Y%m%d %H%M%S')
-    # file_path_error = 'log/error_' + time_str + '.log'
-    # stderr_handler = open(file_path_error, 'w')
-    # sys.stderr = stderr_handler
-    #
-    # file_path_stdout = 'log/out_' + time_str + '.log'
-    # stdout_handler = open(file_path_stdout, 'w')
-    # sys.stdout = stdout_handler
-    # print('we are', frozen, 'frozen')
-    # print('bundle dir is', bundle_dir)
-    # print('sys.argv[0] is', sys.argv[0])
-    # print('sys.executable is', sys.executable)
-    # print('os.getcwd is', os.getcwd())
-    # print('process_id =', os.getpid(), 'thread.getName()=', threading.current_thread().getName(), ', __main__')
+    log_manage()  # 日志文件管理
+    print_redirect()  # print重定向
 
     app = QtGui.QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)

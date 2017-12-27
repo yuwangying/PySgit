@@ -16,24 +16,26 @@ from PyQt4 import QtCore, QtGui
 from multiprocessing import Process, Queue  #, Manager, Value, Array, Pipe
 from User import User
 from xml.dom import minidom
-# import copy
-# from QCTP import QCTP
-# from QAccountWidget import QAccountWidget
+import datetime
 
 Message = namedtuple("Message", "head checknum buff")
 
+
+# print重定向
+def print_redirect(user_id):
+    time_str = datetime.datetime.now().strftime('%Y%m%d %H%M%S')
+    file_path_1 = 'log/' + time_str + "_" + user_id
+    file_path_stdout = file_path_1 + "_stdout.log"
+    sys.stdout = open(file_path_stdout, 'a')
+    file_path_error = file_path_1 + ' error.log'
+    sys.stderr = open(file_path_error, 'a')
 
 # 创建user(期货账户)
 def static_create_user_process(dict_user_info, Queue_main, Queue_user):
     # print("SocketManager.static_create_user_process dict_user_info =", dict_user_info['server']['user_info']['userid'])
     user_id = dict_user_info['server']['user_info']['userid']
 
-    # 标准输出重定向
-    # log_directory = 'log/' + user_id + '.log'
-    # sys.stdout = open(log_directory, 'w')
-    #
-    # error_log_directory = 'log/' + user_id + '_error.log'
-    # sys.stderr = open(error_log_directory, 'w')
+    print_redirect(user_id)  # print重定向
 
     # print("static_create_user_process() dict_user_info =", dict_user_info)
     # print("static_create_user_process() user_id =", dict_user_info['userid'], ", process_id =", os.getpid(), ", dict_user_info =", dict_user_info)
@@ -523,7 +525,11 @@ class SocketManager(QtCore.QThread):
                     else:
                         print("SocketManager.run() 接收到的数据有误", m.buff)
                         continue
-                print(">>> SocketManager.run() 收到断线重连的消息，需解锁界面")
+                elif data == 'reConnect':
+                    buff = {'UserID': '801867', 'TraderID': '1601', 'MsgErrorReason': '', 'IsLast': 1, 'MsgType': 99, 'MsgRef': 15, 'OnOff': 1, 'MsgSrc': 0, 'MsgResult': 0, 'StrategyID': '99', 'MsgSendFlag': 1}
+                    # buff = {'UserID': '801867', 'TraderID': '1601', 'MsgErrorReason': '', 'IsLast': 1, 'MsgType': 99, 'MsgRef': 15, 'OnOff': 1, 'MsgSrc': 0, 'MsgResult': 0, 'StrategyID': '99', 'MsgSendFlag': 1}
+                    self.receive_msg(buff)
+                    print(">>> SocketManager.run() 收到断线重连的消息，需解锁界面")
             # print(">>> SocketManager run() takes time = %s" % (time.time() - start_time))
             else:
                 print(">>> SocketManager run() self.__RecvN == False")
@@ -566,15 +572,12 @@ class SocketManager(QtCore.QThread):
         elif buff['IsLast'] == 1:
             # full_msg = copy.deepcopy(buff)
             if buff['MsgType'] in [1, 7, 8, 9, 13, 14, 18, 19, 23]:  # 不存在字段Info的消息类型
-                # self.receive_msg(buff)
                 pass
-                # print(">>> SocketManager.receive_part_msg() IsLast = 1, MsgType =", buff['MsgType'], "full_msg =", buff)
             else:
                 if len(buff['Info']) > 0:
                     self.__list_info_group.append(buff['Info'][0])
                 buff['Info'] = self.__list_info_group
                 self.__list_info_group = list()
-                # print(">>> SocketManager.receive_part_msg() IsLast = 1，Info长度 =", len(buff['Info']), "MsgType =", buff['MsgType'], "full_msg =", buff)
             self.receive_msg(buff)
         else:
             print(">>> SocketManager.receive_part_msg() IsLast字段异常，buff =", buff)
@@ -802,6 +805,11 @@ class SocketManager(QtCore.QThread):
                 self.signal_activate_query_strategy_pushbutton.emit()
             # elif buff['MsgType'] == 23:  # 服务端的心跳回应
             #     self.__hearbeat_flag = True  # 心跳设置为正常
+            elif buff['MsgType'] == 99:  # 小蜜蜂与服务端断线重连成功之后的小蜜蜂收到的第一笔消息
+                print("SocketManager.receive_msg() MsgType=99，断线重连", buff)
+                self.signal_activate_query_strategy_pushbutton.emit()  # 激活查询策略按钮
+                self.signal_on_pushButton_set_position_active.emit()  # 激活设置持仓按钮
+
         elif buff['MsgSrc'] == 1:  # 由服务端发起的消息类型
             if buff['MsgType'] == 18:  # 服务端CTP行情断开、连接通知，服务端主动发送给客户端
                 if buff['MsgResult'] == 0:

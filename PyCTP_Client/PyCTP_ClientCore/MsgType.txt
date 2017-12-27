@@ -1,0 +1,25 @@
+"""通信协议"""
+MsgType = 1  # 交易员登录验证
+MsgType = 2  # 查询期货账户
+MsgType = 3  # 查询策略
+MsgType = 4  # 查询行情配置
+MsgType = 5  # 修改策略参数
+MsgType = 6  # 新建策略
+MsgType = 7  # 删除策略
+MsgType = 8  # 修改交易员开关
+MsgType = 8  # 修改交易员开关
+MsgType = 9  # 修改期货账户开关
+MsgType = 11  # 查询下单算法
+MsgType = 12  # 修改策略持仓
+MsgType = 13  # 修改策略开关
+MsgType = 15  # 查询昨持仓明细order
+MsgType = 17  # 查询昨持仓明细trade
+MsgType = 20  # 查询今持仓明细order
+MsgType = 21  # 查询今持仓明细trade
+MsgType = 22  # 查询单个策略
+MsgType = 23  # 心跳包
+MsgType = 99  # 小蜜蜂与服务端断线重连成功之后的小蜜蜂收到的第一笔消息
+
+"""下单算法"""
+02 = A合约以对手价计算价差
+03 = A合约以排队价计算价差

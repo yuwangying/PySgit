@@ -35,7 +35,7 @@ def static_create_user_process(dict_user_info, Queue_main, Queue_user):
     # print("SocketManager.static_create_user_process dict_user_info =", dict_user_info['server']['user_info']['userid'])
     user_id = dict_user_info['server']['user_info']['userid']
 
-    print_redirect(user_id)  # print重定向
+    # print_redirect(user_id)  # print重定向
 
     # print("static_create_user_process() dict_user_info =", dict_user_info)
     # print("static_create_user_process() user_id =", dict_user_info['userid'], ", process_id =", os.getpid(), ", dict_user_info =", dict_user_info)
@@ -1432,8 +1432,9 @@ class SocketManager(QtCore.QThread):
             msg_process = {'MsgType': 3, 'UserID': user_id, 'StrategyID': strategy_id, 'Info': [i]}
             self.__dict_Queue_main[user_id].put(msg_process)  # 一次发送一个策略参数
 
-    # 核对策略持仓，服务端收到的最新策略持仓与进程间通信main进程中的策略持仓
+    # 核对策略持仓，服务器收到的最新策略持仓与进程间通信main进程中的策略持仓
     def check_strategy_position(self, buff):
+        print(">>>SocketManager.check_strategy_position() buff =", buff)
         user_id = buff['UserID']
         strategy_id = buff['StrategyID']
         for i in self.get_dict_table_view_data()[user_id]:
@@ -1453,49 +1454,38 @@ class SocketManager(QtCore.QThread):
         equality_flag = True
         if position_b_sell != buff['Info'][0]['position_b_sell']:
             equality_flag = False
-            # print(">>> SocketManager.check_strategy_position() position_b_sell != buff['Info'][0]['position_b_sell']", position_b_sell, buff['Info'][0]['position_b_sell'], type(position_b_sell), type(buff['Info'][0]['position_b_sell']))
         if position_b_sell_yesterday != buff['Info'][0]['position_b_sell_yesterday']:
             equality_flag = False
-            # print(">>> SocketManager.check_strategy_position() position_b_sell_yesterday != buff['Info'][0]['position_b_sell_yesterday']", position_b_sell_yesterday, buff['Info'][0]['position_b_sell_yesterday'], type(position_b_sell_yesterday), type(buff['Info'][0]['position_b_sell_yesterday']))
         if position_b_buy != buff['Info'][0]['position_b_buy']:
             equality_flag = False
-            # print(">>> SocketManager.check_strategy_position() position_b_buy != buff['Info'][0]['position_b_buy']", position_b_buy, buff['Info'][0]['position_b_buy'], type(position_b_buy), type(buff['Info'][0]['position_b_buy']))
         if position_b_buy_yesterday != buff['Info'][0]['position_b_buy_yesterday']:
             equality_flag = False
-            # print(">>> SocketManager.check_strategy_position() position_b_buy_yesterday != buff['Info'][0]['position_b_buy_yesterday']", position_b_buy_yesterday, buff['Info'][0]['position_b_buy_yesterday'], type(position_b_buy_yesterday), type(buff['Info'][0]['position_b_buy_yesterday']))
         if position_a_sell != buff['Info'][0]['position_a_sell']:
             equality_flag = False
-            # print(">>> SocketManager.check_strategy_position() position_a_sell != buff['Info'][0]['position_a_sell']", position_a_sell, buff['Info'][0]['position_a_sell'], type(position_a_sell), type(buff['Info'][0]['position_a_sell']))
         if position_a_sell_yesterday != buff['Info'][0]['position_a_sell_yesterday']:
             equality_flag = False
-            # print(">>> SocketManager.check_strategy_position() position_a_sell_yesterday != buff['Info'][0]['position_a_sell_yesterday']", position_a_sell_yesterday, buff['Info'][0]['position_a_sell_yesterday'], type(position_a_sell_yesterday), type(buff['Info'][0]['position_a_sell_yesterday']))
         if position_a_buy != buff['Info'][0]['position_a_buy']:
             equality_flag = False
-            # print(">>> SocketManager.check_strategy_position() position_a_buy != buff['Info'][0]['position_a_buy']", position_a_buy, buff['Info'][0]['position_a_buy'], type(position_a_buy), type(buff['Info'][0]['position_a_buy']))
         if position_a_buy_yesterday != buff['Info'][0]['position_a_buy_yesterday']:
             equality_flag = False
-            # print(">>> SocketManager.check_strategy_position() position_a_buy_yesterday != buff['Info'][0]['position_a_buy_yesterday']", position_a_buy_yesterday, buff['Info'][0]['position_a_buy_yesterday'], type(position_a_buy_yesterday), type(buff['Info'][0]['position_a_buy_yesterday']))
-        if equality_flag:
-            pass
-            # QMessageBox().showMessage("消息", "服务端与客户端持仓一致！")
-            # message_list = ['消息', '服务端与客户端持仓一致']
-            # self.signal_show_message.emit(message_list)
-            # self.msg_box.exec()
-            dict_args = {"title": "消息", "main": "服务端与客户端持仓一致"}
-            self.signal_show_alert.emit(dict_args)
-        else:
-            # QMessageBox().showMessage("消息", "服务端与客户端持仓不一致！")
-            # message_list = ['消息', '注意：服务端与客户端持仓不一致']
-            # self.signal_show_message.emit(message_list)
-            # self.msg_box.exec()
-            dict_args = {"title": "消息", "main": "<font color='red'>服务端与客户端持仓不一致</font>"}
-            self.signal_show_alert.emit(dict_args)
 
-    # 输出特定策略的持仓变量，格式如下
-    # A总卖 0 A昨卖 0
-    # B总买 0 B昨卖 0
-    # A总买 0 A昨买 0
-    # B总卖 0 B昨卖 0
+        # 像界面弹窗
+        msg_part1 = "A卖(昨):" + str(buff['Info'][0]['position_a_sell']) + "(" + str(
+            buff['Info'][0]['position_a_sell_yesterday']) + ")"
+        msg_part2 = "B买(昨):" + str(buff['Info'][0]['position_b_buy']) + "(" + str(
+            buff['Info'][0]['position_b_buy_yesterday']) + ")"
+        msg_part3 = "A买(昨):" + str(buff['Info'][0]['position_a_buy']) + "(" + str(
+            buff['Info'][0]['position_a_buy_yesterday']) + ")"
+        msg_part4 = "B卖(昨):" + str(buff['Info'][0]['position_b_sell']) + "(" + str(
+            buff['Info'][0]['position_b_sell_yesterday']) + ")"
+        if equality_flag:
+            msg_part = "服务器与客户端持仓一致"
+        else:
+            msg_part = "<font color='red'>服务器与客户端持仓不一致</font>"
+        msg_total = '\n'.join([msg_part, msg_part1, msg_part2, msg_part3, msg_part4])
+        dict_args = {"title": "消息", "main": msg_total}
+        self.signal_show_alert.emit(dict_args)
+
     def print_strategy_data(self, user_id, strategy_id):
         dict_table_view_data = self.get_dict_table_view_data()
         for i_user_id in dict_table_view_data:

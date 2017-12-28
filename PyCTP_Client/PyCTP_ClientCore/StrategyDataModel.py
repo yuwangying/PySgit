@@ -42,20 +42,14 @@ class StrategyDataModel(QAbstractTableModel):
 
     # 更新tableView
     def slot_set_data_list(self, data_list):
-        # print(">>> StrategyDataModel.slot_set_data_list() called")
-
         self.__row = len(data_list)  # 最新数据的长度
-        # if self.__row == 0:
-            # print(">>> StrategyDataModel.slot_set_data_list() if self.__row == 0: return")
-            # return
-
         if self.__row != len(self.__data_list):
             self.__update_once = True
 
         # 更新tableView整个区域：已经设置过数据、数据长度相同、未切换tab页
         if self.__update_once:  # and self.__row == len_data_list and self.__QAccountWidget.get_current_tab_name() == self.__last_tab_name:
             self.__data_list = data_list
-            print(">>> StrategyDataModel.slot_set_data_list() 更新tableView整个区域, len(data_list) =", len(data_list))
+            # print(">>> StrategyDataModel.slot_set_data_list() 更新tableView整个区域, len(data_list) =", len(data_list))
             t1 = self.index(0, 1)  # 左上角
             t2 = self.index(self.rowCount(0), self.columnCount(0))  # 右下角
 

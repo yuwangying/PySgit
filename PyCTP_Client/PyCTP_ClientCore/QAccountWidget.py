@@ -2786,7 +2786,7 @@ class QAccountWidget(QWidget, Ui_Form):
         buff = {"UserID": str_user_id, "StrategyID": str_strategy_id, "MsgType": 91, "PrintListPoisitionDetail": 1}
         dict_Queue_main = self.__socket_manager.get_dict_Queue_main()
         dict_Queue_main[str_user_id].put(buff)
-        self.__socket_manager.print_strategy_data(str_user_id, str_strategy_id)  # soketManager输出特定策略的变量，输出格式如下
+        # self.__socket_manager.print_strategy_data(str_user_id, str_strategy_id)  # soketManager输出特定策略的变量，输出格式如下
         # A总卖 0 A昨卖 0
         # B总买 0 B昨卖 0
         # A总买 0 A昨买 0

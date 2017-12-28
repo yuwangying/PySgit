@@ -5,4 +5,5 @@
 ./conn/*
 ./CTP_API_File/*
 ./data/*
+./log/*
 

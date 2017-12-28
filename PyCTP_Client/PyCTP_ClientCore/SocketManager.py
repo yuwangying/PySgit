@@ -614,6 +614,10 @@ class SocketManager(QtCore.QThread):
                     dict_args['proxy_use'] = self.__proxy_use
                     dict_args['proxy_address'] = self.__proxy_address
                     self.__market_manager_for_ui = MarketManagerForUi(dict_args)
+                    if not self.__market_manager_for_ui.connect_front():  # 连接行情前置失败，弹窗提示
+                        dict_args = {"title": "消息", "main": "<font color='red'>连接行情失败</font>"}
+                        self.signal_show_alert.emit(dict_args)
+                    self.__market_manager_for_ui.login_market_userid()  # 登录行情账号
                     self.__market_manager_for_ui.set_QAccountWidget(self.__QAccountWidget)  # 窗口对象设置为其属性
                     self.__market_manager_for_ui.signal_update_spread_ui.connect(self.__QAccountWidget.slot_update_spread_ui)
                     # self.qry_user_info()  # 发送：查询期货账户信息，MsgType=2

@@ -269,30 +269,6 @@ class MarketManagerForUi(QObject):
         self.__password = dict_args['password']
         self.__proxy_use = dict_args['proxy_use']
         self.__proxy_address = dict_args['proxy_address']
-        # # 多账户系统中，只需要创建一个行情API
-        # s_tmp = self.__front_address[6:]
-        # n_position = s_tmp.index(b':')
-        # s_part1 = (s_tmp[:n_position])
-        # s_part2 = (s_tmp[n_position + 1:])
-        # s_path = b'conn/md/' + s_part1 + b'_' + s_part2 + b'/'
-        # print(">>>MarketManagerForUi.__init__() s_path =", s_path)
-        # Utils.make_dirs(s_path)  # 创建流文件路劲
-        # self.__market = PyCTP_Market_API.CreateFtdcMdApi(s_path)
-        # # 连接行情前置
-        # self.__result_market_connect = Utils.code_transform(self.__market.Connect(self.__front_address, 'ui_market_proxy_address'))
-        # if self.__result_market_connect == 0:
-        #     print('MarketManagerForUi.__init__() 连接行情前置成功，self.__broker_id =', self.__broker_id)
-        # else:
-        #     print('MarketManagerForUi.__init__() 连接行情前置失败，self.__broker_id =', self.__broker_id, '返回值：', self.__result_market_connect)
-        #     self.__init_finished = False  # 初始化失败
-        # # 登录行情账号
-        # self.__result_market_login = Utils.code_transform(
-        #     self.__market.Login(self.__broker_id, self.__user_id, self.__password))
-        # if self.__result_market_login == 0:
-        #     print('MarketManagerForUi.__init__() 登录行情账号成功，self.__broker_id =', self.__broker_id)
-        # else:
-        #     print('MarketManagerForUi.__init__() 登录行情账号失败，self.__broker_id =', self.__broker_id, '返回值：', self.__result_market_login)
-        #     self.__init_finished = False  # 初始化失败
 
         # 已经订阅行情的合约列表，为每一个合约创建一个字典，键名为instrument_id，键值为list，list元素为user_id+strategy_id
         # [{'cu1608': ['80065801', '80067501']}, {'cu1609': ['80065801', '80067501']}]
@@ -305,8 +281,8 @@ class MarketManagerForUi(QObject):
         self.__last_list_market = [0, 0, 0, 0]  # 最后一次保存的价差行情[A买一, A卖一, B买一, B卖一]
 
         self.create_ftdc_md_api()  # 创建api实例
-        self.connect_front()  # 连接行情前置
-        self.login_market_userid()  # 登录行情账号
+        # self.connect_front()  # 连接行情前置
+        # self.login_market_userid()  # 登录行情账号
         print('MarketManagerForUi.__init__() process_id =', os.getpid(), '实例创建成功')
 
     # 创建行情实例
@@ -336,9 +312,11 @@ class MarketManagerForUi(QObject):
         self.__result_market_connect = Utils.code_transform(self.__market.Connect(address))
         if self.__result_market_connect == 0:
             print('MarketManagerForUi.__init__() 连接行情前置成功，self.__broker_id =', self.__broker_id)
+            return True
         else:
             print('MarketManagerForUi.__init__() 连接行情前置失败，self.__broker_id =', self.__broker_id, '返回值：', self.__result_market_connect)
             self.__init_finished = False  # 初始化失败
+            return False
 
     # 登录行情账号
     def login_market_userid(self):

@@ -26,6 +26,11 @@ class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
         Form.resize(1409, 602)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(Form.sizePolicy().hasHeightForWidth())
+        Form.setSizePolicy(sizePolicy)
         Form.setStyleSheet(_fromUtf8("QTabWidget::pane { /* The tab widget frame */\n"
 "      border-top: 2px solid #C2C7CB;\n"
 "}\n"
@@ -109,6 +114,11 @@ class Ui_Form(object):
         self.verticalLayout.setSpacing(2)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.splitter_qaccount = QtGui.QSplitter(Form)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.splitter_qaccount.sizePolicy().hasHeightForWidth())
+        self.splitter_qaccount.setSizePolicy(sizePolicy)
         self.splitter_qaccount.setOrientation(QtCore.Qt.Vertical)
         self.splitter_qaccount.setHandleWidth(1)
         self.splitter_qaccount.setChildrenCollapsible(False)
@@ -372,7 +382,7 @@ class Ui_Form(object):
         self.splitter.setChildrenCollapsible(False)
         self.splitter.setObjectName(_fromUtf8("splitter"))
         self.tableView_Trade_Args = QtGui.QTableView(self.splitter)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(32)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tableView_Trade_Args.sizePolicy().hasHeightForWidth())
@@ -384,7 +394,7 @@ class Ui_Form(object):
         self.tableView_Trade_Args.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tableView_Trade_Args.setObjectName(_fromUtf8("tableView_Trade_Args"))
         self.groupBox_trade_args = QtGui.QGroupBox(self.splitter)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Expanding)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(6)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.groupBox_trade_args.sizePolicy().hasHeightForWidth())

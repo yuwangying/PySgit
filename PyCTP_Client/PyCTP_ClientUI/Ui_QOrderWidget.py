@@ -25,7 +25,13 @@ except AttributeError:
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(1425, 326)
+        Form.resize(1425, 245)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(Form.sizePolicy().hasHeightForWidth())
+        Form.setSizePolicy(sizePolicy)
+        Form.setMinimumSize(QtCore.QSize(0, 245))
         Form.setStyleSheet(_fromUtf8("QTabWidget::pane { /* The tab widget frame */\n"
 "      border-top: 2px solid #C2C7CB;\n"
 "}\n"

@@ -606,7 +606,7 @@ if __name__ == '__main__':
     sys.path.append(bundle_dir)
 
     log_manage()  # 日志文件管理
-    # print_redirect()  # print重定向
+    print_redirect()  # print重定向
 
     app = QtGui.QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
@@ -717,7 +717,7 @@ if __name__ == '__main__':
     q_ctp.widget_QAccountWidget.signal_show_alert.connect(q_alert_box.slot_show_alert)  # 绑定信号槽：显示弹窗
     socket_manager.signal_show_alert.connect(q_alert_box.slot_show_alert)  # 绑定信号槽：显示弹窗
     socket_manager.signal_on_pushButton_set_position_active.connect(q_ctp.widget_QAccountWidget.on_pushButton_set_position_active)  # 绑定信号槽：socket收到设置持仓消息 -> 激活界面设置持仓按钮
-
+    socket_manager.signal_set_label_TS_connect_text.connect(q_ctp.message_center.set_label_TS_connect_text)  # 绑定信号槽：socket检测到TS连接状态->界面显示TS连接状态
     # 设置字体大小
     # font = app.font()
     # font.setPointSize(10)

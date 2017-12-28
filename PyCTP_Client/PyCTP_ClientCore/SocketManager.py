@@ -35,7 +35,7 @@ def static_create_user_process(dict_user_info, Queue_main, Queue_user):
     # print("SocketManager.static_create_user_process dict_user_info =", dict_user_info['server']['user_info']['userid'])
     user_id = dict_user_info['server']['user_info']['userid']
 
-    # print_redirect(user_id)  # print重定向
+    print_redirect(user_id)  # print重定向
 
     # print("static_create_user_process() dict_user_info =", dict_user_info)
     # print("static_create_user_process() user_id =", dict_user_info['userid'], ", process_id =", os.getpid(), ", dict_user_info =", dict_user_info)
@@ -80,6 +80,7 @@ class SocketManager(QtCore.QThread):
     signal_send_last_data_order = QtCore.pyqtSignal(dict)  # 定义信号：发送最新的order记录数据到tableView的数据模型
     signal_send_previous_data_trade = QtCore.pyqtSignal(dict)  # 定义信号：发送历史的trade记录数据到tableView的数据模型
     signal_send_last_data_trade = QtCore.pyqtSignal(dict)  # 定义信号：发送最新的trade记录数据到tableView的数据模型
+    signal_set_label_TS_connect_text = QtCore.pyqtSignal(dict)  # 定义信号：socket检测到TS连接状态发送给界面显示
 
     def __init__(self, parent=None):
         super(SocketManager, self).__init__(parent)
@@ -388,6 +389,7 @@ class SocketManager(QtCore.QThread):
                 self.__sockfd = sock
                 dict_args = {"title": "消息", "main": "与服务端连接成功！"}
                 self.signal_show_alert.emit(dict_args)
+                self.signal_set_label_TS_connect_text.emit({'msg': 'TS连接', 'alert': False})
                 # time.sleep(5.0)
             except:
                 # print("SocketManager.re_connect() 尝试与服务器建立连接！")
@@ -415,6 +417,7 @@ class SocketManager(QtCore.QThread):
                 print("SocketManager.RecvN()", e, n, totalRecved)
                 dict_args = {"title": "消息", "main": "<font color='red'>与服务端断开连接</font>"}
                 self.signal_show_alert.emit(dict_args)
+                self.signal_set_label_TS_connect_text.emit({'msg': 'TS断开', 'alert': True})
                 # self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 # self.__thread_connect.start()
                 time.sleep(5)

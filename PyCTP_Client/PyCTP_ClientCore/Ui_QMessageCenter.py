@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\CTP\PyCTP\PyCTP_Client\PyCTP_ClientUI\QMessageCenter.ui'
+# Form implementation generated from reading ui file 'D:\CTP\Sgit\PyCTP_Client\PyCTP_ClientUI\QMessageCenter.ui'
 #
 # Created by: PyQt4 UI code generator 4.11.4
 #
@@ -31,6 +31,7 @@ class Ui_MessageForm(object):
         self.horizontalLayout.setSpacing(0)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.label_message = QtGui.QLabel(MessageForm)
+        self.label_message.setText(_fromUtf8(""))
         self.label_message.setObjectName(_fromUtf8("label_message"))
         self.horizontalLayout.addWidget(self.label_message)
         self.line = QtGui.QFrame(MessageForm)
@@ -39,6 +40,7 @@ class Ui_MessageForm(object):
         self.line.setObjectName(_fromUtf8("line"))
         self.horizontalLayout.addWidget(self.line)
         self.label_trade_connect_status = QtGui.QLabel(MessageForm)
+        self.label_trade_connect_status.setText(_fromUtf8(""))
         self.label_trade_connect_status.setObjectName(_fromUtf8("label_trade_connect_status"))
         self.horizontalLayout.addWidget(self.label_trade_connect_status)
         self.line_2 = QtGui.QFrame(MessageForm)
@@ -47,6 +49,7 @@ class Ui_MessageForm(object):
         self.line_2.setObjectName(_fromUtf8("line_2"))
         self.horizontalLayout.addWidget(self.line_2)
         self.label_market_connect_status = QtGui.QLabel(MessageForm)
+        self.label_market_connect_status.setText(_fromUtf8(""))
         self.label_market_connect_status.setObjectName(_fromUtf8("label_market_connect_status"))
         self.horizontalLayout.addWidget(self.label_market_connect_status)
         self.line_3 = QtGui.QFrame(MessageForm)
@@ -54,15 +57,16 @@ class Ui_MessageForm(object):
         self.line_3.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_3.setObjectName(_fromUtf8("line_3"))
         self.horizontalLayout.addWidget(self.line_3)
-        self.label_CFFEX_time = QtGui.QLabel(MessageForm)
-        self.label_CFFEX_time.setObjectName(_fromUtf8("label_CFFEX_time"))
-        self.horizontalLayout.addWidget(self.label_CFFEX_time)
+        self.label_TS_connect = QtGui.QLabel(MessageForm)
+        self.label_TS_connect.setObjectName(_fromUtf8("label_TS_connect"))
+        self.horizontalLayout.addWidget(self.label_TS_connect)
         self.line_4 = QtGui.QFrame(MessageForm)
         self.line_4.setFrameShape(QtGui.QFrame.VLine)
         self.line_4.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_4.setObjectName(_fromUtf8("line_4"))
         self.horizontalLayout.addWidget(self.line_4)
         self.label_SHFE_time = QtGui.QLabel(MessageForm)
+        self.label_SHFE_time.setText(_fromUtf8(""))
         self.label_SHFE_time.setObjectName(_fromUtf8("label_SHFE_time"))
         self.horizontalLayout.addWidget(self.label_SHFE_time)
         self.line_5 = QtGui.QFrame(MessageForm)
@@ -71,6 +75,7 @@ class Ui_MessageForm(object):
         self.line_5.setObjectName(_fromUtf8("line_5"))
         self.horizontalLayout.addWidget(self.line_5)
         self.label_CZCE_time = QtGui.QLabel(MessageForm)
+        self.label_CZCE_time.setText(_fromUtf8(""))
         self.label_CZCE_time.setObjectName(_fromUtf8("label_CZCE_time"))
         self.horizontalLayout.addWidget(self.label_CZCE_time)
         self.line_6 = QtGui.QFrame(MessageForm)
@@ -79,6 +84,7 @@ class Ui_MessageForm(object):
         self.line_6.setObjectName(_fromUtf8("line_6"))
         self.horizontalLayout.addWidget(self.line_6)
         self.label_DCE_time = QtGui.QLabel(MessageForm)
+        self.label_DCE_time.setText(_fromUtf8(""))
         self.label_DCE_time.setObjectName(_fromUtf8("label_DCE_time"))
         self.horizontalLayout.addWidget(self.label_DCE_time)
         self.horizontalLayout.setStretch(0, 14)
@@ -100,13 +106,7 @@ class Ui_MessageForm(object):
 
     def retranslateUi(self, MessageForm):
         MessageForm.setWindowTitle(_translate("MessageForm", "MessageCenter", None))
-        self.label_message.setText(_translate("MessageForm", "SHFE:收盘", None))
-        self.label_trade_connect_status.setText(_translate("MessageForm", "交易连接", None))
-        self.label_market_connect_status.setText(_translate("MessageForm", "行情连接", None))
-        self.label_CFFEX_time.setText(_translate("MessageForm", "15:00:10", None))
-        self.label_SHFE_time.setText(_translate("MessageForm", "15:00:10", None))
-        self.label_CZCE_time.setText(_translate("MessageForm", "15:00:10", None))
-        self.label_DCE_time.setText(_translate("MessageForm", "15:00:10", None))
+        self.label_TS_connect.setText(_translate("MessageForm", "TS连接", None))
 
 
 if __name__ == "__main__":

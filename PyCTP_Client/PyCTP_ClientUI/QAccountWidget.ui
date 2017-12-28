@@ -10,6 +10,12 @@
     <height>602</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
@@ -102,6 +108,12 @@ QMenu {
    </property>
    <item>
     <widget class="QSplitter" name="splitter_qaccount">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
@@ -626,7 +638,7 @@ QPushButton::pressed{
       </property>
       <widget class="QTableView" name="tableView_Trade_Args">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
          <horstretch>32</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -655,7 +667,7 @@ QPushButton::pressed{
       </widget>
       <widget class="QGroupBox" name="groupBox_trade_args">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
+        <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
          <horstretch>6</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>

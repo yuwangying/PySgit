@@ -7,9 +7,8 @@ Module implementing NewStrategy.
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import pyqtSlot
 from PyQt4.QtGui import QWidget
-import json
-
 from Ui_QStrategySetting import Ui_NewStrategy
+# import json
 
 
 class QNewStrategy(QWidget, Ui_NewStrategy):

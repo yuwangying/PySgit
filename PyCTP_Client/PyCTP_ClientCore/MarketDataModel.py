@@ -1,9 +1,9 @@
-import queue
 import urllib.parse
 from pymongo import MongoClient
-from sys import getsizeof
 import datetime
 import pandas as pd
+# import queue
+# from sys import getsizeof
 
 
 class MarketDataModel():

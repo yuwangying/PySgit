@@ -3,13 +3,11 @@
 import os
 from collections import namedtuple
 import socket
-import copy
 import sys
 import struct
 import threading
 import json
 import queue
-from MessageBox import MessageBox
 from MarketManager import MarketManagerForUi
 import time
 from PyQt4 import QtCore, QtGui
@@ -30,16 +28,11 @@ def print_redirect(user_id):
     file_path_error = file_path_1 + ' error.log'
     sys.stderr = open(file_path_error, 'a')
 
+
 # 创建user(期货账户)
 def static_create_user_process(dict_user_info, Queue_main, Queue_user):
-    # print("SocketManager.static_create_user_process dict_user_info =", dict_user_info['server']['user_info']['userid'])
     user_id = dict_user_info['server']['user_info']['userid']
-
-    print_redirect(user_id)  # print重定向
-
-    # print("static_create_user_process() dict_user_info =", dict_user_info)
-    # print("static_create_user_process() user_id =", dict_user_info['userid'], ", process_id =", os.getpid(), ", dict_user_info =", dict_user_info)
-    # ClientMain.socket_manager.signal_label_login_error_text.emit('创建User', dict_user_info['server']['user_info']['userid'])
+    # print_redirect(user_id)  # print重定向
     obj_user = User(dict_user_info, Queue_main, Queue_user)
     while True:
         dict_data = Queue_main.get()  # user进程get数据
@@ -500,7 +493,7 @@ class SocketManager(QtCore.QThread):
         while True:
             # 收消息
             if self.__RecvN:  # RecvN状态正常
-                print(">>> SocketManager run() 监听接收消息")
+                # print(">>> SocketManager run() 监听接收消息")
                 try:
                     # 接收数据1038个字节(与服务器端统一:13位head+1位checknum+1024数据段)
                     # data = self.__sockfd.recv(30 * 1024 + 14)
@@ -556,8 +549,6 @@ class SocketManager(QtCore.QThread):
 
     # 发送消息线程
     def run_send_msg(self):
-        # thread = threading.current_thread()
-        # print(">>> SocketManager.run_send_msg() thread.getName()=", thread.getName())
         # 发消息
         while True:
             tmp_msg = self.__queue_send_msg.get()
@@ -1138,7 +1129,7 @@ class SocketManager(QtCore.QThread):
                         if i['userid'] == user_id:
                             last_order_ref = i['orderref']  # TS保存的最后的报单引用
                             break
-                    # print(">>>SocketManager.handle_Queue_get() if data_main['OrderRef'][:10] == last_order_ref[:10]:", data_main['OrderRef'][:10], last_order_ref[:10])
+                    print(">>>SocketManager.handle_Queue_get() if data_main['OrderRef'][:10] == last_order_ref[:10]:", data_main['OrderRef'][:10], last_order_ref[:10])
                     if data_main['OrderRef'][:10] == last_order_ref[:10]:  # 最后一条历史记录，将order\trade记录发送给tableView的数据模型
                         print(">>>SocketManager.handle_Queue_get() 收到最后一条OrderRef，last_order_ref =", last_order_ref)
                         self.__dict_user_onrtnorder_last_recieve[user_id] = True  # 收到最后一条报单记录标志值为true

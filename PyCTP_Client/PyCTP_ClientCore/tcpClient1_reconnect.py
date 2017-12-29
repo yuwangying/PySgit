@@ -2,7 +2,7 @@
 #-*- coding:utf-8 -*-
 # version : Python 2.7.13
 
-import os,sys,time
+import time
 import socket
 
 def doConnect(host,port):

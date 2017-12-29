@@ -5,7 +5,6 @@ Created on Wed Jul 20 08:46:13 2016
 @author: YuWanying
 """
 
-
 import copy
 import json
 from PyQt4 import QtGui

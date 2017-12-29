@@ -7,7 +7,6 @@ Module implementing QAlertBox.py.
 from PyQt4.QtCore import pyqtSlot
 from PyQt4.QtGui import QWidget
 from PyQt4 import QtGui, QtCore
-
 from Ui_QAlertBox import Ui_Form
 
 

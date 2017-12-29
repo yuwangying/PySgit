@@ -11,10 +11,10 @@ used the Anaconda package (comes with PyQt4) on OS X
 
 import operator  # used for sorting
 from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 from PyQt4 import QtGui, QtCore
-from time import time
-import threading
+# from time import time
+# from PyQt4.QtGui import *
+# import threading
 
 
 class TradeDataModel(QAbstractTableModel):

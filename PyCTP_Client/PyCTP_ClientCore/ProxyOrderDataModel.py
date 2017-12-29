@@ -1,9 +1,9 @@
-import operator  # used for sorting
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 from PyQt4 import QtGui, QtCore
-from time import time
-import threading
+# import operator  # used for sorting
+# from PyQt4.QtCore import *
+# from PyQt4.QtGui import *
+# from time import time
+# import threading
 
 class ProxyOrderDataModel(QtGui.QSortFilterProxyModel):
     """

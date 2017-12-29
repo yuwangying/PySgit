@@ -4,10 +4,9 @@
 Module implementing MessageCenter.
 """
 
-from PyQt4.QtCore import pyqtSlot
 from PyQt4.QtGui import QWidget
-
 from Ui_QMessageCenter import Ui_MessageForm
+# from PyQt4.QtCore import pyqtSlot
 
 
 class MessageCenter(QWidget, Ui_MessageForm):

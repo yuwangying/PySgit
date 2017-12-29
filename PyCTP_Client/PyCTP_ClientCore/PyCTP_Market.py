@@ -9,7 +9,7 @@ import sys
 import threading
 import time
 import Utils
-from pandas import Series, DataFrame
+from pandas import DataFrame
 import PyCTP
 # import pandas as pd
 

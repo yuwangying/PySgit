@@ -12,7 +12,6 @@ import pandas as pd
 from pandas import Series, DataFrame
 import Utils
 import PyCTP
-import copy
 # from MessageBox import MessageBox
 
 

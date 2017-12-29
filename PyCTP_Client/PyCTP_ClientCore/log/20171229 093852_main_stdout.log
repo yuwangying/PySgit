@@ -1,0 +1,19 @@
+>>>ClientMain.print_transfer() frozen = not
+>>>ClientMain.print_transfer() bundle_dir = D:\CTP\Sgit\PyCTP_Client\PyCTP_ClientCore
+>>>ClientMain.print_transfer() sys.argv[0] = D:/CTP/Sgit/PyCTP_Client/PyCTP_ClientCore/ClientMain.py
+>>>ClientMain.print_transfer() sys.executable = D:\Python34\python.exe
+>>>ClientMain.print_transfer() os.getcwd() = D:\CTP\Sgit\PyCTP_Client\PyCTP_ClientCore
+>>>ClientMain.print_transfer() os.getpid() = 1908
+>>>ClientMain.print_transfer() threading.current_thread().getName() = MainThread
+>>> StocketManager.read_ip_address() ip_address = 101.95.163.34 9901
+SocketManager.connect() self.__ip_address 101.95.163.34
+QAccountWidget.slot_addTabBar() self.__dict_clicked_info = {'所有账户': {}}
+>>> SocketManager run() 监听接收消息
+SocketManager.RecvN() [WinError 10057] 由于套接字没有连接并且(当使用一个 sendto 调用发送数据报套接字时)没有提供地址，发送或接收数据的请求没有被接受。 2062 0
+SocketManager.connect() socket error [WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。
+SocketManager.connect() self.__ip_address 101.95.163.34
+QLogin.on_pushButton_login_clicked() thread.getName()= MainThread
+SocketManager.slot_send_msg() 与服务端断开连接，不能发送消息
+SocketManager.connect() socket error [WinError 10060] 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。
+SocketManager.connect() self.__ip_address 101.95.163.34
+>>> QLogin.closeEvent() 

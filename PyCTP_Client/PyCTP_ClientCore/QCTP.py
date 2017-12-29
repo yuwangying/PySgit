@@ -6,10 +6,10 @@ Module implementing QCTP.
 
 from PyQt4.QtCore import pyqtSlot
 from PyQt4.QtGui import QMainWindow
-from PyQt4.QtGui import QStatusBar
-from PyQt4.QtGui import QCloseEvent
-from PyQt4 import QtCore
 from QMessageCenter import MessageCenter
+# from PyQt4.QtGui import QStatusBar
+# from PyQt4.QtGui import QCloseEvent
+# from PyQt4 import QtCore
 
 
 from Ui_QCTP import Ui_MainWindow

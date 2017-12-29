@@ -4,9 +4,9 @@ Created on 2016年8月3日09:54:47
 
 @author: YuWanying
 """
-from PyCTP_Market import PyCTP_Market_API
 from pymongo import MongoClient
 import datetime
+# from PyCTP_Market import PyCTP_Market_API
 
 
 class DBManger:

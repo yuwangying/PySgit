@@ -1096,7 +1096,7 @@ class User():
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnOrder(self, Order):
-        # print(">>>User.OnRtnOrder() Order['OrderRef'] =", Order['OrderRef'])
+        print(">>>User.OnRtnOrder() Order['OrderRef'] =", Order['OrderRef'])
         insert_time = datetime.now().strftime('%X')
         Order['InsertTime'] = insert_time
         # self.__queue_OnRtnOrder.put(Order)  # 缓存期货账户的所有order

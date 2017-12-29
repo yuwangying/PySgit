@@ -6,8 +6,8 @@ Created on 2016年8月12日21:49:19
 """
 
 
-from PyCTP_Trade import PyCTP_Trader_API
-import Utils
+# from PyCTP_Trade import PyCTP_Trader_API
+# import Utils
 
 
 # 交易员类

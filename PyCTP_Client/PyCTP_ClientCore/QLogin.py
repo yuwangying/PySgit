@@ -3,18 +3,18 @@
 """
 Module implementing QLoginForm.
 """
-import time
-import Utils
 from PyQt4.QtCore import pyqtSlot
 from PyQt4.QtGui import QWidget
 from PyQt4 import QtGui, QtCore
-import PyQt4
-from SocketManager import SocketManager
-import socket
-import json
-import QCTP
-import ClientMain
 import threading
+# import time
+# import Utils
+# import PyQt4
+# from SocketManager import SocketManager
+# import socket
+# import json
+# import QCTP
+# import ClientMain
 
 from Ui_QLogin import Ui_LoginForm
 

@@ -40,7 +40,7 @@
       border-bottom-color: #C2C7CB; /* same as the pane color */
       border-top-left-radius: 4px;
       border-top-right-radius: 4px;
-      min-width: 100px;
+      min-width: 120px;
       padding: 2px;
   }
 
@@ -1574,7 +1574,7 @@ background-color: rgb(255, 255, 255);</string>
          <property name="geometry">
           <rect>
            <x>12</x>
-           <y>56</y>
+           <y>86</y>
            <width>50</width>
            <height>16</height>
           </rect>
@@ -1713,7 +1713,7 @@ background-color: rgb(255, 255, 255);</string>
          <property name="geometry">
           <rect>
            <x>12</x>
-           <y>86</y>
+           <y>56</y>
            <width>50</width>
            <height>16</height>
           </rect>

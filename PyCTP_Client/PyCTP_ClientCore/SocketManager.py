@@ -32,7 +32,7 @@ def print_redirect(user_id):
 # 创建user(期货账户)
 def static_create_user_process(dict_user_info, Queue_main, Queue_user):
     user_id = dict_user_info['server']['user_info']['userid']
-    # print_redirect(user_id)  # print重定向
+    print_redirect(user_id)  # print重定向
     obj_user = User(dict_user_info, Queue_main, Queue_user)
     while True:
         dict_data = Queue_main.get()  # user进程get数据

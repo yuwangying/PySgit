@@ -170,10 +170,13 @@ class OrderDataModel(QAbstractTableModel):
 
     # 接收最新的回调数据，形参dict,order结构体
     def slot_receive_last_data_order(self, dict_input):
-        # print(">>>OrderDataModel.slot_receive_last_data_order() dict_input =", dict_input)
+        print(">>>OrderDataModel.slot_receive_last_data_order() dict_input =", dict_input)
         user_id = dict_input['UserID']
         list_order = self.select_element_order(dict_input)
-        self.__dict_origin_data[user_id].insert(0, list_order)  # 最新的数据插入到list的0位置
+        for i in self.__dict_origin_data:
+            if i in user_id:
+                self.__dict_origin_data[i].insert(0, list_order)  # 最新的数据插入到list的0位置
+                break
         self.update_data()  # 更新界面
 
     # 从dict结构体里面删选出部分元素组成list目标结构体

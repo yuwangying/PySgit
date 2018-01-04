@@ -51,7 +51,7 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
         self.api.Ready()
 
     def OnRtnOrder(self, OrderField, pRspInfo):
-        print(">>>PySgit_Trade_API.OnRtnOrder() called")
+        # print(">>>PySgit_Trade_API.OnRtnOrder() called")
         if pRspInfo.ErrorID == 0:  # 报单成功
             pass
         else:  # 报单失败
@@ -124,7 +124,7 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
             # 'IPAddress': OrderField.IPAddress,  # IP地址
             # 'MacAddress': OrderField.MacAddress  # Mac地址
         }
-        print(">>>PySgit_Trade_API.OnRtnOrder() Order =", Order)
+        # print(">>>PySgit_Trade_API.OnRtnOrder() Order =", Order)
         # print(">>>PySgit_Trade_API.OnRtnOrder() Order['OrderRef'] =", Order['OrderRef'])
         # print(">>>时序测试 OrderRef =", Order['OrderRef'], "OnRtnOrder()")
         self.__user.OnRtnOrder(Order)  # 转回调给User类的OnRtnOrder

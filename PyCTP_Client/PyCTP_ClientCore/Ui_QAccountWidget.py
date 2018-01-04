@@ -51,7 +51,7 @@ class Ui_Form(object):
 "      border-bottom-color: #C2C7CB; /* same as the pane color */\n"
 "      border-top-left-radius: 4px;\n"
 "      border-top-right-radius: 4px;\n"
-"      min-width: 100px;\n"
+"      min-width: 120px;\n"
 "      padding: 2px;\n"
 "  }\n"
 "\n"
@@ -709,7 +709,7 @@ class Ui_Form(object):
         self.doubleSpinBox_kongtoukai.setProperty("value", 0.0)
         self.doubleSpinBox_kongtoukai.setObjectName(_fromUtf8("doubleSpinBox_kongtoukai"))
         self.label_kongtoujiacha = QtGui.QLabel(self.groupBox)
-        self.label_kongtoujiacha.setGeometry(QtCore.QRect(12, 56, 50, 16))
+        self.label_kongtoujiacha.setGeometry(QtCore.QRect(12, 86, 50, 16))
         self.label_kongtoujiacha.setObjectName(_fromUtf8("label_kongtoujiacha"))
         self.spinBox_Bbaodanpianyi = QtGui.QSpinBox(self.groupBox)
         self.spinBox_Bbaodanpianyi.setGeometry(QtCore.QRect(336, 86, 56, 21))
@@ -749,7 +749,7 @@ class Ui_Form(object):
         self.lineEdit_duotoujiacha.setText(_fromUtf8(""))
         self.lineEdit_duotoujiacha.setObjectName(_fromUtf8("lineEdit_duotoujiacha"))
         self.label_duotoujiacha = QtGui.QLabel(self.groupBox)
-        self.label_duotoujiacha.setGeometry(QtCore.QRect(12, 86, 50, 16))
+        self.label_duotoujiacha.setGeometry(QtCore.QRect(12, 56, 50, 16))
         self.label_duotoujiacha.setObjectName(_fromUtf8("label_duotoujiacha"))
         self.label_Ajinsell = QtGui.QLabel(self.groupBox)
         self.label_Ajinsell.setGeometry(QtCore.QRect(306, 116, 38, 16))

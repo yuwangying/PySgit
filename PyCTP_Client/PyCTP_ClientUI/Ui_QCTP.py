@@ -94,6 +94,9 @@ class Ui_MainWindow(object):
         self.toolBar = QtGui.QToolBar(MainWindow)
         self.toolBar.setObjectName(_fromUtf8("toolBar"))
         MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
+        self.action_about = QtGui.QAction(MainWindow)
+        self.action_about.setObjectName(_fromUtf8("action_about"))
+        self.menu_file.addAction(self.action_about)
         self.menuBar.addAction(self.menu_file.menuAction())
         self.menuBar.addAction(self.menu_account.menuAction())
         self.menuBar.addAction(self.menu_market.menuAction())
@@ -105,12 +108,13 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "小蜜蜂套利交易系统", None))
-        self.menu_file.setTitle(_translate("MainWindow", "文件", None))
+        self.menu_file.setTitle(_translate("MainWindow", "系统", None))
         self.menu_account.setTitle(_translate("MainWindow", "账户", None))
         self.menu_market.setTitle(_translate("MainWindow", "行情", None))
         self.menu_trademodel.setTitle(_translate("MainWindow", "交易模型", None))
         self.menu_report.setTitle(_translate("MainWindow", "报告", None))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar", None))
+        self.action_about.setText(_translate("MainWindow", "关于", None))
 
 from qaccountwidget import QAccountWidget
 from qorderwidget import QOrderWidget

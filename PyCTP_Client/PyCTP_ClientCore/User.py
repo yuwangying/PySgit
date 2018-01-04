@@ -1096,9 +1096,9 @@ class User():
 
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnOrder(self, Order):
-        print(">>>User.OnRtnOrder() Order['OrderRef'] =", Order['OrderRef'])
+        # print(">>>User.OnRtnOrder() Order['OrderRef'] =", Order['OrderRef'])
         insert_time = datetime.now().strftime('%X')
-        Order['InsertTime'] = insert_time
+        Order['InsertTime'] = insert_time  # Order结构体中加入北京时间，历史Order中填入登录时刻的北京时间
         # self.__queue_OnRtnOrder.put(Order)  # 缓存期货账户的所有order
         self.__queue_OnRtn.put({'OnRtnOrder': Order})  # 缓存期货账户的所有order
 
@@ -1161,7 +1161,7 @@ class User():
             Trade['OperatorID'] = ''  # 客户端账号（也能区分用户身份或交易员身份）:OperatorID，非小蜜蜂套利系统的值为空
             Trade['StrategyID'] = ''  # 报单引用末两位是策略编号，非小蜜蜂套利系统的值为空
 
-        # 进程间通信：'DataFlag': 'OnRtnOrder'
+        # 进程间通信：'DataFlag': 'OnRtnTrade'
         dict_data = {
             'DataFlag': 'OnRtnTrade',
             'UserId': self.__user_id,

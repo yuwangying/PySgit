@@ -25,6 +25,7 @@ class QAlertBox(QWidget, Ui_Form):
         """
         super(QAlertBox, self).__init__(parent)
         self.setupUi(self)
+        self.read_xml()  # 读取本地xml文件，关于版本信息
     
     @pyqtSlot()
     def on_pushButton_clicked(self):
@@ -47,43 +48,43 @@ class QAlertBox(QWidget, Ui_Form):
     # 显示版本信息
     def slot_show_version(self):
         # self.setWindowTitle(dict_input['title'])
-        self.setWindowTitle("版本信息")
+        self.setWindowTitle("版本")
         # self.label.setText(dict_input['main'])
-        self.label.setText("1.0.2")
+        self.label.setText(self.__update_main)
         self.show()
         self.setWindowState(self.windowState() & ~QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive)
         # this will activate the window
         self.activateWindow()
 
-    # # 读取xml文件
-    # def read_xml(self):
-    #     # xml文件不存在跳出
-    #     if os.path.exists("config/about_version.xml") is False:
-    #         return
-    #     else:
-    #         self.__xml_exist = True
-    #
-    #     # 解析文件employ.xml
-    #     self.__doc_read = minidom.parse(self.__path)
-    #     # 定位到根元素
-    #     self.__root_read = self.__doc_read.documentElement
-    #
-    #     # 测试代码，开始修改
-    #     self.__path_write_start = "config/bee_config_start.xml"
-    #     NodeList_user_save_info = self.__root_read.getElementsByTagName("user_write_xml_status")
-    #     for i in NodeList_user_save_info:
-    #         dt = datetime.now().strftime('%Y-%m-%d %I:%M:%S')
-    #         i.attributes['datetime'] = dt
-    #     f = open(self.__path_write_start, 'w')
-    #     self.__doc_read.writexml(f, encoding='utf-8')  # addindent='  ', newl='\n',
-    #     f.close()
-    #     # self.__root_read.getElementsByTagName("user_save_info")
-    #     self.read_user_save_info()
-    #     self.read_user_instrument_statistics()
-    #     self.read_strategy_arguments()
-    #     self.read_strategy_statistics()
-    #     self.read_position_detail_for_order()
-    #     self.read_position_detail_for_trade()
+    # 读取xml文件
+    def read_xml(self):
+        path = "config/about_version.xml"
+        # xml文件不存在跳出
+        if os.path.exists(path) is False:
+            return
+        else:
+            self.__xml_exist = True
+
+        # 解析文件employ.xml
+        self.__doc_read = minidom.parse(path)
+        # 定位到根元素
+        self.__root_read = self.__doc_read.documentElement
+        # 测试代码，开始修改
+        NodeList_date = self.__root_read.getElementsByTagName("date")
+        NodeList_update = self.__root_read.getElementsByTagName("update")
+        self.__update_date = NodeList_date[0].attributes['date'].value
+        list_update = [self.__update_date]
+        index = 0
+        for i in NodeList_update:
+            index += 1
+            value = str(index) + ": " + i.attributes['update'].value
+            list_update.append(value)
+        self.__update_main = '<br />'.join(list_update)
+        # format = "<html><div style='float:left;text-align:left'>"
+        # format_end = "</div></html>"
+        # self.__msg = format + self.__update_main + format_end
+        # self.label.setAlignment(QtCore.Qt.AlignLeft)  # 窗体文本设置居左
+
 
 if __name__ == '__main__':
     import sys

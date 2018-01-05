@@ -325,6 +325,7 @@ class MarketManagerForUi(QObject):
             self.__market.Login(self.__broker_id, self.__user_id, self.__password))
         if self.__result_market_login == 0:
             print('MarketManagerForUi.__init__() 登录行情账号成功，self.__broker_id =', self.__broker_id)
+
         else:
             print('MarketManagerForUi.__init__() 登录行情账号失败，self.__broker_id =', self.__broker_id, '返回值：', self.__result_market_login)
             self.__init_finished = False  # 初始化失败
@@ -332,7 +333,6 @@ class MarketManagerForUi(QObject):
         print("MarketManagerForUi.__init__() 行情端口交易日：", self.__TradingDay)
         # self.__market.set_MarketManager(self)
         self.__init_finished = True  # 初始化成功
-
 
     def get_TradingDay(self):
         return self.__TradingDay

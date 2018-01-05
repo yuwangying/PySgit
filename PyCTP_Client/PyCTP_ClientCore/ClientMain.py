@@ -571,7 +571,6 @@ class ClientMain(QtCore.QObject):
                         i_widget.tableWidget_Trade_Args.item(i_row, 11).setText('chengjiaoliang')  # 成交量
                         i_widget.tableWidget_Trade_Args.item(i_row, 12).setText("chengjiaojin'e")  # 成交金额
                         i_widget.tableWidget_Trade_Args.item(i_row, 13).setText('pingjunhuadian')  # 平均滑点
-                        # 缺少统计类指标。。。待续
 
     # 更新策略开关在Item中的显示文字“开”或者“关”，一个策略对应两个窗口（总账户窗口、策略所属的单账户窗口）
     def update_tableWidgetItem_Onoff(self, obj_strategy):
@@ -606,7 +605,7 @@ if __name__ == '__main__':
     sys.path.append(bundle_dir)
 
     log_manage()  # 日志文件管理
-    print_redirect()  # print重定向
+    # print_redirect()  # print重定向
 
     app = QtGui.QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)

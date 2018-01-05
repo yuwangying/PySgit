@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 	<date date="2018年1月4日"/>
-	<update update1="更改界面布局" update2="显示非本套利系统的报单"/>
-	
+	<update update="更改界面布局"/>
+	<update update="显示非本套利系统的报单"/>
 </root>

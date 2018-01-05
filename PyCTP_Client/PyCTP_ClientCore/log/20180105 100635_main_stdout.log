@@ -1,0 +1,10 @@
+>>>ClientMain.print_transfer() frozen = not
+>>>ClientMain.print_transfer() bundle_dir = D:\CTP\Sgit\PyCTP_Client\PyCTP_ClientCore
+>>>ClientMain.print_transfer() sys.argv[0] = D:/CTP/Sgit/PyCTP_Client/PyCTP_ClientCore/ClientMain.py
+>>>ClientMain.print_transfer() sys.executable = D:\Python34\python.exe
+>>>ClientMain.print_transfer() os.getcwd() = D:\CTP\Sgit\PyCTP_Client\PyCTP_ClientCore
+>>>ClientMain.print_transfer() os.getpid() = 9192
+>>>ClientMain.print_transfer() threading.current_thread().getName() = MainThread
+>>> StocketManager.read_ip_address() ip_address = 101.95.163.34 9901
+SocketManager.connect() self.__ip_address 101.95.163.34
+QAccountWidget.slot_addTabBar() self.__dict_clicked_info = {'ËùÓĞÕË»§': {}}

@@ -11,7 +11,6 @@ import time
 import Utils
 from pandas import DataFrame
 import PyCTP
-# import pandas as pd
 
 
 class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
@@ -158,6 +157,14 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
             PyCTP_Market_API.is_first_connect = False
             # self.Login(self.__BrokerID, self.__UserID, self.__Password)
 
+        # 行情断线向界面弹窗
+        # dict_args = {"title": "消息", "main": "<font color='red'>行情断线</font>"}
+        # self.signal_OnFrontDisconnected.emit(dict_args)
+        self.market_manager_for_ui.OnFrontDisconnected(nReason)
+        # q_msg_box = QMessageBox()
+        # q_msg_box.setText("行情断线")
+        # q_msg_box.exec()
+
         # 登陆状态时掉线, 自动重登陆
         # if self.__isLogined:
         #    self.__Inst_Interval()
@@ -242,4 +249,7 @@ class PyCTP_Market_API(PyCTP.CThostFtdcMdApi):
 
     def set_MarketManager(self, obj):
         self.__market_manager = obj
+
+    def set_MarketManagerForUI(self, obj):
+        self.market_manager_for_ui = obj
 

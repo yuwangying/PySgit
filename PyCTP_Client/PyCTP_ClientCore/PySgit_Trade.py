@@ -46,6 +46,9 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
         print(">>>PySgit_Trade_API.OnFrontConnected() called")
         self.Login()
 
+    def OnFrontDisconnected(self, pErrMsg):
+        print(">>>PySgit_Trade_API.OnFrontDisconnected() called")
+
     def OnRspUserLogin(self, pRspUserLogin, pRspInfo, nRequestID, bIsLast):
         print(">>>PySgit_Trade_API.OnRspUserLogin() called")
         self.api.Ready()

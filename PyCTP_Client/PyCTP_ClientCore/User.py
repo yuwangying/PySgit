@@ -1094,6 +1094,18 @@ class User():
     def qry_depth_market_data(self, instrument_id):
         return self.__trader_api.QryDepthMarketData(instrument_id)
 
+    # Sgit的TradeApi断线
+    def OnFrontDisconnected(self, pErrMsg):
+        print(">>>User.OnFrontDisconnected() called")
+        # 进程间通信：通知主进程，Sgit的TradeApi断线
+        # 进程间通信：'DataFlag': 'OnFrontDisconnected'
+        dict_data = {
+            'DataFlag': 'OnFrontDisconnected',
+            'UserId': self.__user_id,
+            'DataMain': "Sgit的Trade断线"
+        }
+        self.__Queue_user.put(dict_data)  # user进程put，main进程get
+
     # 转PyCTP_Market_API类中回调函数OnRtnOrder
     def OnRtnOrder(self, Order):
         # print(">>>User.OnRtnOrder() Order['OrderRef'] =", Order['OrderRef'])

@@ -610,6 +610,7 @@ class SocketManager(QtCore.QThread):
                         self.signal_show_alert.emit(dict_args)
                     self.__market_manager_for_ui.login_market_userid()  # 登录行情账号
                     self.__market_manager_for_ui.set_QAccountWidget(self.__QAccountWidget)  # 窗口对象设置为其属性
+                    self.__market_manager_for_ui.set_SocketManager(self)  # 设置属性
                     self.__market_manager_for_ui.signal_update_spread_ui.connect(self.__QAccountWidget.slot_update_spread_ui)
                     # self.qry_user_info()  # 发送：查询期货账户信息，MsgType=2
                 elif buff['MsgResult'] == 1:  # 消息结果失败
@@ -1156,6 +1157,10 @@ class SocketManager(QtCore.QThread):
                     self.__total_process_finished = True
                     self.__QAccountWidget.set_total_process_finished(True)
                     print(">>> SocketManager.handle_Queue_get() 所有user子进程初始化完成，子进程数 =", len(self.__list_process))
+            elif data_flag == 'OnFrontDisconnected':
+                show_msg = user_id + data_main
+                dict_args = {"title": "消息", "main": "<font color='red'>"+show_msg+"</font>"}
+                self.signal_show_alert.emit(dict_args)
 
     # 主进程往对应的user通信Queue里放数据
     def Queue_put(self, user_id, dict_data):

@@ -1,2 +1,2 @@
-pyinstaller --onedir -w --noupx ClientMain.spec
+pyinstaller --onedir -w --noupx package.spec
 pause

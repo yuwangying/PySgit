@@ -285,6 +285,9 @@ class MarketManagerForUi(QObject):
         # self.login_market_userid()  # 登录行情账号
         print('MarketManagerForUi.__init__() process_id =', os.getpid(), '实例创建成功')
 
+    def set_SocketManager(self, obj):
+        self.__SoketManager = obj
+
     # 创建行情实例
     def create_ftdc_md_api(self):
         # 多账户系统中，只需要创建一个行情API
@@ -296,7 +299,7 @@ class MarketManagerForUi(QObject):
         print(">>>MarketManagerForUi.__init__() s_path =", s_path)
         Utils.make_dirs(s_path)  # 创建流文件路劲
         self.__market = PyCTP_Market_API.CreateFtdcMdApi(s_path)
-        self.__market.set_MarketManager(self)
+        self.__market.set_MarketManagerForUI(self)
 
     # 连接行情前置
     def connect_front(self):
@@ -333,6 +336,11 @@ class MarketManagerForUi(QObject):
         print("MarketManagerForUi.__init__() 行情端口交易日：", self.__TradingDay)
         # self.__market.set_MarketManager(self)
         self.__init_finished = True  # 初始化成功
+
+    # 行情断开连接回调
+    def OnFrontDisconnected(self, nReason):
+        dict_args = {"title": "消息", "main": "<font color='red'>行情断开</font>"}
+        self.__SoketManager.signal_show_alert.emit(dict_args)
 
     def get_TradingDay(self):
         return self.__TradingDay

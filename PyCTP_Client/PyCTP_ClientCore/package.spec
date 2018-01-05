@@ -9,7 +9,7 @@ def get_pandas_path():
 
 added_files = [('D:\\Python34\\DLLs\\python3.dll', '.'),('*.dll', '.'),('img', 'img'),('image', 'image'),('config', 'config'),('log', 'log'),('conn', 'conn')]
 
-a = Analysis(['ClientMain.py'],
+a = Analysis(['bee.py'],
              pathex=['.', 'D:\\CTP\\Sgit\\PyCTP_Client\\PyCTP_ClientCore'],
              binaries=[('PyCTP.pyd',''),
 			 ('_pyctp.pyd', ''),
@@ -35,7 +35,7 @@ pyz = PYZ(a.pure, a.zipped_data,
 exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
-          name='ClientMain',
+          name='bee',
           debug=False,
           strip=False,
           upx=False,

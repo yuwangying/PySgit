@@ -1,6 +1,7 @@
 import os
 import sys
 from PyQt4 import QtGui
+from PyQt4.QtGui import QMessageBox
 from PyQt4 import QtCore
 from QCTP import QCTP
 import json
@@ -14,6 +15,7 @@ import multiprocessing
 import win32api
 import datetime
 import glob  # 文件操作
+import win32com.client
 # import shutil
 
 
@@ -50,6 +52,19 @@ def print_redirect():
     print('>>>ClientMain.print_transfer() os.getcwd() =', os.getcwd())
     print('>>>ClientMain.print_transfer() os.getpid() =', os.getpid())
     print('>>>ClientMain.print_transfer() threading.current_thread().getName() =', threading.current_thread().getName())
+
+
+# 检查进程是否已经存在
+def check_progress_exsit(process_name):
+    WMI = win32com.client.GetObject('winmgmts:')
+    processCodeCov = WMI.ExecQuery('select * from Win32_Process where Name="%s"' % process_name)
+    return len(processCodeCov)
+    # if len(processCodeCov) > 0:
+    #     print('%s is exists' % process_name)
+    #     return True
+    # else:
+    #     print('%s is not exists' % process_name)
+    #     return False
 
 
 class ClientMain(QtCore.QObject):
@@ -591,6 +606,7 @@ class ClientMain(QtCore.QObject):
 #     p.start()  # 开始进程
 
 if __name__ == '__main__':
+
     multiprocessing.freeze_support()
     frozen = 'not'
     if getattr(sys, 'frozen', False):
@@ -610,10 +626,24 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
 
-    file = QtCore.QFile('img/silvery.css')
-    file.open(QtCore.QFile.ReadOnly)
-    styleSheet = file.readAll().data().decode("utf-8")
-    file.close()
+    print("main() check_progress_exsit('bee.exe') =", check_progress_exsit("bee.exe"))
+    if check_progress_exsit("bee.exe") > 1:
+        q_box = QMessageBox()
+        q_box.setText("程序已经运行")
+        q_box.exec()
+        print(">>>main() 程序已经运行")
+        exit()
+    # if check_progress_exsit("bee.exe"):
+    #     q_box = QMessageBox()
+    #     q_box.setText("程序已经运行")
+    #     q_box.exec()
+    #     print(">>>main() 程序已经运行")
+    #     exit()
+
+    # file = QtCore.QFile('img/silvery.css')
+    # file.open(QtCore.QFile.ReadOnly)
+    # styleSheet = file.readAll().data().decode("utf-8")
+    # file.close()
 
     """创建对象"""
     # client_main = ClientMain()  # 创建客户端管理类对象

@@ -142,13 +142,11 @@ class TradeDataModel(QAbstractTableModel):
     # 接收历史数据，形参{'801867': [trade数据]}
     def slot_receive_previous_data_trade(self, dict_input):
         for user_id in dict_input:
-            print(">>>TradeDataModel.slot_receive_previous_data_trade() user_id =", user_id, "dict_input['user_id'] 长度=",
-                  len(dict_input[user_id]))
+            # print(">>>TradeDataModel.slot_receive_previous_data_trade() user_id =", user_id, "dict_input['user_id'] 长度=", len(dict_input[user_id]))
             self.__dict_origin_data[user_id] = list()  # 初始化结构体
             for dict_trade in dict_input[user_id]:
                 list_trade = self.select_element_trade(dict_trade)  # 将原始回调数据结构dict转换为数据模型需要的结构list
                 self.__dict_origin_data[user_id].insert(0, list_trade)  # 最新的数据插入到list的0位置
-        print(">>>TradeDataModel.slot_receive_previous_data_trade() self.__dict_origin_data[user_id] 长度=", len(self.__dict_origin_data[user_id]))
         self.update_data()  # 更新界面
 
     # 接收最新的回调数据，形参{'801867': [order数据]}

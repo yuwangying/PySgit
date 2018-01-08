@@ -300,6 +300,7 @@ class MarketManagerForUi(QObject):
         Utils.make_dirs(s_path)  # 创建流文件路劲
         self.__market = PyCTP_Market_API.CreateFtdcMdApi(s_path)
         self.__market.set_MarketManagerForUI(self)
+        self.__market.set_MarketManager(self)
 
     # 连接行情前置
     def connect_front(self):

@@ -32,7 +32,7 @@ def print_redirect(user_id):
 # 创建user(期货账户)
 def static_create_user_process(dict_user_info, Queue_main, Queue_user):
     user_id = dict_user_info['server']['user_info']['userid']
-    # print_redirect(user_id)  # print重定向
+    print_redirect(user_id)  # print重定向
     obj_user = User(dict_user_info, Queue_main, Queue_user)
     while True:
         dict_data = Queue_main.get()  # user进程get数据
@@ -1130,7 +1130,7 @@ class SocketManager(QtCore.QThread):
                         if i['userid'] == user_id:
                             last_order_ref = i['orderref']  # TS保存的最后的报单引用
                             break
-                    print(">>>SocketManager.handle_Queue_get() if data_main['OrderRef'][:10] == last_order_ref[:10]:", data_main['OrderRef'][:10], last_order_ref[:10])
+                    # print(">>>SocketManager.handle_Queue_get() if data_main['OrderRef'][:10] == last_order_ref[:10]:", data_main['OrderRef'][:10], last_order_ref[:10])
                     if data_main['OrderRef'][:10] == last_order_ref[:10]:  # 最后一条历史记录，将order\trade记录发送给tableView的数据模型
                         print(">>>SocketManager.handle_Queue_get() 收到最后一条OrderRef，last_order_ref =", last_order_ref)
                         self.__dict_user_onrtnorder_last_recieve[user_id] = True  # 收到最后一条报单记录标志值为true

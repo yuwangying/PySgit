@@ -144,7 +144,7 @@ class OrderDataModel(QAbstractTableModel):
         if user_id == '':
             print(">>>OrderDataModel.update_data() 不需要更新的user_id =", user_id, type(user_id))
             return
-        strategy_id = self.__QOrderWidget.comboBox_strategy_id.currentText()
+        # strategy_id = self.__QOrderWidget.comboBox_strategy_id.currentText()
         # print(">>>OrderDataModel.update_data() 需要更新的user_id =", user_id, type(user_id), "strategy_id =", strategy_id, type(strategy_id))
         list_update_data = self.__dict_origin_data[user_id]
         self.slot_set_data_list(list_update_data)
@@ -160,22 +160,24 @@ class OrderDataModel(QAbstractTableModel):
     def slot_receive_previous_data_order(self, dict_input):
         for user_id in dict_input:
             self.__dict_origin_data[user_id] = list()  # 初始化结构体
-            print(">>>OrderDataModel.slot_receive_previous_data_order() user_id =", user_id, "dict_input['user_id'] 长度=",
-                  len(dict_input[user_id]))
+            # print(">>>OrderDataModel.slot_receive_previous_data_order() user_id =", user_id, "dict_input['user_id'] 长度=", len(dict_input[user_id]))
             for dict_order in dict_input[user_id]:
                 list_order = self.select_element_order(dict_order)  # 将原始回调数据结构dict转换为数据模型需要的结构list
                 self.__dict_origin_data[user_id].insert(0, list_order)  # 最新的数据插入到list的0位置
-        print(">>>OrderDataModel.slot_receive_previous_data_order() self.__dict_origin_data[user_id] 长度=", len(self.__dict_origin_data[user_id]))
+        # print(">>>OrderDataModel.slot_receive_previous_data_order() self.__dict_origin_data[user_id] 长度=", len(self.__dict_origin_data[user_id]))
         self.update_data()  # 更新界面
 
     # 接收最新的回调数据，形参dict,order结构体
     def slot_receive_last_data_order(self, dict_input):
-        print(">>>OrderDataModel.slot_receive_last_data_order() dict_input =", dict_input)
+        # print(">>>OrderDataModel.slot_receive_last_data_order() dict_input =", dict_input)
         user_id = dict_input['UserID']
         list_order = self.select_element_order(dict_input)
+        # print(">>>OrderDataModel.slot_receive_last_data_order() list_order =", list_order)
         for i in self.__dict_origin_data:
+            # i是dict的keys，值为原始期货账号；user_id为order回调中的结构体期货账号，可能为***或***01或***02
             if i in user_id:
                 self.__dict_origin_data[i].insert(0, list_order)  # 最新的数据插入到list的0位置
+                # print(">>>OrderDataModel.slot_receive_last_data_order() if i in user_id")
                 break
         self.update_data()  # 更新界面
 

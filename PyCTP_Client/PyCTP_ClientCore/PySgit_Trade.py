@@ -25,7 +25,7 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
         self.api.SubscribePublicTopic(pyctp.Sgit_TERT_RESTART)
         self.api.RegisterSpi(self)
         self.api.RegisterFront(self.frontaddress)
-        self.api.Init(True)  # 对应spi方法OnFrontConnected
+        self.api.Init(False)  # 对应spi方法OnFrontConnected,False:非极速，True：极速模式
 
     def set_user(self, obj_user):
         self.__user = obj_user
@@ -39,7 +39,7 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
         field.UserID = self.user_id
         field.Password = self.password
         request_id = 1
-        print(">>>PySgit_Trade_API.Login() called")
+        print(">>>PySgit_Trade_API.Login() called, self.user_id =", self.user_id)
         self.api.ReqUserLogin(field, request_id)
 
     def OnFrontConnected(self):
@@ -51,6 +51,7 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
 
     def OnRspUserLogin(self, pRspUserLogin, pRspInfo, nRequestID, bIsLast):
         print(">>>PySgit_Trade_API.OnRspUserLogin() called")
+        print(">>>PySgit_Trade_API.OnRspUserLogin() pRspInfo.ErrorID =", pRspInfo.ErrorID, "pRspUserLogin.UserID =", pRspUserLogin.UserID)
         self.api.Ready()
 
     def OnRtnOrder(self, OrderField, pRspInfo):
@@ -58,8 +59,10 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
         if pRspInfo.ErrorID == 0:  # 报单成功
             pass
         else:  # 报单失败
-            print(">>>PySgit_Trade_API.OnRtnOrder() ErrorID =", pRspInfo.ErrorID)
+            # print(">>>PySgit_Trade_API.OnRtnOrder() ErrorID =", pRspInfo.ErrorID)
+            # print(">>>PySgit_Trade_API.OnRtnOrder() ErrorID =", pRspInfo.ErrorID, pRspInfo.ErrorMsg)  # pRspInfo.ErrorMsg解析有bug导致程序挂掉
             # return
+            pass
 
         Order = {
             'BrokerID': OrderField.BrokerID,  # 经纪公司代码

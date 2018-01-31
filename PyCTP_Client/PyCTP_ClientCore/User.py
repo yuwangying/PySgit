@@ -189,8 +189,9 @@ class User():
         self.sgit_trader = PySgit_Trade_API(self.__FrontAddress_sgit,
                                             self.__BrokerID_sgit,
                                             self.__user_id_sgit,
-                                            self.__Password_sgit)
-        self.sgit_trader.set_user(self)  # user设置为sgit_trader的属性
+                                            self.__Password_sgit,
+                                            self)  # 设置属性
+        # self.sgit_trader.set_user(self)  # user设置为sgit_trader的属性,改为init中设置属性
 
     # 创建单个user的所有策略实例
     def create_strategy_all(self):
@@ -1093,6 +1094,27 @@ class User():
     # 查询行情
     def qry_depth_market_data(self, instrument_id):
         return self.__trader_api.QryDepthMarketData(instrument_id)
+
+    # 进程通信：Sigt交易账号登录失败
+    def send_msg_login_error(self, sgit_user_id, sgit_error_id):
+        msg = "飞鼠交易账号"+sgit_user_id+"登录失败,飞鼠返回错误代码"+str(sgit_error_id)
+        print(">>>User.send_msg_login_error() msg =", msg)
+        dict_data = {
+            'DataFlag': 'OnRspUserLogin',
+            'UserId': self.__user_id,
+            'DataMain': msg
+        }
+        self.__Queue_user.put(dict_data)  # user进程put，main进程get
+
+    def send_msg_connect_failed(self, sgit_user_id):
+        msg = "飞鼠交易账号"+sgit_user_id+"连接交易前置失败"
+        print(">>>User.send_msg_connect_failed() msg =", msg)
+        dict_data = {
+            'DataFlag': 'ConnectFailed',
+            'UserId': self.__user_id,
+            'DataMain': msg
+        }
+        self.__Queue_user.put(dict_data)  # user进程put，main进程get
 
     # Sgit的TradeApi断线
     def OnFrontDisconnected(self, pErrMsg):

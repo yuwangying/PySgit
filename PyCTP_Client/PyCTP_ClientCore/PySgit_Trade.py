@@ -1,8 +1,8 @@
 from datetime import datetime
 import pyctp
+import threading
 # import sys
 # from time import time
-# import threading
 # import pandas as pd
 # from pandas import Series, DataFrame
 # import Utils
@@ -12,9 +12,9 @@ import pyctp
 class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
     request_id = 0
 
-    def __init__(self, frontaddress, broker_id, user_id, password):
+    def __init__(self, frontaddress, broker_id, user_id, password, obj_user):
         pyctp.CSgitFtdcTraderSpi.__init__(self)
-
+        self.__user = obj_user
         self.frontaddress = frontaddress
         self.broker_id = broker_id
         self.user_id = user_id
@@ -25,10 +25,21 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
         self.api.SubscribePublicTopic(pyctp.Sgit_TERT_RESTART)
         self.api.RegisterSpi(self)
         self.api.RegisterFront(self.frontaddress)
-        self.api.Init(False)  # 对应spi方法OnFrontConnected,False:非极速，True：极速模式
+        result_connect = self.connect()
+        if result_connect == 0:
+            print(">>>PySgit_Trade_API.__init__() 连接飞鼠柜台交易前置成功, user_id =", self.user_id)
+        elif result_connect == -4:
+            print(">>>PySgit_Trade_API.__init__() 连接飞鼠柜台交易前置失败, user_id =", self.user_id)
+            self.__user.send_msg_connect_failed(self.user_id)
 
     def set_user(self, obj_user):
         self.__user = obj_user
+
+    def connect(self):
+        self.api.Init(False)  # 对应spi方法OnFrontConnected,False:非极速，True：极速模式
+        self.__rsp_connect = {'event': threading.Event()}
+        self.__rsp_connect['event'].clear()
+        return 0 if self.__rsp_connect['event'].wait(2) else -4
 
     def join(self):
         self.api.Join()
@@ -39,20 +50,23 @@ class PySgit_Trade_API(pyctp.CSgitFtdcTraderSpi):
         field.UserID = self.user_id
         field.Password = self.password
         request_id = 1
-        print(">>>PySgit_Trade_API.Login() called, self.user_id =", self.user_id)
         self.api.ReqUserLogin(field, request_id)
 
     def OnFrontConnected(self):
-        print(">>>PySgit_Trade_API.OnFrontConnected() called")
+        print(">>>PySgit_Trade_API.OnFrontConnected() called, self.user_id =", self.user_id)
+        self.__rsp_connect['event'].set()  # 前置连接成功
         self.Login()
 
     def OnFrontDisconnected(self, pErrMsg):
         print(">>>PySgit_Trade_API.OnFrontDisconnected() called")
 
     def OnRspUserLogin(self, pRspUserLogin, pRspInfo, nRequestID, bIsLast):
-        print(">>>PySgit_Trade_API.OnRspUserLogin() called")
-        print(">>>PySgit_Trade_API.OnRspUserLogin() pRspInfo.ErrorID =", pRspInfo.ErrorID, "pRspUserLogin.UserID =", pRspUserLogin.UserID)
-        self.api.Ready()
+        if pRspInfo.ErrorID == 0:
+            print(">>>PySgit_Trade_API.OnRspUserLogin() 飞鼠交易账号登录成功", pRspUserLogin.UserID)
+            self.api.Ready()
+        elif pRspInfo.ErrorID != 0:
+            print(">>>PySgit_Trade_API.OnRspUserLogin() 飞鼠交易账号登录失败，pRspUserLogin.UserID =", pRspUserLogin.UserID, "pRspInfo.ErrorID =", pRspInfo.ErrorID)
+            self.__user.send_msg_login_error(pRspUserLogin.UserID, pRspInfo.ErrorID)
 
     def OnRtnOrder(self, OrderField, pRspInfo):
         # print(">>>PySgit_Trade_API.OnRtnOrder() called")

@@ -1158,7 +1158,17 @@ class SocketManager(QtCore.QThread):
                     self.__QAccountWidget.set_total_process_finished(True)
                     print(">>> SocketManager.handle_Queue_get() 所有user子进程初始化完成，子进程数 =", len(self.__list_process))
             elif data_flag == 'OnFrontDisconnected':
-                show_msg = user_id + data_main
+                show_msg = user_id + ":"+ data_main
+                dict_args = {"title": "消息", "main": "<font color='red'>"+show_msg+"</font>"}
+                self.signal_show_alert.emit(dict_args)
+            elif data_flag == 'ConnectFailed':  # 连接飞鼠柜台交易前置失败
+                print(">>> SocketManager.handle_Queue_get() data_flag == 'ConnectFailed'")
+                show_msg = user_id + ":" + data_main
+                dict_args = {"title": "消息", "main": "<font color='red'>"+show_msg+"</font>"}
+                self.signal_show_alert.emit(dict_args)
+            elif data_flag == 'OnRspUserLogin':  # 登录飞鼠交易账号失败
+                print(">>> SocketManager.handle_Queue_get() data_flag == 'OnRspUserLogin'")
+                show_msg = user_id + ":" + data_main
                 dict_args = {"title": "消息", "main": "<font color='red'>"+show_msg+"</font>"}
                 self.signal_show_alert.emit(dict_args)
 

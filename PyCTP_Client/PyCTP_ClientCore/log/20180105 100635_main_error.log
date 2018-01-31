@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "D:/CTP/Sgit/PyCTP_Client/PyCTP_ClientCore/ClientMain.py", line 626, in <module>
-    q_alert_box = QAlertBox()  # 提示窗口
-  File "D:\CTP\Sgit\PyCTP_Client\PyCTP_ClientCore\QAlertBox.py", line 28, in __init__
-    self.read_xml()  # 读取本地xml文件，关于版本信息
-  File "D:\CTP\Sgit\PyCTP_Client\PyCTP_ClientCore\QAlertBox.py", line 68, in read_xml
-    self.__doc_read = minidom.parse(self.__path)
-AttributeError: 'QAlertBox' object has no attribute '_QAlertBox__path'

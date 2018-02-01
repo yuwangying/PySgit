@@ -2292,7 +2292,7 @@ class Strategy():
 
     def OnRtnTrade(self, Trade):
         """成交回报"""
-        # print(">>>Strategy.OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "Trade =", Trade)
+        print(">>>Strategy.OnRtnTrade() user_id =", self.__user_id, "strategy_id =", self.__strategy_id, "Trade =", Trade)
         # 所有trade回调保存到DataFrame格式变量
         # series_order = Series(Trade)
         # self.__df_OnRtnTrade = DataFrame.append(self.__df_OnRtnTrade, other=series_order, ignore_index=True)

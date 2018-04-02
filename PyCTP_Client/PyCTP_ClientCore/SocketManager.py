@@ -658,7 +658,7 @@ class SocketManager(QtCore.QThread):
                         user_id = strategy_info['user_id']
                         strategy_id = strategy_info['strategy_id']
                         self.__dict_user_strategy_tree[user_id].append(strategy_id)
-                    print(">>>ScoketManager.receive_msg() 查询策略 self.__dict_user_strategy_tree =", self.__dict_user_strategy_tree)
+                    # print(">>>ScoketManager.receive_msg() 查询策略 self.__dict_user_strategy_tree =", self.__dict_user_strategy_tree)
                     self.signal_set_user_strategy_tree.emit(self.__dict_user_strategy_tree)
                     # self.signal_init_tableWidget.emit(buff['Info'])
                     # self.qry_position_detial_for_order()  # 发送：查询持仓明细order，MsgType=15

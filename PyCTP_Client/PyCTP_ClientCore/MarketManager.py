@@ -308,6 +308,7 @@ class MarketManagerForUi(QObject):
         # 拼接行情前置地址
         if self.__proxy_use:
             address = b'socks5://' + self.__front_address.encode()[6:] + b"/yuwangying:yuwangying@" + self.__proxy_address.encode()
+            print(">>>MarketManagerForUi.connect_front() address =", address)
         else:
             address = self.__front_address.encode()
         # address = b'tcp://61.152.165.100:41211 sock5://127.0.0.1:1080'

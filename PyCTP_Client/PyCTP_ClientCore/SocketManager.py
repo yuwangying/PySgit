@@ -79,6 +79,9 @@ class SocketManager(QtCore.QThread):
         super(SocketManager, self).__init__(parent)
         self.read_ip_address()  # 读取本地xml文件，获得ip_address
         self.__sockfd = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 创建socket通信服务实例
+        self.__sockfd.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1024 * 300)  # 设置发送缓冲区大小
+        self.__sockfd.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024 * 300)  # 设置接收区缓冲区大小
+
         self.__list_info_group = list()  # 一个消息分为多条发送，临时保存已经接收到的消息
         self.init_varable()  # 初始化变量
 
@@ -375,6 +378,8 @@ class SocketManager(QtCore.QThread):
             # print("SocketManager.re_connect() while self.__socket_connect_flag is False")
             # sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 创建socket通信服务实例
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1024 * 300)  # 设置发送缓冲区大小
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024 * 300)  # 设置接收区缓冲区大小
             try:
                 sock.connect((host, port))
                 self.__socket_connect_flag = True  # socket连线

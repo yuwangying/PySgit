@@ -88,6 +88,7 @@ class QAccountWidget(QWidget, Ui_Form):
         self.setupUi(self)  # 调用父类中配置界面的方法
         self.tableView_Trade_Args.setSortingEnabled(False)  # 列排序功能
         self.tableView_Trade_Args.horizontalHeader().setMovable(True)
+        self.tableView_Trade_Args.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.popMenu = QtGui.QMenu(self.tableView_Trade_Args)  # 创建鼠标右击菜单
         self.tableView_Trade_Args.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # self.tableView_Trade_Args.resizeColumnsToContents()  # tableView列宽自动适应

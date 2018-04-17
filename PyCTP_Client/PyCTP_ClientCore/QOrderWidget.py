@@ -19,6 +19,8 @@ class QOrderWidget(QWidget, Ui_Form):
     """
     Class documentation goes here.
     """
+    signal_update_order = QtCore.pyqtSignal()  # 信号：comboBox_account_id发生变化，槽：更新内核order数据
+    signal_update_trade = QtCore.pyqtSignal()  # 信号：comboBox_account_id发生变化，槽：更新内核trade数据
     def __init__(self, parent=None):
         """
         Constructor
@@ -156,6 +158,8 @@ class QOrderWidget(QWidget, Ui_Form):
         self.__socket_manager.signal_send_previous_data_order.connect(self.order_data_model.slot_receive_previous_data_order)
         # 信号槽连接：socket_manager发送最新order记录 -> order_data_model接收最新order记录
         self.__socket_manager.signal_send_last_data_order.connect(self.order_data_model.slot_receive_last_data_order)
+        # 信号槽连接：界面操作触发界面更新
+
         # 信号槽连接：socket_manager发送历史trade记录 -> order_data_model接收历史trade记录
         self.__socket_manager.signal_send_previous_data_trade.connect(self.trade_data_model.slot_receive_previous_data_trade)
         # 信号槽连接：socket_manager发送最新trade记录 -> order_data_model接收最新trade记录
@@ -173,21 +177,22 @@ class QOrderWidget(QWidget, Ui_Form):
             # self.init_comboBox_strategy_id(list_strategy)
             self.__already_init_comboBox_account_id = True
 
-    # 初始化comboBox可选项：策略编号，仅考虑期货账户不变话，策略增删改
+    # 初始化comboBox_strategy_id菜单，并触发order\trade数据更新
     def init_comboBox_strategy_id(self, list_input):
+        # 初始化comboBox_strategy_id菜单
         list_menu = copy.deepcopy(list_input)
         list_menu.sort()
         list_menu.insert(0, "所有")  # 在第一的位置插入"所有"
-        #
-        # if len(list_menu) != self.__last_len_list_menu:  #
-        #     self.__flag_list_menu_modify = True  # 策略的combBox菜单长度有变化
-        # else:
-        #     self.__flag_list_menu_modify = False  # 策略的combBox菜单长度有变化
-
         self.comboBox_strategy_id.blockSignals(True)
         self.comboBox_strategy_id.clear()
         self.comboBox_strategy_id.insertItems(0, list_menu)
         self.comboBox_strategy_id.blockSignals(False)
+        self.comboBox_strategy_id.setCurrentIndex(0)
+
+        # 设置order、trade数据
+        self.order_data_model.update_data()
+        self.trade_data_model.update_data()
+
         # 最近一次显示的策略编号没有被删除，继续显示该策略编号
         if self.last_combBox_strategy_id in list_menu:
             print("if self.last_combBox_strategy_id in list_menu: self.last_combBox_strategy_id =", self.last_combBox_strategy_id)
@@ -200,6 +205,21 @@ class QOrderWidget(QWidget, Ui_Form):
         print(">>>QOrderWidget.init_comboBox_strategy_id() self.last_combBox_strategy_id =", self.last_combBox_strategy_id)
 
         self.__last_len_list_menu = len(list_menu)  #
+
+    # 初始化comboBox_strategy_idc菜单，当comboBox_user_id发生变化时触发
+    def init_comboBox_strategy_id_for_change_user_id(self, list_input):
+        list_menu = copy.deepcopy(list_input)
+        list_menu.sort()
+        list_menu.insert(0, "所有")  # 在第一的位置插入"所有"
+
+        self.comboBox_strategy_id.blockSignals(True)  # 禁止触发信号
+        self.comboBox_strategy_id.clear()
+        self.comboBox_strategy_id.insertItems(0, list_menu)
+        self.comboBox_strategy_id.blockSignals(False)  # 解除禁止触发信号
+        self.__last_len_list_menu = len(list_menu)  # 菜单长度
+
+        # 默认显示所有策略
+        self.on_comboBox_strategy_id_currentIndexChanged(0)
 
     # 设置user、strategy的combBox中可选菜单
     def slot_set_combBox_user_strategy(self, dict_input):
@@ -629,6 +649,11 @@ class QOrderWidget(QWidget, Ui_Form):
         """
         # TODO: not implemented yet
         pass  # raise NotImplementedError
+        # 2018年4月17日09:23:54新增功能：更新comboBox_strategy_id菜单
+        current_user_id = self.comboBox_account_id.currentText()
+        list_strategy_id = self.__dict_user_strategy_tree[current_user_id]
+        print(">>>QOrderWidget.on_comboBox_account_id_currentIndexChanged() user_id =", current_user_id, "更新order数据")
+        self.init_comboBox_strategy_id(list_strategy_id)
 
     # @pyqtSlot(str)
     # def on_comboBox_account_id_currentIndexChanged(self, p0):
@@ -672,31 +697,11 @@ class QOrderWidget(QWidget, Ui_Form):
         @type int
         """
         # TODO: not implemented yet
+        self.last_combBox_account_id = self.comboBox_account_id.currentText()
         self.last_combBox_strategy_id = self.comboBox_strategy_id.currentText()
-        user_id = self.comboBox_account_id.currentText()
         self.update_order_data_Filter()  # 更新界面过滤条件
         self.update_trade_data_Filter()  # 更新界面过滤条件
-        # if self.__flag_list_menu_modify is False:
-        #     self.last_combBox_strategy_id = self.comboBox_strategy_id.currentText()
-        #     print(">>>QOrderWidget.on_comboBox_strategy_id_currentIndexChanged() 用户操作 self.last_combBox_strategy_id", self.last_combBox_strategy_id)
-        # else:
-        #     self.__flag_list_menu_modify = False
-        #     print(">>>QOrderWidget.on_comboBox_strategy_id_currentIndexChanged() 非用户操作 self.last_combBox_strategy_id", self.last_combBox_strategy_id)
 
-
-    # @pyqtSlot(str)
-    # def on_comboBox_strategy_id_currentIndexChanged(self, p0):
-    #     """
-    #     Slot documentation goes here.
-    #
-    #     @param p0 DESCRIPTION
-    #     @type str
-    #     """
-    #     # TODO: not implemented yet
-    #     self.last_combBox_strategy_id = self.comboBox_strategy_id.currentText()
-    #     print(">>>QOrderWidget.on_comboBox_strategy_id_currentIndexChanged() p0 self.last_combBox_strategy_id", self.last_combBox_strategy_id)
-
-    
     @pyqtSlot(QPoint)
     def on_tableView_all_orders_customContextMenuRequested(self, pos):
         """

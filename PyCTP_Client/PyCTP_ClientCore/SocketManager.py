@@ -638,6 +638,8 @@ class SocketManager(QtCore.QThread):
                         print(">>>SocketManager.receive_msg() MsgType=2，i['orderref'] =", i['orderref'])
                         if i['orderref'][:10] == '1000000001':
                             self.__dict_user_onrtnorder_last_recieve[user_id] = True  # 期货账户历史的最后一条OrderRef是否被收到
+                            print(">>>SocketManager.receive_msg() MsgType=2，user_id =", user_id, "last TS OrderRefID =", i['orderref'], "初始值True")
+
                         elif i['orderref'][:10] > '1000000001':
                             self.__dict_user_onrtnorder_last_recieve[user_id] = False  # 期货账户历史的最后一条OrderRef是否被收到
                         dict_init_data_model[user_id] = []  # tableView初始化数据模型需要的数据结构
